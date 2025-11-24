@@ -41,3 +41,4 @@ public class Notification {
     @JoinColumn(name = "related_user_id")
     private User relatedUser;
 }
+

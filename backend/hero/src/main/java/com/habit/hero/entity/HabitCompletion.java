@@ -33,6 +33,9 @@ public class HabitCompletion {
     @Column(name = "note")
     private String note;
 
+    @Column(name = "current_count")
+    private Integer currentCount = 0;
+
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
