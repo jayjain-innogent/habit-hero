@@ -3,6 +3,7 @@ package com.habit.hero.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Entity
@@ -35,5 +36,5 @@ public class Streak {
     private LocalDate lastActivityDate;
 
     @Column(name = "created_at")
-    private LocalDate createdAt;
+    private Timestamp createdAt;
 }

@@ -52,5 +52,5 @@ public class FeedPost {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "related_completion_id")
-    private HabitCompletion relatedCompletion;
+    private HabitLog relatedCompletion;
 }

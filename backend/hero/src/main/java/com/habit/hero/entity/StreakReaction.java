@@ -32,7 +32,7 @@ public class StreakReaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "completion_id")
-    private HabitCompletion completion;
+    private HabitLog completion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reactor_user_id")
