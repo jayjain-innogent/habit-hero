@@ -1,12 +1,12 @@
 package com.habit.hero.entity;
 
-import com.habit.hero.enums.Visibility;
+import com.habit.hero.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -20,20 +20,33 @@ public class Habit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "habit_id")
-    private Long habitId;
+    @Column(name = "id")
+    private Long Id;
 
-    @Column(name = "habit_name")
-    private String habitName;
+    @Column(name = "title")
+    private String title;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "category")
-    private String category;
+    private Categories category;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "cadence")
-    private String cadence;
+    private Cadence cadence;
 
-    @Column(name = "goal_per_period", precision = 10, scale = 2)
-    private BigDecimal goalPerPeriod;
+    @Column(name = "session_count")
+    private Integer sessionCount;
+
+    @Column(name = "target_value")
+    private BigDecimal targetValue;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "goal_type")
+    private GoalType goalType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "goal_unit")
+    private GoalUnit goalUnit;
 
     @Column(name = "start_date")
     private LocalDate startDate;
@@ -45,23 +58,23 @@ public class Habit {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "is_active")
-    private Boolean isActive = true;
-
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name= "status", nullable = false)
+    private HabitStatus status;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
+
+    @Column(name = "updated_at")
+    private Timestamp updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
     @OneToMany(mappedBy = "habit", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<HabitCompletion> completions;
+    private List<HabitLog> completions;
 
     @OneToOne(mappedBy = "habit", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Streak streak;
-
 }

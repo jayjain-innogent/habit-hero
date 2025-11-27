@@ -1,0 +1,86 @@
+.habit-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.back-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.habit-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.habit-icon {
+  font-size: 24px;
+  background: #e0e7ff;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.habit-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.habit-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.habit-category {
+  color: #6b7280;
+  margin: 0;
+}
+
+.habit-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.frequency {
+  color: #374151;
+  font-size: 14px;
+}
+
+.status {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.on-track {
+  background: #6366f1;
+  color: white;
+}
+
+.view-reports-btn {
+  background: none;
+  border: 1px solid #d1d5db;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.view-reports-btn:hover {
+  background-color: #f9fafb;
+}

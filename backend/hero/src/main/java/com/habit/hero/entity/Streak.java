@@ -15,13 +15,12 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class Streak {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "streak_id")
     private Long streakId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "habit_id", nullable = false)
     private Habit habit;
 

@@ -3,6 +3,7 @@ package com.habit.hero.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(
-        name = "habit_completions",
+        name = "habit_logs",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"habit_id", "completion_date"})
         }
@@ -20,24 +21,24 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HabitCompletion {
+public class HabitLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "completion_id")
-    private Long completionId;
+    @Column(name = "log_id")
+    private Long logId;
 
-    @Column(name = "completion_date")
-    private LocalDate completionDate;
+    @Column(name = "log_date")
+    private LocalDate logDate;
 
     @Column(name = "note")
     private String note;
 
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "actual_value")
+    private BigDecimal  acutalValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "habit_id")
