@@ -33,8 +33,7 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "is_private", nullable = false)
-    private Boolean isPrivate = false;
+    private String timezone = "Asia/Kolkata";
 
     @Column(name = "notification_prefs_friend_requests")
     private Boolean notificationPrefsFriendRequests = true;
@@ -51,12 +50,12 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<Habit> habits;
+    @OneToMany(mappedBy = "userId", fetch = FetchType.LAZY)
+    private List<Habit> habits;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Notification> notifications;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<FeedPost> feedPosts;
+    private List<FeedPost> feedPosts;
 }

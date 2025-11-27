@@ -1,18 +1,20 @@
 package com.habit.hero.entity;
 
+import com.habit.hero.enums.Frequency;
+import com.habit.hero.enums.GoalType;
+import com.habit.hero.enums.HabitStatus;
 import com.habit.hero.enums.Visibility;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "habits")
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -20,48 +22,84 @@ public class Habit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "habit_id")
-    private Long habitId;
+    private Long id;
 
-    @Column(name = "habit_name")
-    private String habitName;
 
-    @Column(name = "category")
-    private String category;
+    @JoinColumn(name = "user_id", nullable = false)
+    private Long userId;
 
-    @Column(name = "cadence")
-    private String cadence;
+    // Identity & Visuals
+    @Column(nullable = false)
+    private String title;
 
-    @Column(name = "goal_per_period", precision = 10, scale = 2)
-    private BigDecimal goalPerPeriod;
-
-    @Column(name = "start_date")
-    private LocalDate startDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "visibility")
-    private Visibility visibility;
-
-    @Column(name = "description")
     private String description;
 
-    @Column(name = "is_active")
-    private Boolean isActive = true;
+    @Column(nullable = false)
+    private String category;
 
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
+    @Column(length = 7)
+    private String color;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private String icon;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    // Timeline
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
 
-    @OneToMany(mappedBy = "habit", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<HabitCompletion> completions;
+    // Frequency
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Frequency frequency;
 
-    @OneToOne(mappedBy = "habit", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private Streak streak;
+    private Integer frequencyCount;
+
+//    @Column(columnDefinition = "jsonb")
+//    private String frequencyDays;
+
+    // Goal Configuration
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private GoalType goalType;
+
+    private BigDecimal targetValue;
+
+    private String unit;
+
+    // Privacy
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Visibility visibility;
+
+    // Status
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private HabitStatus status;
+
+    // Audit Logs
+    @Column(nullable = false, updatable = false)
+    private Timestamp createdAt;
+
+    @Column(nullable = false)
+    private Timestamp updatedAt;
+
+    // Set default values automatically
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = new Timestamp(System.currentTimeMillis());
+        this.updatedAt = new Timestamp(System.currentTimeMillis());
+
+        if (this.color == null) this.color = "#3B82F6";
+        if (this.icon == null) this.icon = "📝";
+        if (this.startDate == null) this.startDate = LocalDate.now();
+        if (this.frequency == null) this.frequency = Frequency.DAILY;
+        if (this.goalType == null) this.goalType = GoalType.OFF;
+        if (this.visibility == null) this.visibility = Visibility.PRIVATE;
+        if (this.status == null) this.status = HabitStatus.ACTIVE;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = new Timestamp(System.currentTimeMillis());
+    }
 
 }
