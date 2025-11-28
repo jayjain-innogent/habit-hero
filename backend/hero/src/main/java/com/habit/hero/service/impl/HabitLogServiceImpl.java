@@ -4,6 +4,8 @@ import com.habit.hero.dao.HabitDAO;
 import com.habit.hero.dao.HabitLogDAO;
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
+import com.habit.hero.dto.habitlog.HabitStatusItem;
+import com.habit.hero.dto.habitlog.TodayStatusResponse;
 import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
 import com.habit.hero.entity.User;
@@ -18,7 +20,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +53,7 @@ public class HabitLogServiceImpl implements HabitLogService {
         LocalDate logDate = request.getLogDate() == null ? LocalDate.now() : request.getLogDate();
 
         //unique check
-        habitLogDAO.findByHabitIdAndLogDate(habitId, logDate)
+        habitLogDAO.findTodayLog(habitId, logDate)
                 .ifPresent(l -> { throw new BadRequestException("Log already exists for this date"); });
 
         //map to entity
@@ -108,5 +113,36 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .map(HabitLogMapper::toResponse)
                 .toList();
     }
+
+    public TodayStatusResponse getTodayStatus(Long userId) {
+
+        if (userId == null)
+            throw new BadRequestException("userId required");
+
+        log.info("Fetching today-status for user {}", userId);
+
+        List<Habit> habits = habitDAO.findByUserId(userId);
+        LocalDate today = LocalDate.now();
+
+        Map<Long, HabitStatusItem> responseMap = new HashMap<>();
+
+        for (Habit habit : habits) {
+
+            Optional<HabitLog> todayLog =
+                    habitLogDAO.findTodayLog(habit.getId(), today);
+
+            HabitStatusItem item = todayLog
+                    .map(HabitLogMapper::toTodayStatus)
+                    .orElse(HabitStatusItem.builder()
+                            .completedToday(false)
+                            .actualValue(null)
+                            .build());
+
+            responseMap.put(habit.getId(), item);
+        }
+
+        return new TodayStatusResponse(responseMap);
+    }
+
 
 }

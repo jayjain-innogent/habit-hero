@@ -2,6 +2,7 @@ package com.habit.hero.controller;
 
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
+import com.habit.hero.dto.habitlog.TodayStatusResponse;
 import com.habit.hero.entity.HabitLog;
 import com.habit.hero.service.HabitLogService;
 import jakarta.validation.Valid;
@@ -67,6 +68,15 @@ public class HabitLogController {
         log.info("API: delete log {} user {}", logId, userId);
         habitLogService.deleteLog(userId, logId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/today-status")
+    public ResponseEntity<TodayStatusResponse> getTodayStatus(
+            @RequestHeader("userId") Long userId
+    ) {
+        log.info("API: get today-status for user {}", userId);
+        TodayStatusResponse resp = habitLogService.getTodayStatus(userId);
+        return ResponseEntity.ok(resp);
     }
 
 }

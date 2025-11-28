@@ -11,8 +11,8 @@ public interface HabitLogDAO {
     // Save or update a log
     HabitLog save(HabitLog log);
 
-    // Find log by habit and date (unique per day)
-    Optional<HabitLog> findByHabitIdAndLogDate(Long habitId, LocalDate logDate);
+    //find today's log for a habit
+    Optional<HabitLog> findTodayLog(Long habitId, LocalDate logDate);
 
     // All logs of a specific habit
     List<HabitLog> findByHabitId(Long habitId);

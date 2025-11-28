@@ -27,7 +27,7 @@ public class HabitLogDAOImpl implements HabitLogDAO {
 
     //find habit log with habitId and date
     @Override
-    public Optional<HabitLog> findByHabitIdAndLogDate(Long habitId, LocalDate logDate) {
+    public Optional<HabitLog> findTodayLog(Long habitId, LocalDate logDate) {
         log.info("Finding habit log by habitId {} and date {}", habitId, logDate);
         return habitLogRepository.findByHabit_IdAndLogDate(habitId, logDate);
     }

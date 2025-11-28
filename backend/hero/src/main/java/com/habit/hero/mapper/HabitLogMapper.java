@@ -2,6 +2,8 @@ package com.habit.hero.mapper;
 
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
+import com.habit.hero.dto.habitlog.HabitStatusItem;
+import com.habit.hero.dto.habitlog.TodayStatusResponse;
 import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
 
@@ -30,4 +32,19 @@ public class HabitLogMapper {
                 .createdAt(log.getCreatedAt())
                 .build();
     }
+
+    public static HabitStatusItem toTodayStatus(HabitLog log) {
+        if (log == null) {
+            return HabitStatusItem.builder()
+                    .completedToday(false)
+                    .actualValue(null)
+                    .build();
+        }
+
+        return HabitStatusItem.builder()
+                .completedToday(true)
+                .actualValue(log.getActualValue())
+                .build();
+    }
+
 }

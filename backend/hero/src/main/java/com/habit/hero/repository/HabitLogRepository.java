@@ -5,11 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public interface HabitLogRepository extends JpaRepository<HabitLog, Long> {
 
-    //check log exists or not
+    //check if habit completed today
     Optional<HabitLog> findByHabit_IdAndLogDate(Long habitId, LocalDate logDate);
 
     // Fetch all logs by habit id odr by date desc
