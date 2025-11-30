@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import "../../styles/habits.css";
 import { useNavigate } from "react-router-dom";
 import { createLog } from "../../api/habitLogs";
 import { updateTodayStatusCache } from "../../utils/cache";
@@ -169,21 +170,30 @@ export default function HabitCard({ habit, onComplete }) {
                         </div>
                     )}
 
-                    {!isCompleted && !isPaused && (
-                        <button
-                            className="btn btn-primary w-100 mb-3 py-2 fw-semibold shadow-sm"
-                            onClick={handleComplete}
-                            disabled={completing || (hasGoal && currentValue === 0)}
-                        >
-                            {completing ? (
-                                <>
-                                    <span className="spinner-border spinner-border-sm me-2" />
-                                    Saving...
-                                </>
-                            ) : (
-                                "Mark Complete"
-                            )}
-                        </button>
+                    {!isPaused && (
+                        <div className="fire-toggle-wrapper mb-3">
+                            <div
+                                className={`fire-switch ${isCompleted ? 'completed' : ''}`}
+                                onClick={!isCompleted && !completing && (!hasGoal || currentValue > 0) ? handleComplete : undefined}
+                                style={{
+                                    opacity: (hasGoal && currentValue === 0 && !isCompleted) ? 0.5 : 1,
+                                    cursor: (isCompleted || completing || (hasGoal && currentValue === 0)) ? 'default' : 'pointer'
+                                }}
+                                title={isCompleted ? "Streak Kept!" : "Ignite to Complete"}
+                            >
+                                <div className="fire-knob">
+                                    <span className="fire-icon">🔥</span>
+                                </div>
+                            </div>
+
+                            <button
+                                className="note-btn"
+                                onClick={() => alert("Note feature coming soon!")}
+                                title="Add Note"
+                            >
+                                Note
+                            </button>
+                        </div>
                     )}
 
                     <div className="d-flex justify-content-between border-top pt-3">

@@ -23,4 +23,5 @@ public interface HabitLogService {
 
     //today-status for all habits
     TodayStatusResponse getTodayStatus(Long userId);
+
 }
