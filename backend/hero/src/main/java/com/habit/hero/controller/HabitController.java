@@ -6,6 +6,7 @@ import com.habit.hero.dto.habit.HabitCreateRequest;
 import com.habit.hero.dto.habit.HabitResponse;
 import com.habit.hero.dto.habit.HabitUpdateRequest;
 import com.habit.hero.service.HabitService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/habits")
 @RequiredArgsConstructor
@@ -24,8 +26,8 @@ public class HabitController {
     //Create a new habit
     @PostMapping
     public ResponseEntity<HabitResponse> createHabit(
-            @RequestParam("userId") Long userId,
-            @RequestBody HabitCreateRequest request
+            @RequestHeader("userId") Long userId,
+            @Valid @RequestBody HabitCreateRequest request
             ){
         log.info("API: Creating habit for user {}", userId);
         HabitResponse response = habitService.createHabit(userId, request);
@@ -58,7 +60,7 @@ public class HabitController {
     public ResponseEntity<HabitResponse> updateHabit(
             @RequestHeader("userId") Long userId,
             @PathVariable Long habitId,
-            @RequestBody HabitUpdateRequest request
+            @Valid @RequestBody HabitUpdateRequest request
     ) {
         log.info("API: Updating habit {} for user {}", habitId, userId);
         HabitResponse response = habitService.updateHabit(userId, habitId, request);
@@ -80,7 +82,7 @@ public class HabitController {
     @PostMapping("/bulk")
     public ResponseEntity<List<HabitResponse>> bulkCreateHabits(
             @RequestHeader("userId") Long userId,
-            @RequestBody HabitBulkCreateRequest request
+            @Valid @RequestBody HabitBulkCreateRequest request
     ) {
         log.info("API: Bulk creating {} habits for user {}",
                 request.getHabits().size(), userId);
