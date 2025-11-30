@@ -26,11 +26,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(403).body(ex.getMessage());
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleOthers(Exception ex) {
-        ex.printStackTrace(); // REQUIRED to see actual error
-        return ResponseEntity.status(500).body("Internal server error");
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<String> handleInvalidDate(DateTimeParseException ex) {
+        return ResponseEntity.badRequest().body("Invalid date provided. Please use a valid calendar date.");
     }
-
 
 }

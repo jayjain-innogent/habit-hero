@@ -1,6 +1,6 @@
 package com.habit.hero.dto.habit;
 
-import com.habit.hero.enums.Frequency;
+import com.habit.hero.enums.Cadence;
 import com.habit.hero.enums.GoalType;
 import com.habit.hero.enums.Visibility;
 import com.habit.hero.enums.HabitStatus;
@@ -8,7 +8,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.sql.Timestamp;
 
 @Getter
 @Setter
@@ -18,26 +17,21 @@ import java.sql.Timestamp;
 public class HabitResponse {
 
     private Long id;
-    private Long userId;
+    private Long userId;                 // Extracted from habit.getUser().getId()
 
     private String title;
     private String description;
-    private String category;
-
-    private String color;
-    private String icon;
+    private String category;             // Enum → String
 
     private LocalDate startDate;
 
-    private Frequency frequency;
-    private Integer frequencyCount;
-    private String frequencyDays;
+    private Cadence cadence;
+    private Integer sessionCount;      // sessionCount
 
     private GoalType goalType;
     private BigDecimal targetValue;
-    private String unit;
+    private String unit;                 // GoalUnit enum → String
 
     private Visibility visibility;
-
     private HabitStatus status;
 }

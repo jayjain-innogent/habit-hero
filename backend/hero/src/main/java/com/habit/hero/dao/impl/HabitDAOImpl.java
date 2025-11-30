@@ -21,7 +21,7 @@ public class HabitDAOImpl implements HabitDAO {
     @Override
     public Habit save(Habit habit) {
         // Save or update habit
-        log.info("Saving habit for user {}", habit.getUserId());
+        log.info("Saving habit for user {}", habit.getUser());
         return habitRepository.save(habit);
     }
 
@@ -29,27 +29,27 @@ public class HabitDAOImpl implements HabitDAO {
     public Optional<Habit> findByIdAndUserId(Long habitId, Long userId) {
         // Ensure user owns this habit
         log.info("Finding habit {} for user {}", habitId, userId);
-        return habitRepository.findByIdAndUserId(habitId, userId);
+        return habitRepository.findByIdAndUser_UserId(habitId, userId);
     }
 
     @Override
     public List<Habit> findByUserId(Long userId) {
         // Return all habits for given user
         log.info("Fetching all habits for user {}", userId);
-        return habitRepository.findByUserId(userId);
+        return habitRepository.findByUser_UserId(userId);
     }
 
     @Override
     public List<Habit> findActiveHabits(Long userId) {
         // Return only active habits
         log.info("Fetching active habits for user {}", userId);
-        return habitRepository.findByUserIdAndStatus(userId, HabitStatus.ACTIVE);
+        return habitRepository.findByUser_UserIdAndStatus(userId, HabitStatus.ACTIVE);
     }
 
     @Override
     public void delete(Habit habit) {
         // Delete a habit
-        log.info("Deleting habit {} for user {}", habit.getId(), habit.getUserId());
+        log.info("Deleting habit {} for user {}", habit.getId(), habit.getUser());
         habitRepository.delete(habit);
     }
 

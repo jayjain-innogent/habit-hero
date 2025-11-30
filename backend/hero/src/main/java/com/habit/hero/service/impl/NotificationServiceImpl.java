@@ -1,6 +1,5 @@
 package com.habit.hero.service.impl;
 
-import com.habit.hero.dao.NotificationDAO;
 import com.habit.hero.dto.notification.NotificationResponse;
 import com.habit.hero.entity.Notification;
 import com.habit.hero.exception.AccessDeniedException;
