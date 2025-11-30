@@ -43,9 +43,4 @@ public class HabitLog {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> d399aa005139d2520c55c57a1f294150a6a7b1af

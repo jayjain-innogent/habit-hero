@@ -27,8 +27,4 @@ public class HabitCreateRequest {
 
     private Visibility visibility;         // Enum
     private HabitStatus status;            // Enum
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> d399aa005139d2520c55c57a1f294150a6a7b1af
