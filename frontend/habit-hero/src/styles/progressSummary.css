@@ -1,0 +1,126 @@
+.progress-summary-card {
+    background: linear-gradient(135deg, #0d6efd 0%, #4895ef 50%, #4cc9f0 100%);
+    padding: 32px;
+    border-radius: 20px;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.progress-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(13, 110, 253, 0.3);
+}
+
+.progress-summary-left {
+    flex-shrink: 0;
+}
+
+.progress-summary-right {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.progress-summary-right h4 {
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-size: 1.5rem;
+}
+
+.progress-summary-right p {
+    opacity: 0.95;
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.progress-summary-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.progress-summary-pill {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    padding: 14px 20px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+.progress-summary-pill:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.02);
+}
+
+.progress-summary-pill h5 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+}
+
+.progress-summary-pill small {
+    opacity: 0.9;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+@media (max-width: 992px) {
+    .progress-summary-card {
+        padding: 24px;
+        gap: 24px;
+    }
+
+    .progress-summary-right h4 {
+        font-size: 1.35rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .progress-summary-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 24px;
+    }
+
+    .progress-summary-left {
+        margin-bottom: 8px;
+    }
+
+    .progress-summary-stats {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-summary-card {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .progress-summary-right h4 {
+        font-size: 1.25rem;
+    }
+
+    .progress-summary-pill {
+        min-width: 85px;
+        padding: 10px 16px;
+    }
+
+    .progress-summary-pill h5 {
+        font-size: 1.5rem;
+    }
+}

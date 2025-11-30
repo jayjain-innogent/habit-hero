@@ -4,20 +4,19 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-
 
 @Entity
 @Table(
         name = "habit_logs",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"habit_id", "completion_date"})
+                @UniqueConstraint(columnNames = {"habit_id", "log_date"})
         }
 )
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -28,22 +27,20 @@ public class HabitLog {
     @Column(name = "log_id")
     private Long logId;
 
-    @Column(name = "log_date")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "habit_id", nullable = false)
+    private Habit habit;
+
+    @Column(name = "log_date", nullable = false)
     private LocalDate logDate;
+
+    @Column(name = "actual_value")
+    private BigDecimal actualValue;
 
     @Column(name = "note")
     private String note;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "actual_value")
-    private BigDecimal  acutalValue;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "habit_id")
-    private Habit habit;
-
-    @OneToMany(mappedBy = "completion", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    private List<StreakReaction> reactions;
 }

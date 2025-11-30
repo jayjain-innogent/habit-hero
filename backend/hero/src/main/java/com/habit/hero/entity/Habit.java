@@ -2,6 +2,7 @@ package com.habit.hero.entity;
 
 import com.habit.hero.enums.*;
 import jakarta.persistence.*;
+import jdk.jshell.Snippet;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -11,8 +12,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "habits")
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -58,10 +59,6 @@ public class Habit {
     @Column(name = "description")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name= "status", nullable = false)
-    private HabitStatus status;
-
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -77,4 +74,27 @@ public class Habit {
 
     @OneToOne(mappedBy = "habit", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Streak streak;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private HabitStatus status;
+
+    // Set default values automatically
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = new Timestamp(System.currentTimeMillis());
+        this.updatedAt = new Timestamp(System.currentTimeMillis());
+
+        if (this.startDate == null) this.startDate = LocalDate.now();
+        if (this.cadence == null) this.cadence = com.habit.hero.enums.Cadence.DAILY;
+        if (this.goalType == null) this.goalType = GoalType.OFF;
+        if (this.visibility == null) this.visibility = Visibility.PRIVATE;
+        if (this.status == null) this.status = HabitStatus.ACTIVE;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = new Timestamp(System.currentTimeMillis());
+    }
+
 }
