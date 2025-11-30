@@ -4,16 +4,15 @@ import com.habit.hero.enums.ReactionType;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "streak_reactions")
-@Setter
+@Table(name = "activity_reactions",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"activity_id", "reactor_user_id"}))
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StreakReaction {
+public class Reaction extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,21 +20,14 @@ public class StreakReaction {
     private Long reactionId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "reaction_type")
+    @Column(name = "reaction_type", nullable = false)
     private ReactionType reactionType;
 
-    @Column(name = "comment_text", columnDefinition = "TEXT")
-    private String commentText;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "activity_id", nullable = false)
+    private Activity activity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "completion_id")
-    private HabitCompletion completion;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reactor_user_id")
+    @JoinColumn(name = "reactor_user_id", nullable = false)
     private User reactor;
 }
-
