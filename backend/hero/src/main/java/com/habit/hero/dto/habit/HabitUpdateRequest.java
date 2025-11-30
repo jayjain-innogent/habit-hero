@@ -1,6 +1,6 @@
 package com.habit.hero.dto.habit;
 
-import com.habit.hero.enums.Frequency;
+import com.habit.hero.enums.Cadence;
 import com.habit.hero.enums.GoalType;
 import com.habit.hero.enums.Visibility;
 import com.habit.hero.enums.HabitStatus;
@@ -15,22 +15,16 @@ public class HabitUpdateRequest {
 
     private String title;
     private String description;
-    private String category;
+    private String category;               // String → Enum
 
-    private String color;
-    private String icon;
+    private Cadence cadence;               // Enum
+    private Integer sessionCount;        // sessionCount
 
-    private Frequency frequency;
-    private Integer frequencyCount;
-    private String frequencyDays;
+    private GoalType goalType;             // Enum
+    private String unit;                   // String → GoalUnit enum
 
-    private GoalType goalType;
-    private String unit;
+    private String targetValue;            // String → BigDecimal
 
-    // String → BigDecimal in mapper
-    private String targetValue;
-
-    private Visibility visibility;
-
-    private HabitStatus status;
+    private Visibility visibility;         // Enum
+    private HabitStatus status;            // Enum
 }

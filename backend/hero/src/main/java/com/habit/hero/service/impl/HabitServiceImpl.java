@@ -1,21 +1,18 @@
 package com.habit.hero.service.impl;
 
 import com.habit.hero.dao.HabitDAO;
-import com.habit.hero.dto.habit.HabitCreateRequest;
-import com.habit.hero.dto.habit.HabitResponse;
-import com.habit.hero.dto.habit.HabitUpdateRequest;
-import com.habit.hero.dto.habit.HabitBulkCreateRequest;
+import com.habit.hero.dto.habit.*;
 import com.habit.hero.entity.Habit;
-import com.habit.hero.exception.BadRequestException;
-import com.habit.hero.exception.ResourceNotFoundException;
+import com.habit.hero.entity.User;
+import com.habit.hero.enums.Cadence;
 import com.habit.hero.mapper.HabitMapper;
+import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.HabitService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.prefs.BackingStoreException;
 
 @Service
 @RequiredArgsConstructor
@@ -23,84 +20,78 @@ import java.util.prefs.BackingStoreException;
 public class HabitServiceImpl implements HabitService {
 
     private final HabitDAO habitDAO;
-    private HabitMapper habitMapper;
+    private final UserRepository userRepository;
 
     @Override
     public HabitResponse createHabit(Long userId, HabitCreateRequest request) {
-        log.info("Creating habit for user {}", userId);
-        if (userId == null || request == null) throw new BadRequestException("UserId and Request body requires");
 
-        Habit habit = HabitMapper.toEntity(request, userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        Habit habit = HabitMapper.toEntity(request, user);
+        if (request.getCadence() == Cadence.DAILY) {
+            request.setSessionCount(null); // No sessions required
+        }
         Habit saved = habitDAO.save(habit);
 
         return HabitMapper.toResponse(saved);
     }
 
     @Override
-    public HabitResponse getHabit(Long userId, Long habitId) {
-        log.info("Creating habit for user {} and habitId {}", userId, habitId);
-        if (userId == null || habitId == null) throw new BadRequestException("UserId and HabitId requires");
+    public HabitResponse updateHabit(Long userId, Long habitId, HabitUpdateRequest request) {
 
         Habit habit = habitDAO.findByIdAndUserId(habitId, userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Habit not found"));
+                .orElseThrow(() -> new RuntimeException("Habit not found or access denied"));
+
+        HabitMapper.updateEntity(habit, request);
+
+        Habit updatedHabit = habitDAO.save(habit);
+
+        return HabitMapper.toResponse(updatedHabit);
+    }
+
+    @Override
+    public HabitResponse getHabit(Long userId, Long habitId) {
+
+        Habit habit = habitDAO.findByIdAndUserId(habitId, userId)
+                .orElseThrow(() -> new RuntimeException("Habit not found or access denied"));
 
         return HabitMapper.toResponse(habit);
     }
 
     @Override
     public List<HabitResponse> getAllHabits(Long userId) {
-        log.info("Fetching all habits for user {}", userId);
-        if (userId == null) throw new BadRequestException("UserID requires");
-        return habitDAO.findByUserId(userId)
-                .stream()
+
+        List<Habit> habits = habitDAO.findByUserId(userId);
+
+        return habits.stream()
                 .map(HabitMapper::toResponse)
                 .toList();
     }
 
     @Override
-    public HabitResponse updateHabit(Long userId, Long habitId, HabitUpdateRequest request) {
-        log.info("Updating habit {} for user {}", habitId, userId);
-        if (userId == null || request == null || habitId == null) throw new BadRequestException("UserId, HabitId, and Request body requires");
-
-        Habit habit = habitDAO.findByIdAndUserId(habitId, userId).orElseThrow(
-                () -> new ResourceNotFoundException("Habit not found")
-        );
-
-        HabitMapper.updateEntity(habit, request);
-
-        Habit updated = habitDAO.save(habit);
-
-        return HabitMapper.toResponse(updated);
-    }
-
-    @Override
     public void deleteHabit(Long userId, Long habitId) {
-        if (userId == null || habitId == null) throw new BadRequestException("UserId and HabitId body requires");
 
-        Habit habit = habitDAO.findByIdAndUserId(habitId, userId).orElseThrow(
-                () -> new ResourceNotFoundException("Habit not found")
-        );
+        Habit habit = habitDAO.findByIdAndUserId(habitId, userId)
+                .orElseThrow(() -> new RuntimeException("Habit not found or access denied"));
 
         habitDAO.delete(habit);
     }
 
     @Override
     public List<HabitResponse> bulkCreateHabits(Long userId, HabitBulkCreateRequest request) {
-        log.info("Service: Bulk creating habits for user {}", userId);
 
-        // Convert each request DTO → Entity
-        List<Habit> habitEntities = request.getHabits()
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Habit> entities = request.getHabits()
                 .stream()
-                .map(h -> HabitMapper.toEntity(h, userId))
+                .map(h -> HabitMapper.toEntity(h, user))
                 .toList();
 
-        // Save all
-        List<Habit> savedHabits = habitDAO.saveAll(habitEntities);
+        List<Habit> saved = habitDAO.saveAll(entities);
 
-        // Convert entity list to response list
-        return savedHabits.stream()
+        return saved.stream()
                 .map(HabitMapper::toResponse)
                 .toList();
     }
