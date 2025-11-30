@@ -40,13 +40,10 @@ public class ReportService {
     ) {
         log.info("Generating weekly report for userId: {}, habitId: {}, period: {} to {}", 
                 userId, habitId, startDate, endDate);
-
         try {
-
             if (userId == null || habitId == null || startDate == null || endDate == null) {
                 throw new IllegalArgumentException("Required parameters cannot be null");
             }
-
             Optional<Habit> habitOpt = habitDao.findByIdAndUserId(habitId, userId);
             if (habitOpt.isEmpty()) {
                 log.warn("Habit not found for habitId: {} and userId: {}", habitId, userId);
@@ -231,7 +228,6 @@ public class ReportService {
                 for(int i = 0;i<prevWeekCompletions.size();i++){
                     prevWeekCount += prevWeekCompletions.get(i).getAcutalValue().doubleValue();
                 }
-
             }
             else{
                 expectedValue = 7d;
@@ -256,7 +252,7 @@ public class ReportService {
         data.setPreviousWeek(prevWeekStats);
 
         WeekComparison comparison = new WeekComparison();
-        comparison.setMissedDaysDiff(prevWeekStats.getMissedDays()-thisWeekStats.getMissedDays());
+        comparison.setMissedDaysDiff(thisWeekStats.getMissedDays()-prevWeekStats.getMissedDays());
         comparison.setCompletionsDiff(thisWeekCount - prevWeekCount);
         comparison.setPercentageDiff(Math.round((thisWeekRate - prevWeekRate)*100)/100.0);
 
