@@ -45,7 +45,4 @@ public class HabitCompletion {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "habit_id")
     private Habit habit;
-
-    @OneToMany(mappedBy = "completion", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    private List<StreakReaction> reactions;
 }
