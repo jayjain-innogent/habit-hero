@@ -1,0 +1,174 @@
+.trend-chart-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0;
+}
+
+.trend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.trend-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.trend-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.trend-indicator.positive {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.trend-indicator.negative {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.trend-indicator.neutral {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.trend-chart {
+  width: 100%;
+  height: 250px;
+  margin: 20px 0;
+}
+
+.trend-chart .grid-lines line {
+  stroke: #e0e0e0;
+  stroke-width: 1;
+  stroke-dasharray: 4, 4;
+}
+
+.trend-chart .grid-label {
+  font-size: 11px;
+  fill: #999;
+  text-anchor: end;
+  font-weight: 500;
+}
+
+.trend-chart .trend-line {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.trend-chart .trend-area {
+  pointer-events: none;
+}
+
+.trend-chart .trend-point {
+  fill: #2196F3;
+  stroke: white;
+  stroke-width: 2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trend-chart .data-point-group:hover .trend-point {
+  r: 6;
+  filter: drop-shadow(0 2px 6px rgba(33, 150, 243, 0.4));
+}
+
+.trend-chart .day-label {
+  font-size: 12px;
+  fill: #666;
+  font-weight: 500;
+}
+
+.trend-chart .date-label {
+  font-size: 10px;
+  fill: #999;
+  font-weight: 400;
+}
+
+.trend-chart .completion-label {
+  font-size: 11px;
+  fill: #2196F3;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.trend-chart .data-point-group:hover .completion-label {
+  opacity: 1;
+}
+
+.trend-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.trend-stat-item {
+  text-align: center;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.trend-stat-item .stat-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.trend-stat-item .stat-value {
+  display: block;
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+.trend-stat-item .stat-value.positive {
+  color: #4caf50;
+}
+
+.trend-stat-item .stat-value.negative {
+  color: #f44336;
+}
+
+.trend-stat-item .stat-value.neutral {
+  color: #2196f3;
+}
+
+@media (max-width: 768px) {
+  .trend-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .trend-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .trend-chart {
+    height: 200px;
+  }
+}

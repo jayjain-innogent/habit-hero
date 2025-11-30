@@ -37,19 +37,19 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #f8f9fa;
+  background: #f6f7f8;
 }
 
 .completion-rate .card-icon {
-  background: #e3f2fd;
+  background: #238bd5;
 }
 
 .streak .card-icon {
-  background: #fff3e0;
+  background: #f3a931;
 }
 
 .missed-days .card-icon {
-  background: #fce4ec;
+  background: #150107;
 }
 
 .card-content h3 {

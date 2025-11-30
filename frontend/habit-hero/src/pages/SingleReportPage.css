@@ -10,7 +10,7 @@
   text-align: center;
   margin-bottom: 40px;
   padding: 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0D6EFD 0%, #4895EF 50%, #4CC9F0 100%);
   border-radius: 16px;
   color: white;
 }
@@ -93,7 +93,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
-  margin-bottom: 30px;
+  margin-bottom: 0px;
 }
 
 .calendar-section {

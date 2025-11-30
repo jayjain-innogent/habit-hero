@@ -4,7 +4,9 @@ import ReportSummary from '../components/Report/ReportSummary';
 import ReportCalendar from '../components/Report/ReportCalendar';
 import WeekStats from '../components/Report/WeekStats';
 import WeekComparison from '../components/Report/WeekComparison';
+import TrendChart from '../components/Report/TrendChart';
 import './SingleReportPage.css';
+import { FaChartBar } from "react-icons/fa";
 
 const SingleReportPage = () => {
   const [reportData, setReportData] = useState(null);
@@ -21,7 +23,7 @@ const SingleReportPage = () => {
     startDate,
     endDate: new Date(new Date(startDate).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   };
-  const [habitId] = useState(6); // Default habit ID
+  const [habitId] = useState(6); 
 
   useEffect(() => {
     loadReportData();
@@ -60,9 +62,9 @@ const SingleReportPage = () => {
     return (
       <div className="single-report-page">
         <div className="error-container">
-          <h2>❌ Error Loading Report</h2>
+          <h2><i class="bi bi-x-lg"></i>Error Loading Report</h2>
           <p>{error}</p>
-          <button onClick={loadReportData} className="retry-btn">🔄 Retry</button>
+          <button onClick={loadReportData} className="retry-btn"><i class="bi bi-arrow-repeat"></i></button>
         </div>
       </div>
     );
@@ -72,7 +74,7 @@ const SingleReportPage = () => {
     return (
       <div className="single-report-page">
         <div className="no-data-container">
-          <h2>📊 No Data Available</h2>
+          <h2><i class="bi bi-graph-up"></i>No Data Available</h2>
           <p>No report data found for the selected period.</p>
         </div>
       </div>
@@ -82,8 +84,13 @@ const SingleReportPage = () => {
   return (
     <div className="single-report-page">
       <div className="report-header">
-        <h1>📊 Habit Progress Report</h1>
+        <h1><FaChartBar size={24} color= "White" /> Habit Progress Report</h1>
         <p className="report-subtitle">Track your journey to better habits</p>
+           {/* Summary Cards */}
+      <ReportSummary 
+        summary={reportData.summary}
+        habitName={reportData.habit.habitName}
+      />
         <div className="date-controls">
           <input
             type="date"
@@ -113,45 +120,40 @@ const SingleReportPage = () => {
           />
         </div>
       </div>
-
-      {/* Summary Cards */}
-      <ReportSummary 
-        summary={reportData.summary}
-        habitName={reportData.habit.habitName}
-      />
-
       {/* Calendar and Stats Container */}
       <div className="report-content">
-        {/* Left Column - Calendar */}
+        {/* Left Column - Calendar and Trend */}
         <div className="calendar-section">
           <ReportCalendar 
             habitId={habitId}
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}
           />
+          
+          <WeekComparison 
+            comparison={reportData.habit.weekOverWeekChange}
+          />
         </div>
 
-        {/* Right Column - Stats */}
+        {/* Right Column - Stats and Comparison */}
         <div className="stats-section">
           <WeekStats 
-            title="📅 Current Week"
+            title=<i class="bi bi-calendar-event">  Current Week</i>
             stats={reportData.habit.thisWeek}
             weekRange={reportData.weekRange}
           />
 
           <WeekStats 
-            title="📋 Previous Week"
+            title=<i class="bi bi-calendar-event-fill">  Previous Week</i>
             stats={reportData.habit.previousWeek}
           />
+         <TrendChart 
+            trendData={reportData.habit.dailyTrend}
+            startDate={dateRange.startDate}
+          />
+          
         </div>
       </div>
-
-      {/* Full Width Comparison */}
-      <WeekComparison 
-        comparison={reportData.habit.weekOverWeekChange}
-      />
-
-      {/* Quick Actions */}
       <div className="quick-actions">
         <button onClick={loadReportData} className="action-btn primary">🔄 Refresh Report</button>
         <button className="action-btn secondary">📤 Export Report</button>
