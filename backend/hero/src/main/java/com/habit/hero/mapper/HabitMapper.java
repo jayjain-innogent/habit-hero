@@ -1,70 +1,98 @@
 package com.habit.hero.mapper;
 
 import com.habit.hero.dto.habit.HabitCreateRequest;
-import com.habit.hero.dto.habit.HabitUpdateRequest;
 import com.habit.hero.dto.habit.HabitResponse;
+import com.habit.hero.dto.habit.HabitUpdateRequest;
 import com.habit.hero.entity.Habit;
+import com.habit.hero.entity.User;
+import com.habit.hero.enums.Cadence;
+import com.habit.hero.enums.Categories;
+import com.habit.hero.enums.GoalUnit;
 
 import java.math.BigDecimal;
 
 public class HabitMapper {
 
     // Convert Create Request to Entity
-    public static Habit toEntity(HabitCreateRequest request, Long userId) {
+    public static Habit toEntity(HabitCreateRequest request, User user) {
+
+        Integer sessionCount = null;
+
+        // RULE: Daily habits do NOT use sessionCount
+        if (request.getCadence() != Cadence.DAILY) {
+            sessionCount = request.getSessionCount();
+        }
+
         return Habit.builder()
-                .userId(userId)
+                .user(user)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .category(request.getCategory())
-                .color(request.getColor())
-                .icon(request.getIcon())
-                .frequency(request.getFrequency())
-                .frequencyCount(request.getFrequencyCount())
+                .category(Categories.valueOf(request.getCategory()))
+                .cadence(request.getCadence())
+                .sessionCount(sessionCount)
                 .goalType(request.getGoalType())
-                .unit(request.getUnit())
+                .goalUnit(request.getUnit() != null ? GoalUnit.valueOf(request.getUnit()) : null)
                 .targetValue(parseDecimal(request.getTargetValue()))
                 .visibility(request.getVisibility())
                 .status(request.getStatus())
                 .build();
     }
 
-    // Convert Update Request to Entity (existing entity updated)
+    // Convert Update Request to Entity (update existing entity)
     public static void updateEntity(Habit habit, HabitUpdateRequest request) {
 
         if (request.getTitle() != null) habit.setTitle(request.getTitle());
         if (request.getDescription() != null) habit.setDescription(request.getDescription());
-        if (request.getCategory() != null) habit.setCategory(request.getCategory());
-        if (request.getColor() != null) habit.setColor(request.getColor());
-        if (request.getIcon() != null) habit.setIcon(request.getIcon());
 
-        if (request.getFrequency() != null) habit.setFrequency(request.getFrequency());
-        if (request.getFrequencyCount() != null) habit.setFrequencyCount(request.getFrequencyCount());
+        if (request.getCategory() != null) {
+            habit.setCategory(Categories.valueOf(request.getCategory()));
+        }
 
+        // cadence first
+        if (request.getCadence() != null) {
+            habit.setCadence(request.getCadence());
+
+            // RULE: If cadence becomes DAILY → clear sessionCount
+            if (request.getCadence() == Cadence.DAILY) {
+                habit.setSessionCount(null);
+            }
+        }
+
+        // only apply sessionCount if not daily
+        if (request.getSessionCount() != null) {
+            if (habit.getCadence() != Cadence.DAILY) {
+                habit.setSessionCount(request.getSessionCount());
+            }
+        }
 
         if (request.getGoalType() != null) habit.setGoalType(request.getGoalType());
-        if (request.getUnit() != null) habit.setUnit(request.getUnit());
-        if (request.getTargetValue() != null) habit.setTargetValue(parseDecimal(request.getTargetValue()));
+
+        if (request.getUnit() != null) {
+            habit.setGoalUnit(GoalUnit.valueOf(request.getUnit()));
+        }
+
+        if (request.getTargetValue() != null) {
+            habit.setTargetValue(parseDecimal(request.getTargetValue()));
+        }
 
         if (request.getVisibility() != null) habit.setVisibility(request.getVisibility());
         if (request.getStatus() != null) habit.setStatus(request.getStatus());
     }
 
-    // Convert Entity to Response
+    // Entity to Response
     public static HabitResponse toResponse(Habit habit) {
         return HabitResponse.builder()
                 .id(habit.getId())
-                .userId(habit.getUserId())
+                .userId(habit.getUser().getUserId())
                 .title(habit.getTitle())
                 .description(habit.getDescription())
-                .category(habit.getCategory())
-                .color(habit.getColor())
-                .icon(habit.getIcon())
+                .category(habit.getCategory().name())
                 .startDate(habit.getStartDate())
-                .frequency(habit.getFrequency())
-                .frequencyCount(habit.getFrequencyCount())
+                .cadence(habit.getCadence())
+                .sessionCount(habit.getSessionCount())
                 .goalType(habit.getGoalType())
                 .targetValue(habit.getTargetValue())
-                .unit(habit.getUnit())
+                .unit(habit.getGoalUnit() != null ? habit.getGoalUnit().name() : null)
                 .visibility(habit.getVisibility())
                 .status(habit.getStatus())
                 .build();

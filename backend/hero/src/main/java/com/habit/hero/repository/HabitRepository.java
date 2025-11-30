@@ -12,11 +12,11 @@ import java.util.Optional;
 public interface HabitRepository extends JpaRepository<Habit, Long> {
 
     // Get all habits for user
-    List<Habit> findByUserId(Long userId);
+    List<Habit> findByUser_UserId(Long userId);
 
     // Get all active habits
-    List<Habit> findByUserIdAndStatus(Long userId, HabitStatus status);
+    List<Habit> findByUser_UserIdAndStatus(Long userId, HabitStatus status);
 
     // verify ownership
-    Optional<Habit> findByIdAndUserId(Long habitId, Long userId);
+    Optional<Habit> findByIdAndUser_UserId(Long habitId, Long userId);
 }

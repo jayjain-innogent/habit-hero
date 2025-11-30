@@ -28,6 +28,10 @@ public class Reaction extends BaseEntity {
     private Activity activity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reactor_user_id", nullable = false)
+    @JoinColumn(name = "completion_id")
+    private HabitLog completion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reactor_user_id")
     private User reactor;
 }
