@@ -24,4 +24,10 @@ public interface HabitLogService {
     //today-status for all habits
     TodayStatusResponse getTodayStatus(Long userId);
 
+    // NOTE CRUD
+    HabitLogResponse getNote(Long userId, Long logId);
+
+    HabitLogResponse updateNote(Long userId, Long logId, String note);
+
+    void deleteNote(Long userId, Long logId);
 }
