@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../../styles/habits.css";
 import { useNavigate } from "react-router-dom";
-import { createLog } from "../../api/habitLogs";
+import { createLog, deleteLog } from "../../api/habitLogs";
 import { updateTodayStatusCache } from "../../utils/cache";
 import NoteModal from "./NoteModal";
+import ConfirmationModal from "../common/ConfirmationModal";
 
-export default function HabitCard({ habit, onComplete }) {
+export default function HabitCard({ habit, onComplete, onUncomplete }) {
     const navigate = useNavigate();
     const userId = 1;
 
@@ -17,9 +18,15 @@ export default function HabitCard({ habit, onComplete }) {
     const [showNoteModal, setShowNoteModal] = useState(false);
     const [localNote, setLocalNote] = useState(habit.note || "");
 
+    const [showUncompleteWarning, setShowUncompleteWarning] = useState(false);
+
     const isCompleted = habit.completedToday === true;
     const isPaused = habit.status === "PAUSED";
     const hasGoal = habit.goalType !== "OFF";
+
+    const today = new Date().toISOString().split('T')[0];
+    const startDate = habit.startDate ? new Date(habit.startDate).toISOString().split('T')[0] : null;
+    const isFuture = startDate && startDate > today;
 
     const handleComplete = async () => {
         try {
@@ -39,6 +46,32 @@ export default function HabitCard({ habit, onComplete }) {
         }
     };
 
+    const handleUncomplete = async () => {
+        if (!habit.logId) return;
+        try {
+            setCompleting(true);
+            await deleteLog(userId, habit.logId);
+
+            // Update cache to remove completion status (simplified)
+            // Ideally we should refetch or have a robust cache update for deletion
+
+            if (onUncomplete) onUncomplete(habit.id);
+            setShowUncompleteWarning(false);
+        } catch (err) {
+            alert("Failed to uncomplete habit");
+        } finally {
+            setCompleting(false);
+        }
+    };
+
+    const handleFireClick = () => {
+        if (isCompleted) {
+            setShowUncompleteWarning(true);
+        } else if (!completing && (!hasGoal || currentValue > 0) && !isFuture) {
+            handleComplete();
+        }
+    };
+
     const updateScrubberValue = (clientX) => {
         if (!scrubberRef.current || !hasGoal) return;
 
@@ -54,7 +87,7 @@ export default function HabitCard({ habit, onComplete }) {
     };
 
     const handleMouseDown = (e) => {
-        if (isCompleted || isPaused) return;
+        if (isCompleted || isPaused || isFuture) return;
         setIsDragging(true);
         updateScrubberValue(e.clientX);
     };
@@ -95,16 +128,28 @@ export default function HabitCard({ habit, onComplete }) {
                 />
             )}
 
+            <ConfirmationModal
+                show={showUncompleteWarning}
+                onClose={() => setShowUncompleteWarning(false)}
+                onConfirm={handleUncomplete}
+                title="Uncomplete Habit?"
+                message="Are you sure you want to mark this habit as incomplete? This will remove your progress for today."
+                confirmText="Yes, Uncomplete"
+                variant="warning"
+            />
+
             <div
                 className={`card border-0 shadow-sm h-100 bg-white`}
                 style={{
                     transition: "all 0.3s ease",
-                    opacity: isCompleted ? 0.8 : isPaused ? 0.7 : 1,
+                    opacity: isCompleted ? 0.8 : (isPaused || isFuture) ? 0.7 : 1,
                     borderLeft: isCompleted
                         ? "4px solid #10b981"
                         : isPaused
                             ? "4px solid #f59e0b"
-                            : "4px solid transparent"
+                            : isFuture
+                                ? "4px solid #6c757d"
+                                : "4px solid transparent"
                 }}
             >
                 <div className="card-body d-flex flex-column p-4">
@@ -116,6 +161,9 @@ export default function HabitCard({ habit, onComplete }) {
                         <div className="d-flex gap-2">
                             {isCompleted && (
                                 <span className="badge bg-success-subtle text-success rounded-pill">Done</span>
+                            )}
+                            {isFuture && (
+                                <span className="badge bg-secondary-subtle text-secondary rounded-pill">Upcoming</span>
                             )}
                         </div>
                     </div>
@@ -144,7 +192,7 @@ export default function HabitCard({ habit, onComplete }) {
 
                     <div className="mt-auto">
 
-                        {!isCompleted && hasGoal && !isPaused && (
+                        {!isCompleted && hasGoal && !isPaused && !isFuture && (
                             <div className="mb-4">
                                 <div className="d-flex justify-content-between align-items-end mb-2">
                                     <label className="form-label small fw-bold text-secondary mb-0">LOG PROGRESS</label>
@@ -187,16 +235,22 @@ export default function HabitCard({ habit, onComplete }) {
                             </div>
                         )}
 
-                        {!isPaused && (
+                        {isFuture && !isCompleted && (
+                            <div className="alert alert-secondary mb-3 py-2 px-3" style={{ fontSize: "0.875rem", borderRadius: "8px" }}>
+                                <strong>Upcoming</strong> - Starts on {new Date(habit.startDate).toLocaleDateString()}.
+                            </div>
+                        )}
+
+                        {!isPaused && !isFuture && (
                             <div className="fire-toggle-wrapper mb-3">
                                 <div
                                     className={`fire-switch ${isCompleted ? 'completed' : ''}`}
-                                    onClick={!isCompleted && !completing && (!hasGoal || currentValue > 0) ? handleComplete : undefined}
+                                    onClick={handleFireClick}
                                     style={{
                                         opacity: (hasGoal && currentValue === 0 && !isCompleted) ? 0.5 : 1,
-                                        cursor: (isCompleted || completing || (hasGoal && currentValue === 0)) ? 'default' : 'pointer'
+                                        cursor: (isCompleted || completing || (hasGoal && currentValue === 0)) ? 'pointer' : 'pointer'
                                     }}
-                                    title={isCompleted ? "Streak Kept!" : "Ignite to Complete"}
+                                    title={isCompleted ? "Click to Uncomplete" : "Ignite to Complete"}
                                 >
                                     <div className="fire-knob">
                                         <span className="fire-icon">🔥</span>

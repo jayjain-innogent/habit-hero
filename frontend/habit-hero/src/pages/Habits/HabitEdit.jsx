@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import HabitForm from "../../components/habits/HabitForm";
-import { getHabitById, updateHabit } from "../../api/habits";
+import { getHabitById, updateHabit, deleteHabit } from "../../api/habits";
 
 export default function HabitEdit() {
     const { habitId } = useParams();
@@ -37,6 +37,18 @@ export default function HabitEdit() {
         } catch (err) {
             setError(err.response?.data?.message || "Failed to update habit");
         } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            setLoading(true);
+            await deleteHabit(userId, habitId);
+            window.forceReloadHabits = true;
+            navigate("/habits");
+        } catch (err) {
+            setError("Failed to delete habit");
             setLoading(false);
         }
     };
@@ -84,7 +96,12 @@ export default function HabitEdit() {
                 {initialData && (
                     <div className="row justify-content-center">
                         <div className="col-12 col-lg-10 col-xl-8">
-                            <HabitForm mode="edit" initialData={initialData} onSubmit={handleUpdate} />
+                            <HabitForm
+                                mode="edit"
+                                initialData={initialData}
+                                onSubmit={handleUpdate}
+                                onDelete={handleDelete}
+                            />
                         </div>
                     </div>
                 )}

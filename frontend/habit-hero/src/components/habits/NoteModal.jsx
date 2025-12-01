@@ -4,6 +4,8 @@ import { getNote, updateNote, deleteNote } from "../../api/habitLogs";
 export default function NoteModal({ logId, userId, show, onClose, onUpdated }) {
     const [loading, setLoading] = useState(false);
     const [noteText, setNoteText] = useState("");
+    const [originalNote, setOriginalNote] = useState("");
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         if (show && logId) {
@@ -15,7 +17,11 @@ export default function NoteModal({ logId, userId, show, onClose, onUpdated }) {
         try {
             setLoading(true);
             const resp = await getNote(userId, logId);
-            setNoteText(resp.note || "");
+            const note = resp.note || "";
+            setNoteText(note);
+            setOriginalNote(note);
+            // If note is empty, start in edit mode. If exists, start in read-only.
+            setIsEditing(!note);
         } catch (err) {
             console.error("Failed to load note");
         } finally {
@@ -26,6 +32,13 @@ export default function NoteModal({ logId, userId, show, onClose, onUpdated }) {
     const handleSave = async () => {
         if (!noteText.trim()) {
             alert("Note cannot be empty");
+            return;
+        }
+
+        // If content hasn't changed, just close (or exit edit mode)
+        if (noteText.trim() === originalNote.trim()) {
+            setIsEditing(false);
+            onClose();
             return;
         }
 
@@ -69,7 +82,7 @@ export default function NoteModal({ logId, userId, show, onClose, onUpdated }) {
                     value={noteText}
                     onChange={(e) => setNoteText(e.target.value)}
                     placeholder="Write something..."
-                    disabled={loading}
+                    disabled={loading || !isEditing}
                 />
 
                 <div className="d-flex justify-content-between mt-3">
@@ -84,15 +97,20 @@ export default function NoteModal({ logId, userId, show, onClose, onUpdated }) {
                             </button>
                         )}
 
-                        <button className="btn btn-primary" onClick={handleSave} disabled={loading}>
-                            Save
-                        </button>
+                        {!isEditing ? (
+                            <button className="btn btn-primary" onClick={() => setIsEditing(true)} disabled={loading}>
+                                Edit
+                            </button>
+                        ) : (
+                            <button className="btn btn-primary" onClick={handleSave} disabled={loading}>
+                                Save
+                            </button>
+                        )}
                     </div>
                 </div>
-
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .modal-overlay {
                     position: fixed;
                     top: 0;

@@ -77,3 +77,13 @@ export const deleteNote = async (userId, logId) => {
     );
     return response.data;
 };
+
+export const deleteLog = async (userId, logId) => {
+    const response = await axiosInstance.delete(
+        `${HABIT_LOG_BASE_URL}/logs/${logId}`,
+        {
+            headers: { userId }
+        }
+    );
+    return response.data;
+};
