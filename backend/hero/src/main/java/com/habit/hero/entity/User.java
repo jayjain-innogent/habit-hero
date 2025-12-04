@@ -13,6 +13,7 @@ import java.util.Set;
 @Table(name = "users")
 @Setter
 @Getter
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -46,6 +47,9 @@ public class User {
 
     @Column(name = "user_bio")
     private String userBio;
+
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

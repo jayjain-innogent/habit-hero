@@ -3,7 +3,6 @@ package com.habit.hero.service.impl;
 import com.habit.hero.dto.friend.FriendDto;
 import com.habit.hero.dto.friend.FriendRequestResponseDto;
 import com.habit.hero.dto.friend.RespondToRequestDto;
-import com.habit.hero.dto.friend.SendFriendRequestDto;
 import com.habit.hero.entity.FriendList;
 import com.habit.hero.entity.FriendRequest;
 import com.habit.hero.entity.User;
@@ -30,40 +29,20 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     @Transactional
-    public void sendFriendRequest(Long senderId, SendFriendRequestDto dto) {
+    public void sendFriendRequest(Long senderId, Long receiverId) {
 
-        if (senderId.equals(dto.getReceiverId())) {
+        if (senderId.equals(receiverId)) {
             throw new IllegalArgumentException("You cannot send a request to yourself");
         }
 
         User sender = getUser(senderId);
-        User receiver = getUser(dto.getReceiverId());
+        User receiver = getUser(receiverId);
 
         if (friendListRepository.existsFriendship(sender, receiver)) {
-            throw new IllegalStateException("You are already friends.");
+            return;
         }
 
-        friendRequestRepository.findAnyRequest(receiver, sender)
-                .ifPresent(opposite -> {
-                    if (opposite.getStatus() == FriendRequestStatus.PENDING) {
-                        throw new IllegalStateException("This user has already sent you a request.");
-                    }
-                });
-
-        friendRequestRepository.findAnyRequest(sender, receiver)
-                .ifPresent(old -> {
-                    if (old.getStatus() == FriendRequestStatus.REJECTED ||
-                            old.getStatus() == FriendRequestStatus.CANCELLED) {
-
-                        friendRequestRepository.deleteRequestsByStatus(
-                                sender,
-                                receiver,
-                                List.of(FriendRequestStatus.REJECTED, FriendRequestStatus.CANCELLED)
-                        );
-                    } else {
-                        throw new IllegalStateException("Friend request already exists.");
-                    }
-                });
+        friendRequestRepository.deleteExistingBetween(sender, receiver);
 
         FriendRequest request = FriendRequest.builder()
                 .sender(sender)
@@ -73,6 +52,7 @@ public class FriendServiceImpl implements FriendService {
 
         friendRequestRepository.save(request);
     }
+
 
 
     @Override
@@ -122,11 +102,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public void removeFriend(Long userId, Long friendId) {
-
-        User user = getUser(userId);
-        User friend = getUser(friendId);
-
-        friendListRepository.removeFriend(user, friend);
+        friendListRepository.removeFriend(userId, friendId);
     }
 
 
@@ -141,10 +117,28 @@ public class FriendServiceImpl implements FriendService {
                         .requestId(fr.getRequestId())
                         .senderId(fr.getSender().getUserId())
                         .senderUsername(fr.getSender().getUsername())
+                        .senderProfileImage(fr.getSender().getProfileImageUrl())
+                        .senderBio(fr.getSender().getUserBio())  // Add bio mapping
                         .status(fr.getStatus().name())
                         .build())
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<FriendRequestResponseDto> getSentRequests(Long userId) {
+        User sender = getUser(userId);
+
+        return friendRequestRepository.findBySenderAndStatus(sender, FriendRequestStatus.PENDING)
+                .stream()
+                .map(fr -> FriendRequestResponseDto.builder()
+                        .requestId(fr.getRequestId())
+                        .senderId(fr.getReceiver().getUserId())  // For sent requests, we care about the receiver
+                        .senderUsername(fr.getReceiver().getUsername())  // Receiver's username
+                        .status(fr.getStatus().name())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public List<FriendDto> getFriendList(Long userId) {
@@ -159,6 +153,8 @@ public class FriendServiceImpl implements FriendService {
                     return FriendDto.builder()
                             .friendId(friend.getUserId())
                             .friendUsername(friend.getUsername())
+                            .friendProfileImage(friend.getProfileImageUrl())
+                            .friendBio(friend.getUserBio())  // Add bio mapping
                             .build();
                 })
                 .collect(Collectors.toList());

@@ -11,5 +11,7 @@ public class FriendRequestResponseDto {
     private Long requestId;
     private Long senderId;
     private String senderUsername;
+    private String senderProfileImage;
+    private String senderBio;
     private String status;
 }
