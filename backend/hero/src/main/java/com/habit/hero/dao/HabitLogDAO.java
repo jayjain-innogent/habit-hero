@@ -25,4 +25,7 @@ public interface HabitLogDAO {
 
     //Fetch log by HabitId and logDate range
     List<HabitLog> findByHabitIdAndDateRange(Long habitId, LocalDate startDate, LocalDate endDate);
+
+    //Fetch all logs belonging to user
+    List<HabitLog> findLogsForUserInDateRange(Long userId, LocalDate startDate, LocalDate endDate);
 }
