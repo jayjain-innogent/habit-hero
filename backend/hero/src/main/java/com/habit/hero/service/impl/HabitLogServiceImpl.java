@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -35,33 +32,30 @@ public class HabitLogServiceImpl implements HabitLogService {
     private final UserRepository userRepository;
 
     @Override
-    public HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request){
+    public HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request) {
+
         if (userId == null || habitId == null || request == null)
             throw new BadRequestException("userId, habitId, and request body required");
 
         log.info("Creating log for user {} habit {}", userId, habitId);
 
-        //user check
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        //Habit check
         Habit habit = habitDAO.findByIdAndUserId(habitId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Habit not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
-        //setting the date
         LocalDate logDate = request.getLogDate() == null ? LocalDate.now() : request.getLogDate();
 
-        //unique check
         habitLogDAO.findTodayLog(habitId, logDate)
-                .ifPresent(l -> { throw new BadRequestException("Log already exists for this date"); });
+                .ifPresent(l -> {
+                    throw new BadRequestException("Log already exists for this date");
+                });
 
-        //map to entity
         HabitLog logEntity = HabitLogMapper.toEntity(request, habit);
         logEntity.setCreatedAt(LocalDateTime.now());
         logEntity.setLogDate(logDate);
 
-        //save
         HabitLog saved = habitLogDAO.save(logEntity);
 
         return HabitLogMapper.toResponse(saved);
@@ -69,12 +63,12 @@ public class HabitLogServiceImpl implements HabitLogService {
 
     @Override
     public List<HabitLogResponse> getLogsForHabit(Long userId, Long habitId) {
+
         if (userId == null || habitId == null)
             throw new BadRequestException("userId and habitId required");
 
         log.info("Fetching logs for user {} habit {}", userId, habitId);
 
-        //check access
         habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
@@ -82,11 +76,11 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .stream()
                 .map(HabitLogMapper::toResponse)
                 .toList();
-
     }
 
     @Override
     public void deleteLog(Long userId, Long logId) {
+
         if (userId == null || logId == null)
             throw new BadRequestException("userId and logId required");
 
@@ -100,8 +94,9 @@ public class HabitLogServiceImpl implements HabitLogService {
 
     @Override
     public List<HabitLogResponse> getLogsInRange(Long userId, Long habitId, LocalDate start, LocalDate end) {
+
         if (userId == null || habitId == null || start == null || end == null)
-            throw new BadRequestException("userId, habitId, start and end required");
+            throw new BadRequestException("userId, habitId, start, and end required");
 
         log.info("Fetching logs in range {} to {} for user {} habit {}", start, end, userId, habitId);
 
@@ -114,6 +109,7 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .toList();
     }
 
+    @Override
     public TodayStatusResponse getTodayStatus(Long userId) {
 
         if (userId == null)
@@ -128,15 +124,17 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         for (Habit habit : habits) {
 
-            Optional<HabitLog> todayLog =
-                    habitLogDAO.findTodayLog(habit.getId(), today);
+            Optional<HabitLog> todayLog = habitLogDAO.findTodayLog(habit.getId(), today);
 
             HabitStatusItem item = todayLog
                     .map(HabitLogMapper::toTodayStatus)
-                    .orElse(HabitStatusItem.builder()
-                            .completedToday(false)
-                            .actualValue(null)
-                            .build());
+                    .orElse(
+                            HabitStatusItem.builder()
+                                    .completedToday(false)
+                                    .actualValue(null)
+                                    .logId(null)
+                                    .build()
+                    );
 
             responseMap.put(habit.getId(), item);
         }
@@ -144,5 +142,51 @@ public class HabitLogServiceImpl implements HabitLogService {
         return new TodayStatusResponse(responseMap);
     }
 
+    @Override
+    public HabitLogResponse getNote(Long userId, Long logId) {
 
+        if (userId == null || logId == null)
+            throw new BadRequestException("userId and logId required");
+
+        log.info("Fetching note for user {} log {}", userId, logId);
+
+        HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
+
+        return HabitLogMapper.toResponse(logEntity);
+    }
+
+    @Override
+    public HabitLogResponse updateNote(Long userId, Long logId, String note) {
+
+        if (userId == null || logId == null || note == null || note.trim().isEmpty())
+            throw new BadRequestException("userId, logId and note are required");
+
+        log.info("Updating note for user {} log {}", userId, logId);
+
+        HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
+
+        logEntity.setNote(note);
+
+        HabitLog updated = habitLogDAO.save(logEntity);
+
+        return HabitLogMapper.toResponse(updated);
+    }
+
+    @Override
+    public void deleteNote(Long userId, Long logId) {
+
+        if (userId == null || logId == null)
+            throw new BadRequestException("userId and logId required");
+
+        log.info("Deleting note for user {} log {}", userId, logId);
+
+        HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
+
+        logEntity.setNote(null);
+
+        habitLogDAO.save(logEntity);
+    }
 }

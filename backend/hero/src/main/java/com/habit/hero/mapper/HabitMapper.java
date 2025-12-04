@@ -34,6 +34,7 @@ public class HabitMapper {
                 .goalUnit(request.getUnit() != null ? GoalUnit.valueOf(request.getUnit()) : null)
                 .targetValue(parseDecimal(request.getTargetValue()))
                 .visibility(request.getVisibility())
+                .startDate(request.getStartDate())
                 .status(request.getStatus())
                 .build();
     }

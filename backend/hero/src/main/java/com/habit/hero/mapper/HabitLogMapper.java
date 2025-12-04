@@ -17,7 +17,6 @@ public class HabitLogMapper {
                 .habit(habit)
                 .logDate(req.getLogDate() == null ? LocalDate.now() : req.getLogDate())
                 .actualValue(req.getActualValue())
-                .note(req.getNote())
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -38,12 +37,14 @@ public class HabitLogMapper {
             return HabitStatusItem.builder()
                     .completedToday(false)
                     .actualValue(null)
+                    .logId(null)
                     .build();
         }
 
         return HabitStatusItem.builder()
                 .completedToday(true)
                 .actualValue(log.getActualValue())
+                .logId(log.getLogId())
                 .build();
     }
 

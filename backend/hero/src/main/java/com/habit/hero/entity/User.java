@@ -57,5 +57,5 @@ public class User {
     private List<Notification> notifications;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<FeedPost> feedPosts;
+    private List<Activity> feedPosts;
 }

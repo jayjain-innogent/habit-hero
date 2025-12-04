@@ -18,7 +18,7 @@ public interface HabitDAO {
     List<Habit> findByUserId(Long userId);
 
     // Get only active habits of a user
-    List<Habit> findActiveHabits(Long userId);
+    List<Habit> findActiveHabitsSorted(Long userId);
 
     // Delete a habit
     void delete(Habit habit);

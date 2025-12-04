@@ -6,6 +6,8 @@ import com.habit.hero.enums.Visibility;
 import com.habit.hero.enums.HabitStatus;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,5 +28,6 @@ public class HabitCreateRequest {
     private String targetValue;            // String → BigDecimal
 
     private Visibility visibility;         // Enum
-    private HabitStatus status;            // Enum
+    private HabitStatus status;
+    private LocalDate startDate;
 }
