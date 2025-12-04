@@ -17,8 +17,6 @@ export default function HabitCreate() {
 
             await createHabit(userId, formData);
 
-            window.forceReloadHabits = true;
-
             navigate("/habits");
         } catch (err) {
             setError(err.response?.data?.message || "Failed to create habit");
