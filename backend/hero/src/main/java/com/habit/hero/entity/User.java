@@ -13,6 +13,7 @@ import java.util.Set;
 @Table(name = "users")
 @Setter
 @Getter
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -22,6 +23,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
+
+    @Column(name = "name")
+    private String name;
 
     @Email
     @Column(name = "email", nullable = false, unique = true)
@@ -46,6 +50,9 @@ public class User {
 
     @Column(name = "user_bio")
     private String userBio;
+
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

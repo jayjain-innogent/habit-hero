@@ -1,0 +1,84 @@
+.friend-request-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  border: 1px solid #e1e8ed;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+}
+
+.friend-request-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.friend-request-card .user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.friend-request-card .user-info:hover .username {
+  color: #007bff;
+}
+
+.friend-request-card .avatar img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #e1e8ed;
+  transition: border-color 0.3s ease;
+}
+
+.friend-request-card .user-info:hover .avatar img {
+  border-color: #007bff;
+}
+
+.friend-request-card .username {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  transition: color 0.3s ease;
+}
+
+.friend-request-card .actions {
+  display: flex;
+  gap: 8px;
+}
+
+.friend-request-card .actions .btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.friend-request-card .actions .btn.accept {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.friend-request-card .actions .btn.accept:hover {
+  background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+  transform: translateY(-1px);
+}
+
+.friend-request-card .actions .btn.reject {
+  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+  color: white;
+}
+
+.friend-request-card .actions .btn.reject:hover {
+  background: linear-gradient(135deg, #c82333 0%, #e8590c 100%);
+  transform: translateY(-1px);
+}

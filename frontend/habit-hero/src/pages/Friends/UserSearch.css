@@ -1,0 +1,95 @@
+.user-search-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.user-search-item:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.username {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.bio {
+  font-size: 14px;
+  color: #666;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn.add {
+  background: #007bff;
+  color: white;
+}
+
+.btn.remove {
+  background: #dc3545;
+  color: white;
+}
+
+.btn.accept {
+  background: #28a745;
+  color: white;
+}
+
+.btn.reject {
+  background: #6c757d;
+  color: white;
+}
+
+.btn.cancel {
+  background: #ffc107;
+  color: #333;
+}
+
+.btn.loading {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.btn:hover:not(.loading) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}

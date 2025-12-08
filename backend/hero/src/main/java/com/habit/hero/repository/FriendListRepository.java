@@ -17,11 +17,9 @@ public interface FriendListRepository extends JpaRepository<FriendList, Long> {
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM FriendList fl WHERE fl.user = :user AND fl.friend = :friend")
-    void removeFriend(
-            @Param("user") User user,
-            @Param("friend") User friend
-    );
+    @Query("DELETE FROM FriendList fl WHERE (fl.user.userId = :userId AND fl.friend.userId = :friendId) OR (fl.user.userId = :friendId AND fl.friend.userId = :userId)")
+    void removeFriend(@Param("userId") Long userId, @Param("friendId") Long friendId);
+
 
     @Query("""
         SELECT COUNT(fl) > 0
