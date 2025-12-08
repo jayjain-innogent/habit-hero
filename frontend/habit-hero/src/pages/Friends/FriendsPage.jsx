@@ -34,25 +34,24 @@ function FriendsPage() {
   }, [searchQuery]);
 
   async function fetchAllData() {
-  try {
-    setLoading(true);
-    const [pendingRes, friendsRes, sentRes] = await Promise.all([  
-      getPendingApi({ userId }),
-      getFriendsListApi({ userId }),
-      getSentRequestsApi({ userId })
-    ]);
-    
-    setRequests(pendingRes.data || []);
-    setFriends(friendsRes.data || []);
-    setSentRequests(sentRes.data || []);  
-  } catch (err) {
-    console.error(err);
-    setError("Failed to load data");
-  } finally {
-    setLoading(false);
+    try {
+      setLoading(true);
+      const [pendingRes, friendsRes, sentRes] = await Promise.all([  
+        getPendingApi({ userId }),
+        getFriendsListApi({ userId }),
+        getSentRequestsApi({ userId })
+      ]);
+      
+      setRequests(pendingRes.data || []);
+      setFriends(friendsRes.data || []);
+      setSentRequests(sentRes.data || []);  
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
   }
-}
-
 
   async function searchUsers() {
     try {
@@ -61,6 +60,7 @@ function FriendsPage() {
       setSearchResults(res.data || []);
     } catch (err) {
       console.error("Search failed:", err);
+      setSearchResults([]); 
     } finally {
       setSearchLoading(false);
     }
@@ -94,7 +94,7 @@ function FriendsPage() {
     try {
       setButtonLoading({ [`add_${receiverId}`]: true });
       await sendRequestApi({ senderId: userId, receiverId });
-      await fetchAllData(); // Refresh all data to update states
+      await fetchAllData();
     } catch (err) {
       console.error("Failed to send friend request:", err);
     } finally {
@@ -102,7 +102,6 @@ function FriendsPage() {
     }
   }
 
-  // Helper function to get relationship status
   const getRelationshipStatus = (user) => {
     const isFriend = friends.some(f => f.friendId === user.userId);
     const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
@@ -177,7 +176,7 @@ function FriendsPage() {
 
           {searchLoading && <div className="loading">Searching...</div>}
 
-          {searchQuery && !searchLoading && (
+          {searchQuery && !searchLoading && Array.isArray(searchResults) && (
             <div className="search-results">
               {searchResults.length === 0 ? (
                 <div className="empty-state">
