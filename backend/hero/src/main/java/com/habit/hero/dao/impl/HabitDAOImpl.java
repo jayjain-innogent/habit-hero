@@ -40,10 +40,10 @@ public class HabitDAOImpl implements HabitDAO {
     }
 
     @Override
-    public List<Habit> findActiveHabits(Long userId) {
+    public List<Habit> findActiveHabitsSorted(Long userId) {
         // Return only active habits
         log.info("Fetching active habits for user {}", userId);
-        return habitRepository.findByUser_UserIdAndStatus(userId, HabitStatus.ACTIVE);
+        return habitRepository.findByUser_UserIdAndStatusOrderByCreatedAtAsc(userId, HabitStatus.ACTIVE);
     }
 
     @Override

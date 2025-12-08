@@ -16,6 +16,4 @@ public class HabitLogCreateRequest {
 
     @Positive
     private BigDecimal actualValue;
-
-    private String note;
 }

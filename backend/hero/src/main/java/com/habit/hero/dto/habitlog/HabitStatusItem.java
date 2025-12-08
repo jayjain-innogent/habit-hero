@@ -10,4 +10,5 @@ import lombok.*;
 public class HabitStatusItem {
     private boolean completedToday;
     private Object actualValue;
+    private Long logId;
 }

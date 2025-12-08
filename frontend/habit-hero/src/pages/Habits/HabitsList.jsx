@@ -4,7 +4,6 @@ import { getTodayStatus } from "../../api/habitLogs";
 import HabitCard from "../../components/habits/HabitCard";
 import { useNavigate } from "react-router-dom";
 import ProgressRing from "../../components/common/ProgressRing";
-import { getCacheKey } from "../../utils/cache";
 
 export default function HabitsList() {
     const [habits, setHabits] = useState([]);
@@ -18,36 +17,15 @@ export default function HabitsList() {
         loadHabits();
     }, []);
 
-    //load habits + today status + caching
     const loadHabits = async () => {
         try {
             setLoading(true);
             setError("");
 
             const today = new Date().toISOString().split("T")[0];
-            const cacheKey = getCacheKey(userId);
-            const habitsCacheKey = `habits_list_${userId}`;
 
-            // Check if we should bypass cache
-            const shouldBypassCache = window.forceReloadHabits;
-
-            let habitList;
-
-            // Try to use cached habit list
-            if (!shouldBypassCache) {
-                const cachedHabits = localStorage.getItem(habitsCacheKey);
-                if (cachedHabits) {
-                    habitList = JSON.parse(cachedHabits);
-                }
-            }
-
-            // If no cached habits, fetch from API
-            if (!habitList) {
-                habitList = await getAllHabits(userId);
-                localStorage.setItem(habitsCacheKey, JSON.stringify(habitList));
-            }
-
-
+            // Fetch fresh data from backend
+            const habitList = await getAllHabits(userId);
             const todayStatus = await getTodayStatus(userId);
 
             let list = Array.isArray(habitList) ? habitList : [];
@@ -56,16 +34,11 @@ export default function HabitsList() {
             list = list.map(h => ({
                 ...h,
                 completedToday: todayStatus?.status?.[h.id]?.completedToday || false,
-                actualValue: todayStatus?.status?.[h.id]?.actualValue ?? null
+                actualValue: todayStatus?.status?.[h.id]?.actualValue ?? null,
+                logId: todayStatus?.status?.[h.id]?.logId ?? null
             }));
 
-            localStorage.setItem(
-                cacheKey,
-                JSON.stringify({ date: today, data: list })
-            );
-
             setHabits(list);
-            window.forceReloadHabits = false;
         } catch (err) {
             setError("Failed to load habits. Please try again.");
             setHabits([]);
@@ -74,25 +47,26 @@ export default function HabitsList() {
         }
     };
 
-    //when the user completes a habit
-    const handleCompleteCallback = (habitId, actualValue) => {
+    const handleCompleteCallback = (habitId, actualValue, newLogId) => {
         setHabits(prev =>
             prev.map(h =>
-                h.id === habitId ? { ...h, completedToday: true, actualValue } : h
+                h.id === habitId
+                    ? { ...h, completedToday: true, actualValue, logId: newLogId }
+                    : h
             )
         );
-
-        const cacheKey = getCacheKey(userId);
-        const cached = JSON.parse(localStorage.getItem(cacheKey));
-        if (cached) {
-            const updated = cached.data.map(h =>
-                h.id === habitId ? { ...h, completedToday: true, actualValue } : h
-            );
-            localStorage.setItem(cacheKey, JSON.stringify({ date: cached.date, data: updated }));
-        }
     };
 
-    //progress calculations
+    const handleUncompleteCallback = (habitId) => {
+        setHabits(prev =>
+            prev.map(h =>
+                h.id === habitId
+                    ? { ...h, completedToday: false, actualValue: null, logId: null }
+                    : h
+            )
+        );
+    };
+
     const activeHabits = habits.filter(h => h.status === "ACTIVE");
     const total = activeHabits.length;
     const completed = activeHabits.filter(h => h.completedToday).length;
@@ -113,49 +87,33 @@ export default function HabitsList() {
         }}>
             <div className="container py-4">
 
-                <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h2 className="mb-1 fw-bold" style={{ color: '#212529' }}>Welcome Back Hero</h2>
-
+                        <h1 className="fw-bold mb-0 text-dark">Welcome Back, Hero!</h1>
+                        <p className="text-muted mb-0">{formattedDate}</p>
                     </div>
                     <button
-                        className="btn btn-primary shadow-sm px-4"
+                        className="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold"
                         onClick={() => navigate("/habits/create")}
-                        style={{
-                            borderRadius: '10px',
-                            fontWeight: '600',
-                            transition: 'all 0.2s ease'
-                        }}
                     >
                         + Create Habit
                     </button>
                 </div>
 
-                <div className="mb-4">
-                    <h5 className="mb-1 fw-semibold" style={{ color: '#495057' }}>{formattedDate}</h5>
-                    <p className="text-muted mb-0">Keep up the great work!</p>
-                </div>
-
-                <div className="progress-summary-card mb-4">
-                    <div className="progress-summary-left">
-                        <ProgressRing progress={progress} size={110} stroke={10} />
-                    </div>
-
-                    <div className="progress-summary-right">
-                        <h4 className="fw-semibold">Today's Progress</h4>
-                        <p className="mb-2">
-                            {completed} of {total} habits completed
-                        </p>
-
-                        <div className="progress-summary-stats">
-                            <div className="progress-summary-pill">
-                                <h5 className="mb-0">{completed}</h5>
-                                <small>Done</small>
+                <div className="card border-0 shadow-sm mb-4 bg-white overflow-hidden">
+                    <div className="card-body p-4">
+                        <div className="row align-items-center">
+                            <div className="col-md-8">
+                                <h4 className="fw-bold text-primary mb-2">Daily Progress</h4>
+                                <p className="text-muted mb-0">
+                                    You've completed <span className="fw-bold text-dark">{completed}</span> out of <span className="fw-bold text-dark">{total}</span> habits today.
+                                    Keep it up!
+                                </p>
                             </div>
-
-                            <div className="progress-summary-pill">
-                                <h5 className="mb-0">{remaining}</h5>
-                                <small>Remaining</small>
+                            <div className="col-md-4 text-center text-md-end mt-3 mt-md-0">
+                                <div style={{ width: 80, height: 80, display: 'inline-block' }}>
+                                    <ProgressRing radius={40} stroke={8} progress={progress} />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -163,42 +121,34 @@ export default function HabitsList() {
 
                 {loading && (
                     <div className="text-center py-5">
-                        <div className="spinner-border text-primary"></div>
-                        <p className="text-muted mt-2">Loading your habits...</p>
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
                     </div>
                 )}
 
                 {error && (
-                    <div className="alert alert-danger shadow-sm" style={{ borderRadius: '12px' }}>
+                    <div className="alert alert-danger shadow-sm border-0" role="alert">
                         {error}
                     </div>
                 )}
 
-                {!loading && habits.length === 0 && !error && (
-                    <div
-                        className="alert alert-info shadow-sm text-center"
-                        style={{
-                            borderRadius: '12px',
-                            padding: '2rem',
-                            border: 'none',
-                            backgroundColor: '#e7f1ff'
-                        }}
-                    >
-                        <h5 className="mb-2">No habits yet</h5>
-                        <p className="mb-3 text-muted">Start your journey by creating your first habit!</p>
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => navigate("/habits/create")}
-                        >
-                            Create Your First Habit
-                        </button>
+                {!loading && !error && habits.length === 0 && (
+                    <div className="text-center py-5 text-muted">
+                        <div className="mb-3 display-1">🌱</div>
+                        <h5>No habits yet</h5>
+                        <p>Start your journey by creating your first habit!</p>
                     </div>
                 )}
 
                 <div className="row g-3">
                     {habits.map(habit => (
                         <div className="col-12 col-sm-6 col-md-4 col-lg-3" key={habit.id}>
-                            <HabitCard habit={habit} onComplete={handleCompleteCallback} />
+                            <HabitCard
+                                habit={habit}
+                                onComplete={handleCompleteCallback}
+                                onUncomplete={handleUncompleteCallback}
+                            />
                         </div>
                     ))}
                 </div>
