@@ -2,6 +2,7 @@ package com.habit.hero.service.impl;
 
 import com.habit.hero.dao.HabitDAO;
 import com.habit.hero.dao.HabitLogDAO;
+import com.habit.hero.dto.habit.HabitResponse;
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
 import com.habit.hero.dto.habitlog.HabitStatusItem;
@@ -9,17 +10,23 @@ import com.habit.hero.dto.habitlog.TodayStatusResponse;
 import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
 import com.habit.hero.entity.User;
+import com.habit.hero.enums.Cadence;
 import com.habit.hero.exception.BadRequestException;
 import com.habit.hero.exception.ResourceNotFoundException;
 import com.habit.hero.mapper.HabitLogMapper;
+import com.habit.hero.mapper.HabitMapper;
+import com.habit.hero.repository.HabitLogRepository;
 import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.HabitLogService;
+import com.habit.hero.utils.StreakCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Service
@@ -31,6 +38,81 @@ public class HabitLogServiceImpl implements HabitLogService {
     private final HabitDAO habitDAO;
     private final UserRepository userRepository;
 
+    // Direct repo needed for efficient counting queries for streak logic
+    private final HabitLogRepository habitLogRepository;
+
+    @Override
+    @Transactional
+    public HabitResponse markHabitComplete(Long userId, Long habitId) {
+
+        if (userId == null || habitId == null)
+            throw new BadRequestException("userId and habitId required");
+
+        log.info("Marking habit {} complete for user {} inside HabitLogService", habitId, userId);
+
+        // Fetch Habit using DAO
+        Habit habit = habitDAO.findByIdAndUserId(habitId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
+
+        LocalDate today = LocalDate.now();
+
+        // Check duplicate (If already done today, just return existing state)
+        boolean alreadyCompleted = habitLogDAO.findTodayLog(habitId, today).isPresent();
+        if (alreadyCompleted) {
+            return HabitMapper.toResponse(habit);
+        }
+
+        // Create Log Entity (History)
+        HabitLog logEntity = HabitLog.builder()
+                .habit(habit)
+                .logDate(today)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        // Save log via DAO
+        habitLogDAO.save(logEntity);
+
+        // --- Streak Calculation Logic ---
+        int currentStreak = habit.getCurrentStreak() == null ? 0 : habit.getCurrentStreak();
+        int newStreak = currentStreak;
+
+        // Determine calculation based on Cadence
+        if (habit.getCadence() == Cadence.DAILY) {
+            newStreak = StreakCalculator.calculateDailyStreak(currentStreak, habit.getLastActivityDate());
+        }
+        else if (habit.getCadence() == Cadence.WEEKLY) {
+            LocalDate start = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+            LocalDate end = today.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
+
+            // Count logs for this week (inclusive of today's log)
+            int count = habitLogRepository.countByHabit_IdAndLogDateBetween(habitId, start, end);
+            int target = habit.getSessionCount() != null ? habit.getSessionCount() : 1;
+
+            newStreak = StreakCalculator.calculateWeeklyStreak(currentStreak, count, target);
+        }
+        else if (habit.getCadence() == Cadence.MONTHLY) {
+            LocalDate start = today.with(TemporalAdjusters.firstDayOfMonth());
+            LocalDate end = today.with(TemporalAdjusters.lastDayOfMonth());
+
+            // Count logs for this month (inclusive of today's log)
+            int count = habitLogRepository.countByHabit_IdAndLogDateBetween(habitId, start, end);
+            int target = habit.getSessionCount() != null ? habit.getSessionCount() : 1;
+
+            newStreak = StreakCalculator.calculateMonthlyStreak(currentStreak, count, target);
+        }
+
+        // Update Habit Entity with new stats
+        habit.setCurrentStreak(newStreak);
+        habit.setLongestStreak(StreakCalculator.updateLongest(newStreak, habit.getLongestStreak() == null ? 0 : habit.getLongestStreak()));
+        habit.setLastActivityDate(today);
+
+        // Save updated Habit using DAO
+        Habit savedHabit = habitDAO.save(habit);
+
+        // Return HabitResponse so frontend gets updated streak immediately
+        return HabitMapper.toResponse(savedHabit);
+    }
+
     @Override
     public HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request) {
 
@@ -39,19 +121,23 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Creating log for user {} habit {}", userId, habitId);
 
+        // Check user existence
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        // Check habit existence and ownership
         Habit habit = habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
         LocalDate logDate = request.getLogDate() == null ? LocalDate.now() : request.getLogDate();
 
+        // Check if log already exists for this date
         habitLogDAO.findTodayLog(habitId, logDate)
                 .ifPresent(l -> {
                     throw new BadRequestException("Log already exists for this date");
                 });
 
+        // Create and Save Log
         HabitLog logEntity = HabitLogMapper.toEntity(request, habit);
         logEntity.setCreatedAt(LocalDateTime.now());
         logEntity.setLogDate(logDate);
@@ -69,9 +155,11 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Fetching logs for user {} habit {}", userId, habitId);
 
+        // Verify Habit ownership
         habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
+        // Return list of logs
         return habitLogDAO.findByHabitId(habitId)
                 .stream()
                 .map(HabitLogMapper::toResponse)
@@ -86,9 +174,11 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Deleting log {} for user {}", logId, userId);
 
+        // Find log ensuring user owns the habit
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
+        // Delete Log
         habitLogDAO.delete(logEntity);
     }
 
@@ -100,9 +190,11 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Fetching logs in range {} to {} for user {} habit {}", start, end, userId, habitId);
 
+        // Verify Habit ownership
         habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
+        // Fetch logs in date range
         return habitLogDAO.findByHabitIdAndDateRange(habitId, start, end)
                 .stream()
                 .map(HabitLogMapper::toResponse)
@@ -122,6 +214,7 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         Map<Long, HabitStatusItem> responseMap = new HashMap<>();
 
+        // Iterate through habits and check today's log status
         for (Habit habit : habits) {
 
             Optional<HabitLog> todayLog = habitLogDAO.findTodayLog(habit.getId(), today);
@@ -150,6 +243,7 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Fetching note for user {} log {}", userId, logId);
 
+        // Find log ensuring ownership
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
@@ -164,9 +258,11 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Updating note for user {} log {}", userId, logId);
 
+        // Find log
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
+        // Update Note
         logEntity.setNote(note);
 
         HabitLog updated = habitLogDAO.save(logEntity);
@@ -182,9 +278,11 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Deleting note for user {} log {}", userId, logId);
 
+        // Find log
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
+        // Clear Note
         logEntity.setNote(null);
 
         habitLogDAO.save(logEntity);

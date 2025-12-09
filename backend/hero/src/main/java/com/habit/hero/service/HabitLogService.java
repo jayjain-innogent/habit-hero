@@ -1,5 +1,6 @@
 package com.habit.hero.service;
 
+import com.habit.hero.dto.habit.HabitResponse;
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
 import com.habit.hero.dto.habitlog.TodayStatusResponse;
@@ -9,25 +10,31 @@ import java.util.List;
 
 public interface HabitLogService {
 
-    //create
+    // Create a new log entry manually
     HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request);
 
-    //get all logs for habit
+    // Get all logs for a specific habit
     List<HabitLogResponse> getLogsForHabit(Long userId, Long habitId);
 
-    //delete
+    // Delete a specific log entry
     void deleteLog(Long userId, Long logId);
 
-    //range logs (weekly/monthly)
+    // Get logs within a specific date range
     List<HabitLogResponse> getLogsInRange(Long userId, Long habitId, LocalDate start, LocalDate end);
 
-    //today-status for all habits
+    // Get completion status for today for all habits (Dashboard)
     TodayStatusResponse getTodayStatus(Long userId);
 
-    // NOTE CRUD
+    // Get note for a specific log
     HabitLogResponse getNote(Long userId, Long logId);
 
+    // Update note for a specific log
     HabitLogResponse updateNote(Long userId, Long logId, String note);
 
+    // Delete note from a specific log
     void deleteNote(Long userId, Long logId);
+
+    // --- YE METHOD MISSING THA, ISSE ADD KARO ---
+    // Mark habit as complete (Updates streak & creates log) - Returns Updated Habit
+    HabitResponse markHabitComplete(Long userId, Long habitId);
 }
