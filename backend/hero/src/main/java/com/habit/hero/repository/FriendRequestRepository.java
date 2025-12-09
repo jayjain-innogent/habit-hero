@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Long> {
 
-    @Query("SELECT fr FROM FriendRequest fr WHERE fr.sender = :sender AND fr.receiver = :receiver ")
+    @Query("SELECT fr FROM FriendRequest fr WHERE fr.sender = :sender AND fr.receiver = :receiver")
     Optional<FriendRequest> findAnyRequest(
             @Param("sender") User sender,
             @Param("receiver") User receiver
@@ -22,19 +22,21 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
 
     @Modifying
     @Transactional
-    @Query("""
-    DELETE FROM FriendRequest fr
-    WHERE fr.sender = :sender
-      AND fr.receiver = :receiver
-      AND fr.status IN :statuses
-    """)
-    void deleteRequestsByStatus(
+    @Query("DELETE FROM FriendRequest fr WHERE " +
+            "(fr.sender = :sender AND fr.receiver = :receiver) OR " +
+            "(fr.sender = :receiver AND fr.receiver = :sender)")
+    void deleteExistingBetween(
             @Param("sender") User sender,
-            @Param("receiver") User receiver,
-            @Param("statuses") List<FriendRequestStatus> statuses
+            @Param("receiver") User receiver
     );
 
     @Query("SELECT fr FROM FriendRequest fr WHERE fr.receiver = :receiver AND fr.status = :status")
-    List<FriendRequest> findPendingRequests(@Param("receiver") User receiver, @Param("status") FriendRequestStatus status);
+    List<FriendRequest> findPendingRequests(
+            @Param("receiver") User receiver,
+            @Param("status") FriendRequestStatus status
+    );
+
+    @Query("SELECT fr FROM FriendRequest fr WHERE fr.sender = :sender AND fr.status = :status")
+    List<FriendRequest> findBySenderAndStatus(@Param("sender") User sender, @Param("status") FriendRequestStatus status);
 
 }
