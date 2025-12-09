@@ -9,14 +9,17 @@ import com.habit.hero.dto.habitlog.TodayStatusResponse;
 import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
 import com.habit.hero.entity.User;
+import com.habit.hero.enums.NotificationType;
 import com.habit.hero.exception.BadRequestException;
 import com.habit.hero.exception.ResourceNotFoundException;
 import com.habit.hero.mapper.HabitLogMapper;
 import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.HabitLogService;
+import com.habit.hero.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,6 +33,7 @@ public class HabitLogServiceImpl implements HabitLogService {
     private final HabitLogDAO habitLogDAO;
     private final HabitDAO habitDAO;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     public HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request) {
@@ -37,7 +41,7 @@ public class HabitLogServiceImpl implements HabitLogService {
         if (userId == null || habitId == null || request == null)
             throw new BadRequestException("userId, habitId, and request body required");
 
-        log.info("Creating log for user {} habit {}", userId, habitId);
+        // log.info("Creating log for user {} habit {}", userId, habitId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -56,7 +60,39 @@ public class HabitLogServiceImpl implements HabitLogService {
         logEntity.setCreatedAt(LocalDateTime.now());
         logEntity.setLogDate(logDate);
 
+        // Assumption: Streak calculation/update is handled here implicitly or explicitly.
         HabitLog saved = habitLogDAO.save(logEntity);
+
+        // Notify user about completion (existing code)
+        notificationService.createNotification(
+                userId,
+                null,
+                NotificationType.STREAK_REACTION,
+                "Streak updated! You completed your habit.",
+                habitId
+        );
+
+        // --- NEW: Milestone Check Logic ---
+        try {
+            // NOTE: This assumes 'habit' object now reflects the newly calculated streak.
+            int currentStreak = habit.getCurrentStreak();
+
+            if (currentStreak == 7 || currentStreak == 30) {
+                String message = "Congratulations! You hit a " + currentStreak + "-day milestone on " + habit.getTitle();
+
+                notificationService.createNotification(
+                        userId,
+                        null,
+                        NotificationType.MILESTONE, // Assuming you have a MILESTONE enum type
+                        message,
+                        habitId
+                );
+            }
+        } catch (Exception e) {
+            // Log the error but do not break the main transaction (log creation)
+            log.error("Failed to check or create milestone notification after saving log.", e);
+        }
+        // --- END NEW LOGIC ---
 
         return HabitLogMapper.toResponse(saved);
     }
@@ -79,6 +115,7 @@ public class HabitLogServiceImpl implements HabitLogService {
     }
 
     @Override
+    @Transactional
     public void deleteLog(Long userId, Long logId) {
 
         if (userId == null || logId == null)
@@ -89,7 +126,21 @@ public class HabitLogServiceImpl implements HabitLogService {
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
+        // Capture habit id before deletion for notification reference
+        Long habitId = logEntity.getHabit().getId();
+
         habitLogDAO.delete(logEntity);
+
+        // Delete the associated notification
+        try {
+            notificationService.deleteNotificationByReference(
+                    userId,
+                    NotificationType.STREAK_REACTION,
+                    habitId
+            );
+        } catch (Exception e) {
+            log.error("Failed to delete notification", e);
+        }
     }
 
     @Override

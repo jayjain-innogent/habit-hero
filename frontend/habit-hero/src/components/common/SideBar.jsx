@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import "./SideBar.css";
 
-const SideBar = ({ items = [], onItemClick = () => {} }) => {
+const SideBar = ({ items = [], onItemClick = () => { } }) => {
   const location = useLocation();
   const [active, setActive] = useState(null);
 
   useEffect(() => {
     const currentPath = location.pathname;
-    const activeItem = items.find(item => 
-      currentPath === item.id || 
+    const activeItem = items.find(item =>
+      currentPath === item.id ||
       (item.id === "/profile" && currentPath === "/profile") ||
       (item.id === "/habits" && (currentPath === "/" || currentPath.startsWith("/habits")))
     );

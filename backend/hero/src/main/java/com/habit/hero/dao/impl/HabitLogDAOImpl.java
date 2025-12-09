@@ -1,8 +1,11 @@
 package com.habit.hero.dao.impl;
 
 import com.habit.hero.dao.HabitLogDAO;
+import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
+import com.habit.hero.enums.HabitStatus;
 import com.habit.hero.repository.HabitLogRepository;
+import com.habit.hero.repository.HabitRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -17,6 +20,7 @@ import java.util.Optional;
 public class HabitLogDAOImpl implements HabitLogDAO {
 
     private final HabitLogRepository habitLogRepository;
+    private final HabitRepository habitRepository;
 
     //save
     @Override
@@ -69,6 +73,15 @@ public class HabitLogDAOImpl implements HabitLogDAO {
                 userId,
                 startDate,
                 endDate
+        );
+    }
+
+    @Override
+    public List<Habit> findActiveHabitsNotLoggedSince(LocalDate date) {
+        // FIX: Passing the two required arguments: HabitStatus.ACTIVE and LocalDate
+        return habitRepository.findByStatusEqualsAndLastActivityDateBeforeOrLastActivityDateIsNull(
+                HabitStatus.ACTIVE, // 1st argument (the required status)
+                date                // 2nd argument (the required date)
         );
     }
 }

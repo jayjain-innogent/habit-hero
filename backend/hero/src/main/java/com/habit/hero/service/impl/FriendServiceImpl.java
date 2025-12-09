@@ -7,10 +7,12 @@ import com.habit.hero.entity.FriendList;
 import com.habit.hero.entity.FriendRequest;
 import com.habit.hero.entity.User;
 import com.habit.hero.enums.FriendRequestStatus;
+import com.habit.hero.enums.NotificationType;
 import com.habit.hero.repository.FriendListRepository;
 import com.habit.hero.repository.FriendRequestRepository;
 import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.FriendService;
+import com.habit.hero.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendRequestRepository friendRequestRepository;
     private final FriendListRepository friendListRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -51,9 +54,16 @@ public class FriendServiceImpl implements FriendService {
                 .build();
 
         friendRequestRepository.save(request);
+
+        // notify receiver about new request
+        notificationService.createNotification(
+                receiverId,
+                senderId,
+                NotificationType.FRIEND_REQUEST,
+                "sent you a friend request",
+                senderId
+        );
     }
-
-
 
     @Override
     @Transactional
@@ -71,7 +81,16 @@ public class FriendServiceImpl implements FriendService {
         request.setStatus(FriendRequestStatus.ACCEPTED);
         friendRequestRepository.save(request);
 
-            addFriendship(sender, receiver);
+        addFriendship(sender, receiver);
+
+        // notify sender that request is accepted
+        notificationService.createNotification(
+                sender.getUserId(),
+                receiver.getUserId(),
+                NotificationType.FRIEND_ACCEPTED,
+                "accepted your friend request",
+                receiver.getUserId()
+        );
     }
 
 
@@ -97,6 +116,18 @@ public class FriendServiceImpl implements FriendService {
 
         request.setStatus(FriendRequestStatus.CANCELLED);
         friendRequestRepository.save(request);
+
+        // Delete the notification sent to the receiver
+        try {
+            notificationService.deleteSocialNotification(
+                    request.getReceiver().getUserId(),
+                    request.getSender().getUserId(),
+                    NotificationType.FRIEND_REQUEST,
+                    request.getSender().getUserId()
+            );
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     @Override
@@ -118,7 +149,7 @@ public class FriendServiceImpl implements FriendService {
                         .senderId(fr.getSender().getUserId())
                         .senderUsername(fr.getSender().getUsername())
                         .senderProfileImage(fr.getSender().getProfileImageUrl())
-                        .senderBio(fr.getSender().getUserBio())  // Add bio mapping
+                        .senderBio(fr.getSender().getUserBio())
                         .status(fr.getStatus().name())
                         .build())
                 .collect(Collectors.toList());
@@ -132,8 +163,8 @@ public class FriendServiceImpl implements FriendService {
                 .stream()
                 .map(fr -> FriendRequestResponseDto.builder()
                         .requestId(fr.getRequestId())
-                        .senderId(fr.getReceiver().getUserId())  // For sent requests, we care about the receiver
-                        .senderUsername(fr.getReceiver().getUsername())  // Receiver's username
+                        .senderId(fr.getReceiver().getUserId())
+                        .senderUsername(fr.getReceiver().getUsername())
                         .status(fr.getStatus().name())
                         .build())
                 .collect(Collectors.toList());
@@ -154,7 +185,7 @@ public class FriendServiceImpl implements FriendService {
                             .friendId(friend.getUserId())
                             .friendUsername(friend.getUsername())
                             .friendProfileImage(friend.getProfileImageUrl())
-                            .friendBio(friend.getUserBio())  // Add bio mapping
+                            .friendBio(friend.getUserBio())
                             .build();
                 })
                 .collect(Collectors.toList());

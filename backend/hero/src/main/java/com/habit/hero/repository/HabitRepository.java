@@ -5,6 +5,7 @@ import com.habit.hero.enums.HabitStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,8 @@ public interface HabitRepository extends JpaRepository<Habit, Long> {
 
     // verify ownership
     Optional<Habit> findByIdAndUser_UserId(Long habitId, Long userId);
+
+    List<Habit> findByStatusEqualsAndLastActivityDateBeforeOrLastActivityDateIsNull(
+            HabitStatus status, LocalDate date
+    );
 }

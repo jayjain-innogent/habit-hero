@@ -3,6 +3,7 @@ package com.habit.hero.dao;
 import com.habit.hero.entity.Habit;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,4 +27,5 @@ public interface HabitDAO {
     //Save All
     List<Habit> saveAll(List<Habit> habits);
 
+    List<Habit> findActiveHabitsNotLoggedSince(LocalDate date);
 }

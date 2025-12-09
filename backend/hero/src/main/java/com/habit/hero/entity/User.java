@@ -48,6 +48,9 @@ public class User {
     @Column(name = "notification_prefs_streak_breaks")
     private Boolean notificationPrefsStreakBreaks = true;
 
+    @Column(name = "notification_prefs_post_engagement")
+    private Boolean notificationPrefsPostEngagement = true;
+
     @Column(name = "user_bio")
     private String userBio;
 

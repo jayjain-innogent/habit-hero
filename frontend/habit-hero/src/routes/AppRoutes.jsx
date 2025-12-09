@@ -52,7 +52,7 @@ export default function AppRoutes() {
             <Route path="/habits/:habitId/edit" element={<HabitEdit />} />
             <Route path="/friends" element={<FriendsPage />} />
             <Route path="/explore" element={<Explore />} />
-            <Route path="/settings" element={<div style={{padding:'20px'}}><h2>Settings</h2><p>Coming soon...</p></div>} />
+            <Route path="/settings" element={<div style={{ padding: '20px' }}><h2>Settings</h2><p>Coming soon...</p></div>} />
             <Route path="/profile" element={<ProfilePage currentUserId={currentUserId} />} />
             <Route path="/profile/:userId" element={<ProfilePage currentUserId={currentUserId} />} />
             <Route path="/profile/:userId/friends" element={<FriendListPage currentUserId={currentUserId} />} />

@@ -1,5 +1,6 @@
 package com.habit.hero.dao;
 
+import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
 
 import java.time.LocalDate;
@@ -22,6 +23,8 @@ public interface HabitLogDAO {
 
     // Delete specific log
     void delete(HabitLog log);
+
+    public List<Habit> findActiveHabitsNotLoggedSince(LocalDate date);
 
     //Fetch log by HabitId and logDate range
     List<HabitLog> findByHabitIdAndDateRange(Long habitId, LocalDate startDate, LocalDate endDate);

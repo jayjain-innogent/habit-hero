@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.habit.hero.dto.activity.*;
 import com.habit.hero.entity.*;
 import com.habit.hero.enums.ActivityType;
+import com.habit.hero.enums.NotificationType;
 import com.habit.hero.repository.*;
 import com.habit.hero.service.ActivityService;
+import com.habit.hero.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,7 @@ public class ActivityServiceImpl implements ActivityService {
     private final ReactionRepository reactionRepository;
     private final CommentRepository commentRepository;
     private final FriendListRepository friendListRepository;
+    private final NotificationService notificationService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -50,27 +53,25 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public List<FeedItemResponse> getFeedForUser(Long userId, int page, int size) {
 
-        // 1) load current user (throws if not found)
+        // load current user
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 2) fetch friend relationships (returns List<FriendList>)
+        // fetch friend relationships
         List<FriendList> relations = friendListRepository.findFriendsOfUser(currentUser);
 
-        // 3) map each FriendList row -> the "other" user (the actual friend)
+        // map each FriendList row to the friend user
         List<User> friends = relations.stream()
                 .map(fl -> {
-                    // if fl.user equals currentUser -> friend is fl.friend
-                    // otherwise friend is fl.user
                     return fl.getUser().equals(currentUser) ? fl.getFriend() : fl.getUser();
                 })
                 .collect(Collectors.toList());
 
-        // 4) fetch feed items using activityRepository.fetchFeed(currentUser, friends, pageable)
+        // fetch feed items
         List<Activity> activities =
                 activityRepository.fetchFeed(currentUser, friends, PageRequest.of(page, size));
 
-        // 5) map activities -> FeedItemResponse DTOs
+        // map activities to DTOs
         return activities.stream()
                 .map(a -> mapToFeedResponse(a, userId))
                 .collect(Collectors.toList());
@@ -99,6 +100,17 @@ public class ActivityServiceImpl implements ActivityService {
 
         activity.setLikesCount(activity.getLikesCount() + 1);
         activityRepository.save(activity);
+
+        // notify post owner if liker is not the owner
+        if (!activity.getUser().getUserId().equals(userId)) {
+            notificationService.createNotification(
+                    activity.getUser().getUserId(),
+                    userId,
+                    NotificationType.STREAK_REACTION,
+                    "reacted to your streak update",
+                    activity.getActivityId()
+            );
+        }
     }
 
     @Override
@@ -116,6 +128,20 @@ public class ActivityServiceImpl implements ActivityService {
 
         activity.setLikesCount(activity.getLikesCount() - 1);
         activityRepository.save(activity);
+
+        // Delete the notification associated with this like
+        if (!activity.getUser().getUserId().equals(userId)) {
+            try {
+                notificationService.deleteSocialNotification(
+                        activity.getUser().getUserId(),
+                        userId,
+                        NotificationType.STREAK_REACTION,
+                        activityId
+                );
+            } catch (Exception e) {
+                // ignore if notification deletion fails
+            }
+        }
     }
 
 
@@ -138,6 +164,17 @@ public class ActivityServiceImpl implements ActivityService {
 
         activity.setCommentsCount(activity.getCommentsCount() + 1);
         activityRepository.save(activity);
+
+        // notify post owner if commenter is not the owner
+        if (!activity.getUser().getUserId().equals(user.getUserId())) {
+            notificationService.createNotification(
+                    activity.getUser().getUserId(),
+                    user.getUserId(),
+                    NotificationType.COMMENT,
+                    "commented on your update",
+                    activity.getActivityId()
+            );
+        }
 
         return CommentResponse.builder()
                 .commentId(saved.getCommentId())
