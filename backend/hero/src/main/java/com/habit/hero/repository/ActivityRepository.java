@@ -17,6 +17,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
     //friends only feed
     List<Activity> findByUserInAndIsDeletedFalseOrderByCreatedAtDesc(List<User> users);
 
+    //all feed
     @Query("""
         SELECT a FROM Activity a
         WHERE a.isDeleted = false

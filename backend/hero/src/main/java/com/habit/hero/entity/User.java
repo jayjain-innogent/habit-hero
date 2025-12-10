@@ -37,6 +37,9 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "verified", nullable = false)
+    private Boolean verified = false;
+
     private String timezone = "Asia/Kolkata";
 
     @Column(name = "notification_prefs_friend_requests")
