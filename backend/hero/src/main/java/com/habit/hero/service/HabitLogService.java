@@ -1,5 +1,6 @@
 package com.habit.hero.service;
 
+import com.habit.hero.dto.habit.HabitResponse;
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
 import com.habit.hero.dto.habitlog.TodayStatusResponse;
@@ -23,4 +24,14 @@ public interface HabitLogService {
 
     //today-status for all habits
     TodayStatusResponse getTodayStatus(Long userId);
+
+    // Get note for a specific log
+    HabitLogResponse getNote(Long userId, Long logId);
+
+    // Update note for a specific log
+    HabitLogResponse updateNote(Long userId, Long logId, String note);
+
+    // Delete note from a specific log
+    void deleteNote(Long userId, Long logId);
+
 }

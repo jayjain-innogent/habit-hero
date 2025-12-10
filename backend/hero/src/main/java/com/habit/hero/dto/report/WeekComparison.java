@@ -11,4 +11,5 @@ public class WeekComparison {
     private Double completionsDiff;
     private Double percentageDiff;
     private Integer missedDaysDiff;
+    private Integer completedDaysDiff;
 }

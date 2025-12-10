@@ -1,13 +1,11 @@
 package com.habit.hero.dao;
 
 import com.habit.hero.entity.Habit;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface HabitDAO {
-
     // Save or update a habit
     Habit save(Habit habit);
 
@@ -18,6 +16,8 @@ public interface HabitDAO {
     List<Habit> findByUserId(Long userId);
 
     // Get only active habits of a user
+    List<Habit> findActiveHabitsSorted(Long userId);
+
     List<Habit> findActiveHabits(Long userId);
 
     // Delete a habit
@@ -25,5 +25,4 @@ public interface HabitDAO {
 
     //Save All
     List<Habit> saveAll(List<Habit> habits);
-
 }

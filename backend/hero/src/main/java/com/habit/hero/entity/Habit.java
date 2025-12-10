@@ -59,6 +59,12 @@ public class Habit {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "current_streak")
+    private Integer currentStreak;
+
+    @Column(name = "longest_streak")
+    private Integer longestStreak;
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 

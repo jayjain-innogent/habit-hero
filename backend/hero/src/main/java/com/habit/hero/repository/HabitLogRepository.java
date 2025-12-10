@@ -25,4 +25,9 @@ public interface HabitLogRepository extends JpaRepository<HabitLog, Long> {
             LocalDate startDate,
             LocalDate endDate
     );
+    List<HabitLog> findByHabit_User_UserIdAndLogDateBetweenOrderByLogDate(
+            Long userId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
 }

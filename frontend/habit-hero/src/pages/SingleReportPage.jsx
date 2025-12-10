@@ -1,165 +1,294 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fetchWeeklyReport } from '../services/api';
-import ReportSummary from '../components/Report/ReportSummary';
-import ReportCalendar from '../components/Report/ReportCalendar';
-import WeekStats from '../components/Report/WeekStats';
-import WeekComparison from '../components/Report/WeekComparison';
-import TrendChart from '../components/Report/TrendChart';
 import './SingleReportPage.css';
-import { FaChartBar } from "react-icons/fa";
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Zap, Award, Target } from 'lucide-react';
 
 const SingleReportPage = () => {
-  const [reportData, setReportData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
-  const [inputDate, setInputDate] = useState(
-    new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
-  
-  const dateRange = {
-    startDate,
-    endDate: new Date(new Date(startDate).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  };
-  const [habitId] = useState(6); 
+    const [reportData, setReportData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [viewMode, setViewMode] = useState('percentage');
+    const [hoveredBar, setHoveredBar] = useState(null);
+    const [hoveredDay, setHoveredDay] = useState(null);
+    const { habitId } = useParams();
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    loadReportData();
-  }, [startDate, habitId]);
+    useEffect(() => {
+        loadReportData();
+    }, [habitId]);
 
-  const loadReportData = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchWeeklyReport(
-        dateRange.startDate,
-        dateRange.endDate,
-        habitId
-      );
-      setReportData(data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load report data');
-      console.error('Error loading report:', err);
-    } finally {
-      setLoading(false);
+    const loadReportData = async () => {
+        try {
+            setLoading(true);
+            const startDate = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const endDate = new Date(Date.now()).toISOString().split('T')[0];
+            const data = await fetchWeeklyReport(startDate, endDate, habitId);
+            setReportData(data);
+            setError(null);
+        } catch (err) {
+            setError('Failed to load report data');
+            console.error('Error loading report:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePreviousMonth = () => {
+        const newMonth = new Date(currentMonth);
+        newMonth.setMonth(newMonth.getMonth() - 1);
+        setCurrentMonth(newMonth);
+    };
+
+    const handleNextMonth = () => {
+        const newMonth = new Date(currentMonth);
+        newMonth.setMonth(newMonth.getMonth() + 1);
+        setCurrentMonth(newMonth);
+    };
+
+    const toggleViewMode = () => {
+        const modes = ['percentage', 'days', 'value'];
+        const currentIndex = modes.indexOf(viewMode);
+        const nextIndex = (currentIndex + 1) % modes.length;
+        setViewMode(modes[nextIndex]);
+    };
+
+    if (loading) return <div className="loading-container"><div className="spinner"></div></div>;
+    if (error) return <div className="error-container"><p>{error}</p><button onClick={loadReportData} className="retry-btn">Retry</button></div>;
+    if (!reportData?.habit || !reportData?.summary) return <div className="loading-container"><p>No data available</p></div>;
+
+    const { summary, habit, weekRange } = reportData;
+    
+    const habitStartDate = new Date(habit.startDate);
+    const today = new Date();
+    const canGoPrevious = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1) > new Date(habitStartDate.getFullYear(), habitStartDate.getMonth(), 1);
+    const canGoNext = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1) < new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const weekDates = [];
+    const start = new Date(weekRange.startDate);
+    const end = new Date(weekRange.endDate);
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        weekDates.push(new Date(d).toISOString().split('T')[0]);
     }
-  };
 
-  if (loading) {
+    const completionDates = summary.habitCompletionsData?.completaionDate || [];
+    const completionValues = summary.habitCompletionsData?.completionValue || [];
+    const maxValue = completionValues.length > 0 ? Math.max(...completionValues) : 1;
+
+    const getSnapshotValue = (weekData) => {
+        if (viewMode === 'percentage') {
+            return `${weekData?.completionPercentage || 0}%`;
+        } else if (viewMode === 'days') {
+            return `${weekData?.completedDays || 0}/${habit.sessionCount || 7}`;
+        } else {
+            return `${weekData?.completionsValue || 0}`;
+        }
+    };
+
+   const getSnapshotDifferent = (weekChange) => {
+        if (viewMode === 'percentage') {
+            return `${weekChange?.percentageDiff || 0}%`;
+        } else if (viewMode === 'days') {
+            return `${weekChange.completedDaysDiff || 0}`;
+        } else {
+            return `${weekChange?.completionsDiff || 0}`;
+        }
+    };
+  const getSubText = (goalUnit) => {
+        if (viewMode === 'percentage') {
+            return '% Completed';
+        } else if (viewMode === 'days') {
+            return 'Days Completed';
+        } else {
+            return (goalUnit == 'MINUTES' ? 'Minutes' :  goalUnit == 'REPEATS' ? 'Repeates' : 'Meters') + ' Completed';
+        }
+    };
+
+    const getButtonLabel = () => {
+        if (viewMode === 'percentage') return '% Percentage';
+        if (viewMode === 'days') return 'Days';
+        return 'Value';
+    };
+
     return (
-      <div className="single-report-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading your habit report...</p>
+        <div className="report-page">
+            <div className="report-container">
+                <div className="header">
+                    <button onClick={() => navigate('/habits')} className="back-btn">
+                        <ArrowLeft size={24} />
+                    </button>
+                     <div>
+                         <h1 className="title">{habit.habitName}</h1>
+                         <h1 className="tagline">{habit.description}</h1>
+                     </div>
+                </div>
+
+                <div className="banner">
+                    <div>
+                        <h2 className="banner-title">"You're becoming consistent!"</h2>
+                        <p className="banner-text">You've completed {summary.completionRate}% this week. Keep that momentum going!</p>
+                    </div>
+                </div>
+
+                <div className="stats-grid">
+                    <div className="stat-card">
+                        <div className="stat-header">
+                            <span className="stat-label">Current Streak</span>
+                            <Zap size={20} />
+                        </div>
+                        <div className="stat-value">{summary.currentStreak || 0} <span className="stat-unit">Days</span></div>
+                        <p className="stat-subtext">Goal: {summary.longestStreak || 0} Days</p>
+                    </div>
+
+                    <div className="stat-card">
+                        <div className="stat-header">
+                            <span className="stat-label">Longest Streak</span>
+                            <Award size={20} />
+                        </div>
+                        <div className="stat-value">{summary.longestStreak || 0} <span className="stat-unit">Days</span></div>
+                        <p className="stat-subtext">Achieved in {new Date().toLocaleString('default', { month: 'short' })}</p>
+                    </div>
+
+                    <div className="stat-card">
+                        <div className="stat-header">
+                            <span className="stat-label">Missed Days</span>
+                            <Award size={20} />
+                        </div>
+                        <div className="stat-value">{Math.abs(summary.totalMissedDays)} <span className="stat-unit">Days</span></div>
+                    </div>
+
+                    <div className="stat-card">
+                        <div className="stat-header">
+                            <span className="stat-label">Next Milestone</span>
+                            <Target size={20} />
+                        </div>
+                        <div className="stat-value">30 Days</div>
+                        <div className="progress-bar">
+                            <div className="progress-fill" style={{width: `${Math.min(((summary.currentStreak || 0)/30)*100, 100)}%`}}></div>
+                        </div>
+                        <p className="stat-subtext">{Math.max(30 - (summary.currentStreak || 0), 0)} days to go</p>
+                    </div>
+                </div>
+
+                <div className="content-grid">
+                    <div className="left-column">
+                        <div className="card-header">
+                            <h3>Habit Insights</h3>
+                              <span className="card-label">Volume</span>
+                        </div>
+                        <div className="card">
+                            <div className="chart-container">
+                                {weekDates.length > 0 ? weekDates.map((date, i) => {
+                                    const dateIndex = completionDates.findIndex(d => d.startsWith(date));
+                                    const value = dateIndex >= 0 ? completionValues[dateIndex] : 0;
+                                    const height = value > 0 ? (value / maxValue) * 100 : 0;
+                                    return (
+                                         <div
+                                             key={i}
+                                               className="bar-wrapper"
+                                                   onMouseEnter={() => setHoveredBar(i)}
+                                                   onMouseLeave={() => setHoveredBar(null)}>
+                                                      <div className="bar-bg">
+                                                          <div className={`bar-fill ${value > 0 ? 'completed' : 'missed'}`} style={{height: `${Math.max(height, 5)}%`}}></div>
+                                                              </div>
+                                                                 {hoveredBar === i && (
+                                                                     <div className="bar-tooltip">
+                                                                         {value} {habit.goalUnit}
+                                                                     <div>Date: {date}</div>
+                                                            </div>
+                                                       )}
+                                                   <span className="bar-label">{new Date(date).toLocaleDateString('en-US', {weekday: 'short'})[0]}</span>
+                                         </div>
+                                    );
+                                }) : <p className="no-data">No data</p>}
+                            </div>
+                        </div>
+
+                        <div className="card-header">
+                                <h3>Weekly Snapshot</h3>
+                                <button className="card-label" onClick={toggleViewMode}>{getButtonLabel()}</button>
+                        </div>
+
+                            <div className="snapshot-grid">
+                                <div className="snapshot-card">
+                                    <p className="snapshot-label">Last Week</p>
+                                    <p className="snapshot-value">{getSnapshotValue(habit.previousWeek)}</p>
+                                    <p className="snapshot-subtext">{getSubText(habit.goalUnit)}</p>
+                                </div>
+                                <div className="snapshot-card current">
+                                    <p className="snapshot-label">Current Week</p>
+                                    <p className="snapshot-value">{getSnapshotValue(habit.thisWeek)}</p>
+                                    <p className="snapshot-change">{ getSnapshotDifferent(habit.weekOverWeekChange)} </p>
+                                    <p className="snapshot-subtext">{getSubText(habit.goalUnit)}</p>
+                                </div>
+                                <div className="snapshot-card">
+                                    <p className="snapshot-label">Missed Days</p>
+                                    <p className="snapshot-value">{habit.thisWeek?.missedDays || 0}</p>
+                                    <p className="snapshot-subtext">This week</p>
+                                </div>
+                            </div>
+
+                    </div>
+
+                    <div className="right-column">
+                        <h3>Recent Activity</h3>
+                        <div className="card">
+                            <div className="activity-list">
+                                {completionDates.length > 0 ? completionDates.slice(0, 5).map((dateTime, i) => (
+                                    <div key={i} className="activity-item">
+                                        <div className="activity-left">
+                                            <div className="activity-dot completed"></div>
+                                            <div>
+                                                <p className="activity-date">{i === 0 ? 'Today' : new Date(dateTime).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</p>
+                                                <p className="activity-value">{completionValues[i]} Units</p>
+                                            </div>
+                                        </div>
+                                        <span className="activity-time">{new Date(dateTime).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</span>
+                                    </div>
+                                )) : <p className="no-data">No activity</p>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="month-grid">
+                    <div className="card-header">
+                        <h3>Monthly Activity</h3>
+                        <div className="month-nav">
+                            <button onClick={handlePreviousMonth} disabled={!canGoPrevious}>←</button>
+                            <span>{currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                            <button onClick={handleNextMonth} disabled={!canGoNext}>→</button>
+                        </div>
+                    </div>
+                 <div className="calendar-grid">
+                     {Array.from({length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()}, (_, i) => {
+                         const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1).toISOString().split('T')[0];
+                         const dateIndex = completionDates.findIndex(d => d.startsWith(dayDate));
+                         const dayValue = dateIndex >= 0 ? completionValues[dateIndex] : null;
+                         const completed = dayValue !== null;
+                         const intensity = completed ? 'high' : 'none';
+                         return <div key={i}
+                                     className={`calendar-day ${intensity}`}
+                                     onMouseEnter={() => setHoveredDay(i)}
+                                     onMouseLeave={() => setHoveredDay(null)}>
+                                    {hoveredDay === i && (
+                                        <div className="calendar-tooltip">
+                                            <div>{dayValue || 0 } {habit.goalUnit}</div>
+                                            <div>Date: {new Date(dayDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</div>
+                                        </div>
+                                    )}
+                                 </div>;
+                     })}
+                 </div>
+                    <div className="legend">
+                        <div className="legend-item"><div className="legend-box none"></div> Not Done</div>
+                        <div className="legend-item"><div className="legend-box high"></div> Completed</div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="single-report-page">
-        <div className="error-container">
-          <h2><i class="bi bi-x-lg"></i>Error Loading Report</h2>
-          <p>{error}</p>
-          <button onClick={loadReportData} className="retry-btn"><i class="bi bi-arrow-repeat"></i></button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!reportData) {
-    return (
-      <div className="single-report-page">
-        <div className="no-data-container">
-          <h2><i class="bi bi-graph-up"></i>No Data Available</h2>
-          <p>No report data found for the selected period.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="single-report-page">
-      <div className="report-header">
-        <h1><FaChartBar size={24} color= "White" /> Habit Progress Report</h1>
-        <p className="report-subtitle">Track your journey to better habits</p>
-           {/* Summary Cards */}
-      <ReportSummary 
-        summary={reportData.summary}
-        habitName={reportData.habit.habitName}
-      />
-        <div className="date-controls">
-          <input
-            type="date"
-            value={inputDate}
-            onChange={(e) => setInputDate(e.target.value)}
-            onBlur={(e) => {
-              const date = new Date(e.target.value);
-              if (!isNaN(date.getTime()) && e.target.value.length === 10) {
-                setStartDate(e.target.value);
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                const date = new Date(e.target.value);
-                if (!isNaN(date.getTime()) && e.target.value.length === 10) {
-                  setStartDate(e.target.value);
-                }
-              }
-            }}
-          />
-          <span>to</span>
-          <input
-            type="date"
-            value={dateRange.endDate}
-            readOnly
-            className="readonly-date"
-          />
-        </div>
-      </div>
-      {/* Calendar and Stats Container */}
-      <div className="report-content">
-        {/* Left Column - Calendar and Trend */}
-        <div className="calendar-section">
-          <ReportCalendar 
-            habitId={habitId}
-            startDate={dateRange.startDate}
-            endDate={dateRange.endDate}
-          />
-          
-          <WeekComparison 
-            comparison={reportData.habit.weekOverWeekChange}
-          />
-        </div>
-
-        {/* Right Column - Stats and Comparison */}
-        <div className="stats-section">
-          <WeekStats 
-            title=<i class="bi bi-calendar-event">  Current Week</i>
-            stats={reportData.habit.thisWeek}
-            weekRange={reportData.weekRange}
-          />
-
-          <WeekStats 
-            title=<i class="bi bi-calendar-event-fill">  Previous Week</i>
-            stats={reportData.habit.previousWeek}
-          />
-         <TrendChart 
-            trendData={reportData.habit.dailyTrend}
-            startDate={dateRange.startDate}
-          />
-          
-        </div>
-      </div>
-      <div className="quick-actions">
-        <button onClick={loadReportData} className="action-btn primary">🔄 Refresh Report</button>
-        <button className="action-btn secondary">📤 Export Report</button>
-      </div>
-    </div>
-  );
 };
 
 export default SingleReportPage;

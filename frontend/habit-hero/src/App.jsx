@@ -6,8 +6,9 @@ import "./styles/habits.css";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+
+                     <BrowserRouter>
+                      <AppRoutes />
+                     </BrowserRouter>
   );
 }

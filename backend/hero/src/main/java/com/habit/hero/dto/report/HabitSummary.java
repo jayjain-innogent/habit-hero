@@ -17,5 +17,5 @@ public class HabitSummary {
     private Double completionRate;
     private Integer totalMissedDays;
     private Integer currentStreak;
-    private List<LocalDate> habitCompletions;
+    private CompletionData  habitCompletionsData;
 }

@@ -3,8 +3,10 @@ package com.habit.hero.controller;
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
 import com.habit.hero.dto.habitlog.TodayStatusResponse;
+import com.habit.hero.dto.report.WeeklyReportResponse;
 import com.habit.hero.entity.HabitLog;
 import com.habit.hero.service.HabitLogService;
+import com.habit.hero.service.report.ReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +24,7 @@ import java.util.List;
 public class HabitLogController {
 
     private final HabitLogService habitLogService;
-
+    private ReportService reportService;
     //create
     @PostMapping("/{habitId}/logs")
     public ResponseEntity<HabitLogResponse> createLog(
@@ -77,6 +79,39 @@ public class HabitLogController {
         log.info("API: get today-status for user {}", userId);
         TodayStatusResponse resp = habitLogService.getTodayStatus(userId);
         return ResponseEntity.ok(resp);
+    }
+    // Get note
+    @GetMapping("/logs/{logId}/note")
+    public ResponseEntity<HabitLogResponse> getNote(
+            @RequestHeader("userId") Long userId,
+            @PathVariable Long logId
+    ) {
+        log.info("API: get note for log {} user {}", logId, userId);
+        HabitLogResponse resp = habitLogService.getNote(userId, logId);
+        return ResponseEntity.ok(resp);
+    }
+
+    // Update note
+    @PatchMapping("/logs/{logId}/note")
+    public ResponseEntity<HabitLogResponse> updateNote(
+            @RequestHeader("userId") Long userId,
+            @PathVariable Long logId,
+            @RequestBody String note
+    ) {
+        log.info("API: update note for log {} user {}", logId, userId);
+        HabitLogResponse resp = habitLogService.updateNote(userId, logId, note);
+        return ResponseEntity.ok(resp);
+    }
+
+    // Delete note
+    @DeleteMapping("/logs/{logId}/note")
+    public ResponseEntity<Void> deleteNote(
+            @RequestHeader("userId") Long userId,
+            @PathVariable Long logId
+    ) {
+        log.info("API: delete note for log {} user {}", logId, userId);
+        habitLogService.deleteNote(userId, logId);
+        return ResponseEntity.noContent().build();
     }
 
 }

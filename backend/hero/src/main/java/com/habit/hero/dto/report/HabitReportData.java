@@ -2,6 +2,7 @@ package com.habit.hero.dto.report;
 
 import com.habit.hero.enums.Cadence;
 import com.habit.hero.enums.Categories;
+import com.habit.hero.enums.GoalUnit;
 import com.habit.hero.enums.HabitStatus;
 import lombok.Data;
 import lombok.AllArgsConstructor;
@@ -18,9 +19,13 @@ public class HabitReportData {
     private String habitName;
     private Categories category;
     private Cadence cadence;
+    private String description;
+    private GoalUnit goalUnit;
     private Integer sessionCount;
     private BigDecimal targetValue;
     private LocalDate startDate;
+    private Integer expectedDays;
+    private Double expectedValue;
     private WeekStats thisWeek;
     private WeekStats previousWeek;
     private WeekComparison weekOverWeekChange;

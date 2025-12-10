@@ -39,6 +39,11 @@ public class HabitLogDAOImpl implements HabitLogDAO {
         return habitLogRepository.findByHabit_IdOrderByLogDateDesc(habitId);
     }
 
+    @Override
+    public List<HabitLog> findByHabitIdAndLogDateBetweenOrderByLogDate(Long habitId, LocalDate startDate, LocalDate endDate) {
+        return habitLogRepository.findByHabit_IdAndLogDateBetweenOrderByLogDate(habitId, startDate, endDate);
+    }
+
     //finds logs using logId and UserId
     @Override
     public Optional<HabitLog> findByIdAndUserId(Long logId, Long userId) {
@@ -58,4 +63,15 @@ public class HabitLogDAOImpl implements HabitLogDAO {
         log.info("Finding habit log by HabitId {} and DateRange starDate {} endDate {}", habitId, startDate, endDate);
         return habitLogRepository.findByHabit_IdAndLogDateBetweenOrderByLogDate(habitId, startDate, endDate);
     }
+
+    @Override
+    public List<HabitLog> findLogsForUserInDateRange(Long userId, LocalDate startDate, LocalDate endDate) {
+        log.info("Finding all habit logs for user {} between {} and {}", userId, startDate, endDate);
+        return habitLogRepository.findByHabit_User_UserIdAndLogDateBetweenOrderByLogDate(
+                userId,
+                startDate,
+                endDate
+        );
+    }
+
 }

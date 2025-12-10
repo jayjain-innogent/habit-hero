@@ -1,6 +1,7 @@
 package com.habit.hero.controller.report;
 
 
+import com.habit.hero.dto.report.FullReportResponse;
 import com.habit.hero.dto.report.WeeklyReportResponse;
 import com.habit.hero.service.report.ReportService;
 import lombok.extern.slf4j.Slf4j;
@@ -38,5 +39,19 @@ public class ReportController {
             log.error("Error generating weekly report: {}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<FullReportResponse> getDashboardReport(
+            @RequestHeader("userId") Long userId,
+            @RequestParam int year,
+            @RequestParam(defaultValue = "0") int month,
+            @RequestParam(required = false) Integer week
+    ) {
+        log.info("API: Fetching Dashboard report for user={}, year={}, month={}, week={}", userId, year, month, week);
+
+        FullReportResponse response = reportService.getDashboardReport(userId, year, month, week);
+
+        return ResponseEntity.ok(response);
     }
 }

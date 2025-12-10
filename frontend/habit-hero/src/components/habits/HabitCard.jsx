@@ -189,7 +189,7 @@ export default function HabitCard({ habit, onComplete }) {
                     <div className="d-flex justify-content-between border-top pt-3">
                         <button
                             className="btn btn-link text-decoration-none text-secondary p-0 btn-sm"
-                            onClick={() => navigate(`/habits`)}
+                            onClick={() => navigate(`/habits/${habit.id}/report`)}
                         >
                             View Stats
                         </button>

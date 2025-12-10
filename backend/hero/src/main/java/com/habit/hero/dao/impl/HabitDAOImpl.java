@@ -58,4 +58,12 @@ public class HabitDAOImpl implements HabitDAO {
         log.info("Bulk saving {} habits", habits.size());
         return habitRepository.saveAll(habits);
     }
+
+    @Override
+    public List<Habit> findActiveHabitsSorted(Long userId) {
+        // Return only active habits
+        log.info("Fetching active habits for user {}", userId);
+        return habitRepository.findByUser_UserIdAndStatusOrderByCreatedAtAsc(userId, HabitStatus.ACTIVE);
+    }
+
 }

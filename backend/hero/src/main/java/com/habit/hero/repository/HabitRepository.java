@@ -19,4 +19,7 @@ public interface HabitRepository extends JpaRepository<Habit, Long> {
 
     // verify ownership
     Optional<Habit> findByIdAndUser_UserId(Long habitId, Long userId);
+
+    List<Habit> findByUser_UserIdAndStatusOrderByCreatedAtAsc(Long userId, HabitStatus status);
+
 }

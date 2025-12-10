@@ -9,7 +9,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WeekStats {
-    private Double completions;
+    private Double completionsValue;
     private Double completionPercentage;
     private Integer missedDays;
+    private Integer completedDays;
 }
