@@ -5,12 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 public interface HabitLogRepository extends JpaRepository<HabitLog, Long> {
 
-    //check if habit completed today
+    // check if habit completed today
     Optional<HabitLog> findByHabit_IdAndLogDate(Long habitId, LocalDate logDate);
 
     // Fetch all logs by habit id odr by date desc
@@ -19,17 +18,20 @@ public interface HabitLogRepository extends JpaRepository<HabitLog, Long> {
     // Fetch log by id and userId
     Optional<HabitLog> findByLogIdAndHabit_User_UserId(Long logId, Long userId);
 
-    //Fetch log by HabitId and logDate range
+    // Fetch log by HabitId and logDate range
     List<HabitLog> findByHabit_IdAndLogDateBetweenOrderByLogDate(
             Long habitId,
             LocalDate startDate,
             LocalDate endDate
     );
 
-    //Fetch all logs belonging to user
+    // Fetch all logs belonging to user
     List<HabitLog> findByHabit_User_UserIdAndLogDateBetweenOrderByLogDate(
             Long userId,
             LocalDate startDate,
             LocalDate endDate
     );
+
+    // Count logs in date range (Needed for Streak Calculation)
+    Integer countByHabit_IdAndLogDateBetween(Long habitId, LocalDate startDate, LocalDate endDate);
 }

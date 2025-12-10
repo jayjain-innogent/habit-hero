@@ -37,20 +37,10 @@ public class Activity extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
-    // JSON data (completionRate, streakLength, etc.)
-    @Column(columnDefinition = "TEXT")
-    private String content;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private Visibility visibility = Visibility.PUBLIC;
-
-    @Builder.Default
-    private boolean isDeleted = false;
-
-    @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
 
     @Builder.Default
     private int likesCount = 0;
@@ -58,3 +48,5 @@ public class Activity extends BaseEntity {
     @Builder.Default
     private int commentsCount = 0;
 }
+
+

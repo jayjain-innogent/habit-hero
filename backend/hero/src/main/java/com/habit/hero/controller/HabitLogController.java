@@ -1,5 +1,6 @@
 package com.habit.hero.controller;
 
+import com.habit.hero.dto.habit.HabitResponse; // Import Response
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
 import com.habit.hero.dto.habitlog.TodayStatusResponse;
@@ -17,11 +18,22 @@ import java.util.List;
 @RequestMapping("/habits")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin("*")
+//@CrossOrigin("*")
 public class HabitLogController {
 
     private final HabitLogService habitLogService;
 
+    // --- NEW ENDPOINT: Mark Habit Complete ---
+    @PostMapping("/{habitId}/complete")
+    public ResponseEntity<HabitResponse> markHabitComplete(
+            @RequestHeader("userId") Long userId,
+            @PathVariable Long habitId
+    ) {
+        log.info("API: Mark complete habit {} user {}", habitId, userId);
+        return ResponseEntity.ok(habitLogService.markHabitComplete(userId, habitId));
+    }
+
+    // Create a log (Manual date entry)
     @PostMapping("/{habitId}/logs")
     public ResponseEntity<HabitLogResponse> createLog(
             @RequestHeader("userId") Long userId,
@@ -33,6 +45,7 @@ public class HabitLogController {
         return ResponseEntity.ok(resp);
     }
 
+    // Get logs for a habit
     @GetMapping("/{habitId}/logs")
     public ResponseEntity<List<HabitLogResponse>> getLogs(
             @RequestHeader("userId") Long userId,
@@ -43,6 +56,7 @@ public class HabitLogController {
         return ResponseEntity.ok(resp);
     }
 
+    // Get logs in date range
     @GetMapping("/{habitId}/logs/range")
     public ResponseEntity<List<HabitLogResponse>> getLogsInRange(
             @RequestHeader("userId") Long userId,
@@ -55,6 +69,7 @@ public class HabitLogController {
         return ResponseEntity.ok(resp);
     }
 
+    // Delete a log
     @DeleteMapping("/logs/{logId}")
     public ResponseEntity<Void> deleteLog(
             @RequestHeader("userId") Long userId,
@@ -65,6 +80,7 @@ public class HabitLogController {
         return ResponseEntity.noContent().build();
     }
 
+    // Get today's status for dashboard
     @GetMapping("/today-status")
     public ResponseEntity<TodayStatusResponse> getTodayStatus(
             @RequestHeader("userId") Long userId
@@ -74,6 +90,7 @@ public class HabitLogController {
         return ResponseEntity.ok(resp);
     }
 
+    // Get note
     @GetMapping("/logs/{logId}/note")
     public ResponseEntity<HabitLogResponse> getNote(
             @RequestHeader("userId") Long userId,
@@ -84,6 +101,7 @@ public class HabitLogController {
         return ResponseEntity.ok(resp);
     }
 
+    // Update note
     @PatchMapping("/logs/{logId}/note")
     public ResponseEntity<HabitLogResponse> updateNote(
             @RequestHeader("userId") Long userId,
@@ -95,6 +113,7 @@ public class HabitLogController {
         return ResponseEntity.ok(resp);
     }
 
+    // Delete note
     @DeleteMapping("/logs/{logId}/note")
     public ResponseEntity<Void> deleteNote(
             @RequestHeader("userId") Long userId,

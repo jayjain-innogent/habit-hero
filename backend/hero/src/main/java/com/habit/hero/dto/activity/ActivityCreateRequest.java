@@ -10,6 +10,5 @@ public class ActivityCreateRequest {
     private Long habitId;
     private ActivityType activityType;
     private String title;
-    private String contentJson;
     private Visibility visibility;
 }

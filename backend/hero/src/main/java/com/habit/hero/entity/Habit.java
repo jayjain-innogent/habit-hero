@@ -2,7 +2,6 @@ package com.habit.hero.entity;
 
 import com.habit.hero.enums.*;
 import jakarta.persistence.*;
-import jdk.jshell.Snippet;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -22,7 +21,7 @@ public class Habit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long Id;
+    private Long id;
 
     @Column(name = "title")
     private String title;
@@ -59,6 +58,15 @@ public class Habit {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "current_streak")
+    private Integer currentStreak;
+
+    @Column(name = "longest_streak")
+    private Integer longestStreak;
+
+    @Column(name = "last_activity_date")
+    private LocalDate lastActivityDate;
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -79,7 +87,6 @@ public class Habit {
     @Column(name = "status", nullable = false)
     private HabitStatus status;
 
-    // Set default values automatically
     @PrePersist
     public void prePersist() {
         this.createdAt = new Timestamp(System.currentTimeMillis());
@@ -90,11 +97,12 @@ public class Habit {
         if (this.goalType == null) this.goalType = GoalType.OFF;
         if (this.visibility == null) this.visibility = Visibility.PRIVATE;
         if (this.status == null) this.status = HabitStatus.ACTIVE;
+        if (this.currentStreak == null) this.currentStreak = 0;
+        if (this.longestStreak == null) this.longestStreak = 0;
     }
 
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = new Timestamp(System.currentTimeMillis());
     }
-
 }
