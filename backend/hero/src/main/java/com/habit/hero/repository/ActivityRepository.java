@@ -19,6 +19,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
     // friends’ activities
     List<Activity> findByUserInOrderByCreatedAtDesc(List<User> users);
 
+    //all feed
     @Query("""
     SELECT a FROM Activity a
     WHERE a.visibility = com.habit.hero.enums.Visibility.PUBLIC

@@ -48,5 +48,3 @@ public class Activity extends BaseEntity {
     @Builder.Default
     private int commentsCount = 0;
 }
-
-
