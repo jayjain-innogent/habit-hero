@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { Trophy } from "lucide-react";
 import "./SideBar.css";
 
 const SideBar = ({ items = [], onItemClick = () => {} }) => {
@@ -25,7 +26,17 @@ const SideBar = ({ items = [], onItemClick = () => {} }) => {
 
   return (
     <div className="sidebar-container">
-      <h1 className="sidebar-title">Habit Hero</h1>
+      <div className="sidebar-header">
+        <div className="logo-container">
+          <div className="logo-icon">
+            <Trophy size={24} />
+          </div>
+          <div className="logo-text">
+            <h1 className="sidebar-title">HabitHero</h1>
+            <p className="sidebar-subtitle">Track & grow together</p>
+          </div>
+        </div>
+      </div>
       <ul className="sidebar-list">
         {items.map((item) => (
           <li

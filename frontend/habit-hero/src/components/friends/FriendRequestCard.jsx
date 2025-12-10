@@ -1,9 +1,19 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { IoCheckmark, IoClose } from "react-icons/io5";
 import "./FriendRequestCard.css";
 import ImageWithFallback from "../ImageWithFallback";
 
-export default function FriendRequestCard({ request, onAccept, onReject, buttonLoading }) {
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * A component to display a friend request with accept and reject buttons.
+ *
+ * @param {object} request - The friend request object.
+ * @param {function} onAccept - A function to call when the accept button is clicked.
+ * @param {function} onReject - A function to call when the reject button is clicked.
+ * @param {object} buttonLoading - An object containing the loading state of the buttons.
+ */
+/*******  eeca425a-da93-4cd0-a0de-f6658615efd9  *******/export default function FriendRequestCard({ request, onAccept, onReject, buttonLoading }) {
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
@@ -29,20 +39,20 @@ export default function FriendRequestCard({ request, onAccept, onReject, buttonL
       <div className="actions">
         <button 
           type="button"
-          className="btn accept" 
+          className="btn-icon accept" 
           onClick={(e) => { e.stopPropagation(); onAccept(request.requestId); }}
           disabled={buttonLoading[`accept_${request.requestId}`]}
           >
-            {buttonLoading[`accept_${request.requestId}`] ? "Accepting..." : "Accept"}
+            <IoCheckmark size={20} />
           </button>
 
         <button 
           type="button"
-          className="btn reject"
+          className="btn-icon reject"
           onClick={(e) => { e.stopPropagation(); onReject(request.requestId); }}
           disabled={buttonLoading[`reject_${request.requestId}`]}
         >
-          {buttonLoading[`reject_${request.requestId}`] ? "Rejecting..." : "Reject"}
+          <IoClose size={20} />
         </button>
       </div>
     </div>
