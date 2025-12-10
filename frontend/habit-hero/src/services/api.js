@@ -41,3 +41,32 @@ export const fetchHabitData = async (habitId) => {
     status: "On Track"
   };
 };
+
+export const fetchDashboardData = async () => {
+  try {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    
+    const params = new URLSearchParams({
+      year: year.toString(),
+      month: month.toString()
+    });
+    
+    const response = await fetch(`${API_BASE_URL}/reports/dashboard?${params}`, {
+      headers: {
+        'userId': '1'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Dashboard fetch error:', error);
+    throw error;
+  }
+};

@@ -1,0 +1,55 @@
+.dashboard {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.date-range {
+  color: #666;
+  font-size: 14px;
+}
+
+.habits-section {
+  margin: 30px 0;
+}
+
+.habits-section h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.motivation-section {
+  text-align: center;
+  margin-top: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+}
+
+.motivation-message {
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.dashboard-loading,
+.dashboard-error {
+  text-align: center;
+  padding: 50px;
+  font-size: 18px;
+}
+
+.dashboard-error {
+  color: #e74c3c;
+}
