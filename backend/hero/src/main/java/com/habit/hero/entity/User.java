@@ -4,16 +4,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
 @Setter
 @Getter
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -37,19 +34,12 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Builder.Default
     private String timezone = "Asia/Kolkata";
 
-    @Column(name = "notification_prefs_friend_requests")
-    private Boolean notificationPrefsFriendRequests = true;
-
-    @Column(name = "notification_prefs_message")
-    private Boolean notificationPrefsMessage = true;
-
-    @Column(name = "notification_prefs_streak_breaks")
-    private Boolean notificationPrefsStreakBreaks = true;
-
-    @Column(name = "notification_prefs_post_engagement")
-    private Boolean notificationPrefsPostEngagement = true;
+    @Column(name = "notification_enabled")
+    @Builder.Default
+    private Boolean notificationEnabled = true;
 
     @Column(name = "user_bio")
     private String userBio;

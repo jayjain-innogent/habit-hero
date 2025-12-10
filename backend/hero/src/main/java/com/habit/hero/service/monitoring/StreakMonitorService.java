@@ -2,6 +2,7 @@ package com.habit.hero.service.monitoring;
 
 import com.habit.hero.dao.HabitDAO;
 import com.habit.hero.entity.Habit;
+import com.habit.hero.entity.User;
 import com.habit.hero.enums.NotificationType;
 import com.habit.hero.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,41 +24,70 @@ public class StreakMonitorService {
     private final HabitDAO habitDAO;
     private final NotificationService notificationService;
 
-    // Run this job every day at 12:05 AM (after midnight)
+    // 1. STREAK BREAK CHECK (12:05 AM)
     @Scheduled(cron = "0 5 0 * * *")
     @Transactional
     public void monitorMissedHabits() {
-        log.info("Running daily streak monitor job.");
+        log.info("Running daily streak monitor job (Break Check).");
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
-
-        // Fetch all habits that were expected to be completed yesterday but weren't
-        // Assumption: HabitDAO has a method to fetch habits needing check
         List<Habit> missedHabits = habitDAO.findActiveHabitsNotLoggedSince(yesterday);
 
-        if (missedHabits.isEmpty()) {
-            log.info("No streak breaks detected today.");
-            return;
-        }
+        if (missedHabits.isEmpty()) return;
 
-        for (Habit habit : missedHabits) {
-            log.warn("Streak broken for Habit ID: {}", habit.getId());
+        // Group habits by User
+        Map<User, List<Habit>> habitsByUser = missedHabits.stream()
+                .collect(Collectors.groupingBy(Habit::getUser));
 
-            // 1. Notify the user about the streak break
-            String message = "Your streak for '" + habit.getTitle() + "' was broken! Don't worry, start again today.";
+        habitsByUser.forEach((user, habits) -> {
+            String message;
+            if (habits.size() == 1) {
+                message = "💔 Streak Broken: '" + habits.get(0).getTitle() + "' was missed yesterday.";
+            } else {
+                message = "💔 Streak Broken: You missed habits yesterday. Start fresh today!";
+            }
 
             notificationService.createNotification(
-                    habit.getUser().getUserId(),
-                    null, // System notification
-                    NotificationType.STREAK_BREAK, // Assuming you have STREAK_BREAK enum type
+                    user.getUserId(),
+                    null,
+                    NotificationType.STREAK_BREAK,
                     message,
-                    habit.getId()
+                    habits.get(0).getId() // Link to the first habit
             );
+        });
+    }
 
-            // 2. Optionally: Reset the streak count in the Habit entity here
-            // habit.setCurrentStreak(0);
-            // habitDAO.save(habit);
-        }
-        log.info("Streak monitor job finished.");
+    @Scheduled(cron = "0 0 23 * * *")
+    @Transactional
+    public void triggerStreakRescue() {
+        log.info("Running Streak Rescue job.");
+
+        LocalDate today = LocalDate.now();
+        List<Habit> pendingHabits = habitDAO.findActiveHabitsNotLoggedSince(today);
+
+        if (pendingHabits.isEmpty()) return;
+
+        // Group habits by User
+        Map<User, List<Habit>> habitsByUser = pendingHabits.stream()
+                .collect(Collectors.groupingBy(Habit::getUser));
+        
+        habitsByUser.forEach((user, habits) -> {
+            String message;
+            if (habits.size() == 1) {
+                message = "🔥 Streak Rescue! 1 hour left to complete '" + habits.get(0).getTitle() + "'.";
+            } else {
+                message = "🔥 Streak Rescue! You have habits pending for today. Keep the streak alive!";
+            }
+
+            notificationService.createNotification(
+                    user.getUserId(),
+                    null,
+                    NotificationType.STREAK_REACTION,
+                    message,
+                    habits.get(0).getId()
+            );
+        });
+
+        log.info("Streak Rescue notifications sent to {} users.", habitsByUser.size());
     }
 }

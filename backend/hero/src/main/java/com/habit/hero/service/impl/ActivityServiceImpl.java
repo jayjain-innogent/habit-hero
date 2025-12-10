@@ -31,6 +31,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // Create a new activity post for a user
     @Override
     public FeedItemResponse createActivity(ActivityCreateRequest request) {
         User user = userRepository.findById(request.getUserId())
@@ -50,34 +51,28 @@ public class ActivityServiceImpl implements ActivityService {
         return mapToFeedResponse(saved, user.getUserId());
     }
 
+    // Get feed items for a user (including friends' activities)
     @Override
     public List<FeedItemResponse> getFeedForUser(Long userId, int page, int size) {
 
-        // load current user
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // fetch friend relationships
         List<FriendList> relations = friendListRepository.findFriendsOfUser(currentUser);
 
-        // map each FriendList row to the friend user
         List<User> friends = relations.stream()
-                .map(fl -> {
-                    return fl.getUser().equals(currentUser) ? fl.getFriend() : fl.getUser();
-                })
+                .map(fl -> fl.getUser().equals(currentUser) ? fl.getFriend() : fl.getUser())
                 .collect(Collectors.toList());
 
-        // fetch feed items
         List<Activity> activities =
                 activityRepository.fetchFeed(currentUser, friends, PageRequest.of(page, size));
 
-        // map activities to DTOs
         return activities.stream()
                 .map(a -> mapToFeedResponse(a, userId))
                 .collect(Collectors.toList());
     }
 
-
+    // Like an activity and notify the post owner
     @Override
     public void likeActivity(Long userId, Long activityId) {
 
@@ -101,7 +96,7 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setLikesCount(activity.getLikesCount() + 1);
         activityRepository.save(activity);
 
-        // notify post owner if liker is not the owner
+        // Notify post owner if liker is not the owner
         if (!activity.getUser().getUserId().equals(userId)) {
             notificationService.createNotification(
                     activity.getUser().getUserId(),
@@ -113,6 +108,7 @@ public class ActivityServiceImpl implements ActivityService {
         }
     }
 
+    // Unlike an activity and remove the notification
     @Override
     @Transactional
     public void unlikeActivity(Long userId, Long activityId) {
@@ -139,12 +135,12 @@ public class ActivityServiceImpl implements ActivityService {
                         activityId
                 );
             } catch (Exception e) {
-                // ignore if notification deletion fails
+                // Ignore if notification deletion fails
             }
         }
     }
 
-
+    // Add a comment to an activity and notify the post owner
     @Override
     public CommentResponse addComment(CommentCreateRequest request) {
 
@@ -165,7 +161,7 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setCommentsCount(activity.getCommentsCount() + 1);
         activityRepository.save(activity);
 
-        // notify post owner if commenter is not the owner
+        // Notify post owner if commenter is not the owner
         if (!activity.getUser().getUserId().equals(user.getUserId())) {
             notificationService.createNotification(
                     activity.getUser().getUserId(),
@@ -191,6 +187,7 @@ public class ActivityServiceImpl implements ActivityService {
                 .build();
     }
 
+    // Get all comments for an activity
     @Override
     public List<CommentResponse> getComments(Long activityId) {
 
@@ -213,6 +210,7 @@ public class ActivityServiceImpl implements ActivityService {
                 .collect(Collectors.toList());
     }
 
+    // Map Activity entity to FeedItemResponse DTO
     private FeedItemResponse mapToFeedResponse(Activity a, Long currentUserId) {
 
         boolean likedByUser =
@@ -261,6 +259,7 @@ public class ActivityServiceImpl implements ActivityService {
                 .build();
     }
 
+    // Parse activity content JSON to appropriate DTO based on activity type
     private Object parseContent(Activity a) throws JsonProcessingException {
         if (a.getContent() == null) return null;
 

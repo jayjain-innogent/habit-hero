@@ -13,29 +13,25 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    // ✅ FIX 1 (The missing method for fetching the list in DAOImpl.findAllByUserId)
+    // Get all notifications for a user (not deleted, latest first)
     List<Notification> findByUserUserIdAndIsDeletedFalseOrderByCreatedAtDesc(Long userId);
 
-    // ✅ FIX 2 (The method required for DAOImpl.countUnread)
+    // Count unread notifications for a user (not deleted)
     long countByUserUserIdAndIsReadFalseAndIsDeletedFalse(Long userId);
 
-    // ✅ FIX 3 (Method required for findById / softDelete checking)
-    // List<Notification> findByReferenceId(Long referenceId); // Required for Java Filtering in DAOImpl
-
-    // Simple fetch by Reference ID only (for Java filtering in DAO)
+    // Get notifications by reference ID (for undo/filtering)
     List<Notification> findByReferenceId(Long referenceId);
 
-
-    // 1. FIX: Habit Undo Delete
+    // Delete notification directly by user, type, and reference ID (habit undo)
     @Modifying(clearAutomatically = true)
-    @Query(value = "DELETE FROM notifications WHERE user_id = :userId AND notification_type = :#{#type.name()} AND reference_id = :refId", nativeQuery = true) // <-- Table name changed to notifications
+    @Query(value = "DELETE FROM notifications WHERE user_id = :userId AND notification_type = :#{#type.name()} AND reference_id = :refId", nativeQuery = true)
     void deleteDirectly(@Param("userId") Long userId,
                         @Param("type") NotificationType type,
                         @Param("refId") Long refId);
 
-    // 2. FIX: Social Undo Delete
+    // Delete social notification directly by user, type, reference ID, and related user (social undo)
     @Modifying(clearAutomatically = true)
-    @Query(value = "DELETE FROM notifications WHERE user_id = :userId AND notification_type = :#{#type.name()} AND reference_id = :refId AND related_user_id = :relatedUserId", nativeQuery = true) // <-- Table name changed to notifications
+    @Query(value = "DELETE FROM notifications WHERE user_id = :userId AND notification_type = :#{#type.name()} AND reference_id = :refId AND related_user_id = :relatedUserId", nativeQuery = true)
     void deleteSocialDirectly(@Param("userId") Long userId,
                               @Param("type") NotificationType type,
                               @Param("refId") Long refId,

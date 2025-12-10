@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../../context/NotificationContext';
-import { FaBell } from 'react-icons/fa';
+import { FaBell, FaUserFriends, FaFire } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 
@@ -158,16 +158,28 @@ const NotificationDropdown = () => {
                 {/* Tabs */}
                 {notifications.length > 0 && (
                     <div className="d-flex text-center border-bottom bg-light">
-                        {Object.keys(groupedNotifications).map((tab) => (
-                            <div
-                                key={tab}
-                                className={`flex-fill py-2 cursor-pointer ${activeTab === tab ? 'fw-bold text-primary border-bottom border-primary border-2' : 'text-muted'}`}
-                                onClick={(e) => { e.stopPropagation(); setActiveTab(tab); }}
-                                style={{ fontSize: '0.85rem', cursor: 'pointer' }}
-                            >
-                                {tab} ({groupedNotifications[tab].length})
-                            </div>
-                        ))}
+                        {Object.keys(groupedNotifications).map((tab) => {
+                            const hasUnread = groupedNotifications[tab].some(n => !n.isRead);
+                            return (
+                                <div
+                                    key={tab}
+                                    className={`flex-fill py-2 cursor-pointer position-relative ${activeTab === tab ? 'text-primary border-bottom border-primary border-2' : 'text-muted'}`}
+                                    onClick={(e) => { e.stopPropagation(); setActiveTab(tab); }}
+                                    style={{ cursor: 'pointer' }}
+                                    title={tab}
+                                >
+                                    {tab === 'Friends' && <FaUserFriends size={20} />}
+                                    {tab === 'Streak Related' && <FaFire size={20} />}
+
+                                    {hasUnread && (
+                                        <span
+                                            className="position-absolute bg-danger rounded-circle"
+                                            style={{ width: '8px', height: '8px', top: '8px', right: '35%' }}
+                                        ></span>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
 

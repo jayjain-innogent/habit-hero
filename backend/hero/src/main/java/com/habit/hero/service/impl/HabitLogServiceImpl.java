@@ -35,13 +35,12 @@ public class HabitLogServiceImpl implements HabitLogService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
+    // Create a new habit log for a user and send notifications
     @Override
     public HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request) {
 
         if (userId == null || habitId == null || request == null)
             throw new BadRequestException("userId, habitId, and request body required");
-
-        // log.info("Creating log for user {} habit {}", userId, habitId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -51,6 +50,7 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         LocalDate logDate = request.getLogDate() == null ? LocalDate.now() : request.getLogDate();
 
+        // Prevent duplicate log for the same date
         habitLogDAO.findTodayLog(habitId, logDate)
                 .ifPresent(l -> {
                     throw new BadRequestException("Log already exists for this date");
@@ -60,10 +60,9 @@ public class HabitLogServiceImpl implements HabitLogService {
         logEntity.setCreatedAt(LocalDateTime.now());
         logEntity.setLogDate(logDate);
 
-        // Assumption: Streak calculation/update is handled here implicitly or explicitly.
         HabitLog saved = habitLogDAO.save(logEntity);
 
-        // Notify user about completion (existing code)
+        // Notify user about streak update
         notificationService.createNotification(
                 userId,
                 null,
@@ -72,31 +71,27 @@ public class HabitLogServiceImpl implements HabitLogService {
                 habitId
         );
 
-        // --- NEW: Milestone Check Logic ---
+        // Check and notify for milestone achievements
         try {
-            // NOTE: This assumes 'habit' object now reflects the newly calculated streak.
             int currentStreak = habit.getCurrentStreak();
-
             if (currentStreak == 7 || currentStreak == 30) {
                 String message = "Congratulations! You hit a " + currentStreak + "-day milestone on " + habit.getTitle();
-
                 notificationService.createNotification(
                         userId,
                         null,
-                        NotificationType.MILESTONE, // Assuming you have a MILESTONE enum type
+                        NotificationType.MILESTONE,
                         message,
                         habitId
                 );
             }
         } catch (Exception e) {
-            // Log the error but do not break the main transaction (log creation)
             log.error("Failed to check or create milestone notification after saving log.", e);
         }
-        // --- END NEW LOGIC ---
 
         return HabitLogMapper.toResponse(saved);
     }
 
+    // Get all logs for a specific habit of a user
     @Override
     public List<HabitLogResponse> getLogsForHabit(Long userId, Long habitId) {
 
@@ -114,6 +109,7 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .toList();
     }
 
+    // Delete a specific habit log and its notification
     @Override
     @Transactional
     public void deleteLog(Long userId, Long logId) {
@@ -126,7 +122,6 @@ public class HabitLogServiceImpl implements HabitLogService {
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
-        // Capture habit id before deletion for notification reference
         Long habitId = logEntity.getHabit().getId();
 
         habitLogDAO.delete(logEntity);
@@ -143,6 +138,7 @@ public class HabitLogServiceImpl implements HabitLogService {
         }
     }
 
+    // Get logs for a habit within a specific date range
     @Override
     public List<HabitLogResponse> getLogsInRange(Long userId, Long habitId, LocalDate start, LocalDate end) {
 
@@ -160,6 +156,7 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .toList();
     }
 
+    // Get today's status for all habits of a user
     @Override
     public TodayStatusResponse getTodayStatus(Long userId) {
 
@@ -174,7 +171,6 @@ public class HabitLogServiceImpl implements HabitLogService {
         Map<Long, HabitStatusItem> responseMap = new HashMap<>();
 
         for (Habit habit : habits) {
-
             Optional<HabitLog> todayLog = habitLogDAO.findTodayLog(habit.getId(), today);
 
             HabitStatusItem item = todayLog
@@ -193,6 +189,7 @@ public class HabitLogServiceImpl implements HabitLogService {
         return new TodayStatusResponse(responseMap);
     }
 
+    // Get a specific note for a habit log
     @Override
     public HabitLogResponse getNote(Long userId, Long logId) {
 
@@ -207,6 +204,7 @@ public class HabitLogServiceImpl implements HabitLogService {
         return HabitLogMapper.toResponse(logEntity);
     }
 
+    // Update the note for a specific habit log
     @Override
     public HabitLogResponse updateNote(Long userId, Long logId, String note) {
 
@@ -225,6 +223,7 @@ public class HabitLogServiceImpl implements HabitLogService {
         return HabitLogMapper.toResponse(updated);
     }
 
+    // Delete the note from a specific habit log
     @Override
     public void deleteNote(Long userId, Long logId) {
 

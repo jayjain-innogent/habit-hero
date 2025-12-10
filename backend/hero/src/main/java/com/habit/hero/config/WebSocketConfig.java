@@ -10,18 +10,16 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    // Configure message broker for WebSocket communication
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        //frontend will subscribe ot this prefix
         config.enableSimpleBroker("/topic");
-
-        //prefix for messages sent form frontend to backend
         config.setApplicationDestinationPrefixes("/app");
     }
 
+    // Register WebSocket endpoint for client connections
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // the main connection endpoint for react
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();

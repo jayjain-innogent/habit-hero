@@ -30,6 +30,7 @@ public class FriendServiceImpl implements FriendService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
+    // Send a friend request from one user to another
     @Override
     @Transactional
     public void sendFriendRequest(Long senderId, Long receiverId) {
@@ -55,7 +56,7 @@ public class FriendServiceImpl implements FriendService {
 
         friendRequestRepository.save(request);
 
-        // notify receiver about new request
+        // Notify receiver about new friend request
         notificationService.createNotification(
                 receiverId,
                 senderId,
@@ -65,6 +66,7 @@ public class FriendServiceImpl implements FriendService {
         );
     }
 
+    // Accept a pending friend request and add to friend list
     @Override
     @Transactional
     public void acceptFriendRequest(RespondToRequestDto dto) {
@@ -83,7 +85,7 @@ public class FriendServiceImpl implements FriendService {
 
         addFriendship(sender, receiver);
 
-        // notify sender that request is accepted
+        // Notify sender that request is accepted
         notificationService.createNotification(
                 sender.getUserId(),
                 receiver.getUserId(),
@@ -93,7 +95,7 @@ public class FriendServiceImpl implements FriendService {
         );
     }
 
-
+    // Reject a pending friend request
     @Override
     public void rejectFriendRequest(RespondToRequestDto dto) {
         FriendRequest request = getFriendRequest(dto.getRequestId());
@@ -106,6 +108,7 @@ public class FriendServiceImpl implements FriendService {
         friendRequestRepository.save(request);
     }
 
+    // Cancel a pending friend request and delete notification
     @Override
     public void cancelFriendRequest(RespondToRequestDto dto) {
         FriendRequest request = getFriendRequest(dto.getRequestId());
@@ -126,17 +129,18 @@ public class FriendServiceImpl implements FriendService {
                     request.getSender().getUserId()
             );
         } catch (Exception e) {
-            // ignore
+            // Ignore if notification deletion fails
         }
     }
 
+    // Remove a friend from the user's friend list
     @Override
     @Transactional
     public void removeFriend(Long userId, Long friendId) {
         friendListRepository.removeFriend(userId, friendId);
     }
 
-
+    // Get all pending friend requests for a user
     @Override
     public List<FriendRequestResponseDto> getPendingRequests(Long userId) {
 
@@ -155,6 +159,7 @@ public class FriendServiceImpl implements FriendService {
                 .collect(Collectors.toList());
     }
 
+    // Get all sent friend requests by a user
     @Override
     public List<FriendRequestResponseDto> getSentRequests(Long userId) {
         User sender = getUser(userId);
@@ -170,7 +175,7 @@ public class FriendServiceImpl implements FriendService {
                 .collect(Collectors.toList());
     }
 
-
+    // Get the friend list for a user
     @Override
     public List<FriendDto> getFriendList(Long userId) {
 
@@ -191,17 +196,19 @@ public class FriendServiceImpl implements FriendService {
                 .collect(Collectors.toList());
     }
 
-
+    // Helper method to fetch a user by ID
     private User getUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
+    // Helper method to fetch a friend request by ID
     private FriendRequest getFriendRequest(Long id) {
         return friendRequestRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Friend request not found"));
     }
 
+    // Helper method to add a friendship between two users
     private void addFriendship(User user, User friend) {
         FriendList fl = FriendList.builder()
                 .user(user)

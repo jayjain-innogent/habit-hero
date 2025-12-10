@@ -15,6 +15,7 @@ public class NotificationResponseDto {
     private NotificationType notificationType;
     private String message;
     private Boolean isRead;
+    // To redirect related post or request
     private Long referenceId;
     private LocalDateTime createdAt;
     private Long senderId;

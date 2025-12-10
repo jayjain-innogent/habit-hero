@@ -12,16 +12,19 @@ import java.util.Optional;
 @Repository
 public interface HabitRepository extends JpaRepository<Habit, Long> {
 
-    // Get all habits for user
+    // Get all habits for a specific user
     List<Habit> findByUser_UserId(Long userId);
 
-    // Get all active habits Sorted by CreatedAt
+    // Get all active habits for a user, sorted by creation date
     List<Habit> findByUser_UserIdAndStatusOrderByCreatedAtAsc(Long userId, HabitStatus status);
 
-    // verify ownership
+    // Find a habit by its ID and user ID (to verify ownership)
     Optional<Habit> findByIdAndUser_UserId(Long habitId, Long userId);
 
+    // Find all active habits not logged since a specific date (or never logged)
     List<Habit> findByStatusEqualsAndLastActivityDateBeforeOrLastActivityDateIsNull(
             HabitStatus status, LocalDate date
     );
+
+    List<Habit> findByStatusAndLastActivityDateBeforeOrLastActivityDateIsNull(HabitStatus habitStatus, LocalDate date);
 }
