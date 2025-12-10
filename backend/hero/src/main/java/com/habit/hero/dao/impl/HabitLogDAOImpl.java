@@ -61,7 +61,10 @@ public class HabitLogDAOImpl implements HabitLogDAO {
     @Override
     public List<HabitLog> findByHabitIdAndDateRange(Long habitId, LocalDate startDate, LocalDate endDate) {
         log.info("Finding habit log by HabitId {} and DateRange starDate {} endDate {}", habitId, startDate, endDate);
-        return habitLogRepository.findByHabit_IdAndLogDateBetweenOrderByLogDate(habitId, startDate, endDate);
+        return habitLogRepository.findByHabit_IdAndLogDateBetweenOrderByLogDate(
+                habitId,
+                startDate,
+                endDate);
     }
 
     @Override

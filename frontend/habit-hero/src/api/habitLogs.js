@@ -43,3 +43,47 @@ export const getTodayStatus = async (userId) => {
     );
     return response.data;
 };
+
+export const getNote = async (userId, logId) => {
+    const response = await axiosInstance.get(
+        `${HABIT_LOG_BASE_URL}/logs/${logId}/note`,
+        {
+            headers: { userId }
+        }
+    );
+    return response.data;
+};
+
+export const updateNote = async (userId, logId, noteText) => {
+    const response = await axiosInstance.patch(
+        `${HABIT_LOG_BASE_URL}/logs/${logId}/note`,
+        noteText,
+        {
+            headers: {
+                userId,
+                "Content-Type": "text/plain"
+            }
+        }
+    );
+    return response.data;
+};
+
+export const deleteNote = async (userId, logId) => {
+    const response = await axiosInstance.delete(
+        `${HABIT_LOG_BASE_URL}/logs/${logId}/note`,
+        {
+            headers: { userId }
+        }
+    );
+    return response.data;
+};
+
+export const deleteLog = async (userId, logId) => {
+    const response = await axiosInstance.delete(
+        `${HABIT_LOG_BASE_URL}/logs/${logId}`,
+        {
+            headers: { userId }
+        }
+    );
+    return response.data;
+};

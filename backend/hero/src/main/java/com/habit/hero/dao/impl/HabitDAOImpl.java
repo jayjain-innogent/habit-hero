@@ -40,13 +40,6 @@ public class HabitDAOImpl implements HabitDAO {
     }
 
     @Override
-    public List<Habit> findActiveHabits(Long userId) {
-        // Return only active habits
-        log.info("Fetching active habits for user {}", userId);
-        return habitRepository.findByUser_UserIdAndStatus(userId, HabitStatus.ACTIVE);
-    }
-
-    @Override
     public void delete(Habit habit) {
         // Delete a habit
         log.info("Deleting habit {} for user {}", habit.getId(), habit.getUser());

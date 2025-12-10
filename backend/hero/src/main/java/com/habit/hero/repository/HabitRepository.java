@@ -14,9 +14,6 @@ public interface HabitRepository extends JpaRepository<Habit, Long> {
     // Get all habits for user
     List<Habit> findByUser_UserId(Long userId);
 
-    // Get all active habits
-    List<Habit> findByUser_UserIdAndStatus(Long userId, HabitStatus status);
-
     // verify ownership
     Optional<Habit> findByIdAndUser_UserId(Long habitId, Long userId);
 
