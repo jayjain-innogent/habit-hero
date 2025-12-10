@@ -53,4 +53,4 @@ export function getSentRequestsApi({ userId }) {
   return axios.get(`${BASE_URL}${GET_SENT_REQUESTS}`, {
     params: { userId }
   });
-}
+}   
