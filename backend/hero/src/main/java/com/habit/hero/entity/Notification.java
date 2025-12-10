@@ -24,31 +24,34 @@ public class Notification {
     @Column(name = "notification_type", nullable = false)
     private NotificationType notificationType;
 
-    // Notification ka text (e.g., "Rahul liked your post")
+    // The notification message (e.g., "Rahul liked your post")
     @Column(name = "message", nullable = false)
     private String message;
 
-    // Red Dot Logic: False = Unread, True = Read
+    // Read status: false = unread, true = read
     @Builder.Default
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
 
-    // Navigation Logic: Post ID ya User ID yahan aayega
+    // Reference ID for navigation (could be a post ID or user ID)
     @Column(name = "reference_id")
     private Long referenceId;
 
+    // When the notification was created
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    // Delete status: false = not deleted, true = deleted
     @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
-    // Jisko notification milegi (Receiver)
+    // The user who receives the notification
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // The user related to the notification (e.g., the one who liked or commented)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "related_user_id")
     private User relatedUser;
