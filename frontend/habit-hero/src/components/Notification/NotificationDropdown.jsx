@@ -67,9 +67,9 @@ const NotificationDropdown = () => {
     const renderNotificationItem = (notif) => (
         <li key={notif.notificationId} className="position-relative">
             <button
-                className={`dropdown-item d-flex align-items-start p-2 border-bottom ${notif.isRead ? 'bg-light text-muted' : 'bg-white'}`}
+                className={`dropdown-item d-flex align-items-start p-3 border-bottom ${notif.isRead ? 'text-muted' : ''}`}
                 onClick={() => handleNotificationClick(notif)}
-                style={{ whiteSpace: 'normal', cursor: isClickable(notif.notificationType) ? 'pointer' : 'default', paddingRight: '2rem' }}
+                style={{ whiteSpace: 'normal', cursor: isClickable(notif.notificationType) ? 'pointer' : 'default', paddingRight: '2.5rem', background: notif.isRead ? '#FFFBF0' : 'white', borderLeft: notif.isRead ? 'none' : '3px solid #6B8EFF' }}
             >
                 {notif.senderProfileImage && (
                     <img
@@ -88,7 +88,7 @@ const NotificationDropdown = () => {
                     </small>
                 </div>
                 {!notif.isRead && (
-                    <span className="badge bg-primary rounded-circle p-1 ms-1 align-self-center" style={{ width: '8px', height: '8px' }}> </span>
+                    <span className="rounded-circle p-1 ms-1 align-self-center" style={{ width: '10px', height: '10px', background: 'linear-gradient(135deg, #6B8EFF, #8CA9FF)' }}> </span>
                 )}
             </button>
             <button
@@ -116,17 +116,20 @@ const NotificationDropdown = () => {
     }, [isOpen]);
 
     return (
-        <div className="dropdown">
+        <>
+        {isOpen && <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999998, background: 'rgba(0,0,0,0.2)' }} onClick={() => setIsOpen(false)} />}
+        <div className="dropdown" style={{ position: 'relative', zIndex: 999999 }}>
             <button
-                className="btn btn-link position-relative text-decoration-none text-dark"
+                className="btn btn-link position-relative text-decoration-none"
                 type="button"
                 id="notificationDropdown"
                 aria-expanded={isOpen}
                 onClick={toggleDropdown}
+                style={{ color: '#8CA9FF' }}
             >
                 <FaBell size={24} />
                 {unreadCount > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill" style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)' }}>
                         {unreadCount}
                         <span className="visually-hidden">unread messages</span>
                     </span>
@@ -134,38 +137,41 @@ const NotificationDropdown = () => {
             </button>
 
             <div
-                className={`dropdown-menu dropdown-menu-end p-0 shadow-lg ${isOpen ? 'show' : ''}`}
+                className={`dropdown-menu dropdown-menu-end p-0 ${isOpen ? 'show' : ''}`}
                 aria-labelledby="notificationDropdown"
                 style={{
-                    width: '350px',
+                    width: '380px',
                     maxHeight: '550px',
                     overflowY: 'hidden',
                     display: isOpen ? 'flex' : 'none',
                     flexDirection: 'column',
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    zIndex: 1050, // Higher than most bootstrap elements
-                    border: '1px solid rgba(0,0,0,0.15)'
+                    position: 'fixed',
+                    top: '60px',
+                    right: '20px',
+                    zIndex: 999999,
+                    border: '3px solid #FFE5A0',
+                    borderRadius: '16px',
+                    background: 'white',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
                 }}
             >
 
                 {/* Header */}
-                <div className="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
-                    <h6 className="m-0 fw-bold">Notifications</h6>
+                <div className="p-3 border-bottom d-flex justify-content-between align-items-center" style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)', borderTopLeftRadius: '13px', borderTopRightRadius: '13px' }}>
+                    <h6 className="m-0 fw-bold" style={{ color: '#fff' }}>Notifications</h6>
                 </div>
 
                 {/* Tabs */}
                 {notifications.length > 0 && (
-                    <div className="d-flex text-center border-bottom bg-light">
+                    <div className="d-flex text-center border-bottom" style={{ background: '#FFFBF0' }}>
                         {Object.keys(groupedNotifications).map((tab) => {
                             const hasUnread = groupedNotifications[tab].some(n => !n.isRead);
                             return (
                                 <div
                                     key={tab}
-                                    className={`flex-fill py-2 cursor-pointer position-relative ${activeTab === tab ? 'text-primary border-bottom border-primary border-2' : 'text-muted'}`}
+                                    className={`flex-fill py-3 cursor-pointer position-relative ${activeTab === tab ? 'border-bottom border-3' : ''}`}
                                     onClick={(e) => { e.stopPropagation(); setActiveTab(tab); }}
-                                    style={{ cursor: 'pointer' }}
+                                    style={{ cursor: 'pointer', color: activeTab === tab ? '#6B8EFF' : '#64748b', borderColor: '#6B8EFF', fontWeight: activeTab === tab ? '600' : '400' }}
                                     title={tab}
                                 >
                                     {tab === 'Friends' && <FaUserFriends size={20} />}
@@ -173,8 +179,8 @@ const NotificationDropdown = () => {
 
                                     {hasUnread && (
                                         <span
-                                            className="position-absolute bg-danger rounded-circle"
-                                            style={{ width: '8px', height: '8px', top: '8px', right: '35%' }}
+                                            className="position-absolute rounded-circle"
+                                            style={{ width: '8px', height: '8px', top: '10px', right: '35%', background: 'linear-gradient(135deg, #6B8EFF, #8CA9FF)' }}
                                         ></span>
                                     )}
                                 </div>
@@ -198,6 +204,7 @@ const NotificationDropdown = () => {
 
             </div>
         </div>
+        </>
     );
 };
 

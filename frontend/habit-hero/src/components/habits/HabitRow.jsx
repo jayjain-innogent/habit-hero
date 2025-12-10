@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaDumbbell, FaHeart, FaUsers, FaBriefcase, FaStar, FaCheck, FaFire } from "react-icons/fa";
+import { FaDumbbell, FaHeart, FaUsers, FaBriefcase, FaStar, FaCheck, FaFire, FaTrophy } from "react-icons/fa";
 import { BiTargetLock } from "react-icons/bi";
 
 const CATEGORY_STYLES = {
-    FITNESS: { color: "#f97316", bg: "#ffedd5", icon: <FaDumbbell /> }, // Orange
-    HEALTH: { color: "#10b981", bg: "#d1fae5", icon: <FaHeart /> },     // Emerald
-    SOCIAL: { color: "#3b82f6", bg: "#dbeafe", icon: <FaUsers /> },     // Blue
-    PRODUCTIVITY: { color: "#8b5cf6", bg: "#ede9fe", icon: <FaBriefcase /> }, // Violet
-    DEFAULT: { color: "#6b7280", bg: "#f3f4f6", icon: <FaStar /> }      // Gray
+    FITNESS: { color: "#E74C3C", gradient: "linear-gradient(135deg, #E74C3C 0%, #F39C12 100%)", iconBg: "linear-gradient(135deg, #F39C12, #E74C3C)", icon: <FaDumbbell /> },
+    HEALTH: { color: "#3498DB", gradient: "linear-gradient(135deg, #3498DB 0%, #5DADE2 100%)", iconBg: "linear-gradient(135deg, #5DADE2, #3498DB)", icon: <FaHeart /> },
+    SOCIAL: { color: "#9B59B6", gradient: "linear-gradient(135deg, #9B59B6 0%, #BB8FCE 100%)", iconBg: "linear-gradient(135deg, #BB8FCE, #9B59B6)", icon: <FaUsers /> },
+    PRODUCTIVITY: { color: "#F39C12", gradient: "linear-gradient(135deg, #F39C12 0%, #F8C471 100%)", iconBg: "linear-gradient(135deg, #F8C471, #F39C12)", icon: <FaBriefcase /> },
+    DEFAULT: { color: "#2C7DA0", gradient: "linear-gradient(135deg, #2C7DA0 0%, #61A5C2 100%)", iconBg: "linear-gradient(135deg, #61A5C2, #2C7DA0)", icon: <FaStar /> }
 };
 
 export default function HabitRow({ habit, onComplete, onUncomplete }) {
@@ -19,8 +19,13 @@ export default function HabitRow({ habit, onComplete, onUncomplete }) {
     const isCompleted = habit.completedToday;
     const hasGoal = habit.goalType !== "OFF" && habit.targetValue > 0;
 
-    // Get style based on category
-    const style = CATEGORY_STYLES[habit.category] || CATEGORY_STYLES.DEFAULT;
+    // Get style based on category - DEFAULT uses new theme colors
+    const style = CATEGORY_STYLES[habit.category] || {
+        ...CATEGORY_STYLES.DEFAULT,
+        color: '#8CA9FF',
+        gradient: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)',
+        iconBg: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)'
+    };
 
     // --- Scrubber Logic (Borrowed from HabitCard implementation) ---
     const updateScrubberValue = (clientX) => {
@@ -81,103 +86,81 @@ export default function HabitRow({ habit, onComplete, onUncomplete }) {
     const progressPercent = hasGoal ? (currentValue / habit.targetValue) * 100 : 0;
 
     return (
-        <div
-            className={`d-flex align-items-center justify-content-between p-3 mb-3 bg-white rounded-4 shadow-sm transition-all`}
-            style={{
-                opacity: isCompleted ? 0.6 : 1,
-                transform: isCompleted ? 'scale(0.99)' : 'scale(1)',
-                transition: 'all 0.2s ease',
-                borderLeft: `5px solid ${style.color}`
-            }}
-        >
-            {/* LEFT: Icon + Text */}
-            <div className="d-flex align-items-center gap-3" style={{ flex: 1 }}>
-                {/* Icon Box */}
-                <div
-                    className="d-flex align-items-center justify-content-center rounded-circle"
-                    style={{
-                        width: '48px',
-                        height: '48px',
-                        backgroundColor: style.bg,
-                        color: style.color,
-                        fontSize: '1.25rem'
-                    }}
-                >
-                    {style.icon}
-                </div>
+        <div className="col-12 col-md-6 mb-4">
+            <div className="position-relative rounded-4 shadow-lg h-100" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #FFF8DE 100%)', border: `2px solid ${style.color}`, overflow: 'hidden', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)', transform: isCompleted ? 'scale(0.97)' : 'scale(1)', opacity: isCompleted ? 0.75 : 1 }}>
+                
+                {/* Decorative Top Bar */}
+                <div className="position-absolute top-0 start-0 w-100" style={{ height: '5px', background: style.gradient, boxShadow: `0 2px 12px ${style.color}40` }} />
+                
+                {/* Completed Badge */}
+                {isCompleted && (
+                    <div className="position-absolute top-0 end-0 m-3" style={{ background: style.gradient, borderRadius: '20px', padding: '6px 14px', boxShadow: `0 4px 15px ${style.color}50`, zIndex: 10 }}>
+                        <div className="d-flex align-items-center gap-2">
+                            <FaTrophy size={14} style={{ color: '#fff' }} />
+                            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#fff' }}>DONE</span>
+                        </div>
+                    </div>
+                )}
 
-                {/* Text Info */}
-                <div>
-                    <h6 className="mb-0 fw-bold text-dark">{habit.title}</h6>
-                    <small className="fw-bold" style={{ color: style.color, fontSize: '0.75rem', letterSpacing: '0.5px' }}>
-                        {habit.category}
-                    </small>
-                </div>
-            </div>
-
-            {/* RIGHT: Action (Scrubber/Input or Checkbox) */}
-            <div className="d-flex align-items-center gap-3">
-
-                {/* If Active & Has Goal: Show Scrubber/Input Control */}
-                {!isCompleted && hasGoal && (
-                    <div className="d-flex align-items-center gap-2">
-                        <div
-                            ref={scrubberRef}
-                            onMouseDown={handleMouseDown}
-                            className="position-relative bg-light rounded-pill overflow-hidden"
-                            style={{ width: '100px', height: '30px', cursor: 'grab', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
-                        >
-                            {/* Filling Bar */}
-                            <div
-                                className="h-100"
-                                style={{
-                                    width: `${progressPercent}%`,
-                                    backgroundColor: style.color,
-                                    transition: isDragging ? 'none' : 'width 0.2s',
-                                    boxShadow: '0 0 10px rgba(0,0,0,0.15)'
-                                }}
-                            />
-                            {/* Text Overlay */}
-                            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                                <span className="small fw-bold text-dark" style={{ fontSize: '0.75rem', pointerEvents: 'none' }}>
-                                    {currentValue} / {habit.targetValue}
-                                </span>
+                <div className="p-4">
+                    {/* Header Section */}
+                    <div className="d-flex align-items-start gap-3 mb-4">
+                        {/* Icon */}
+                        <div className="d-flex align-items-center justify-content-center rounded-3" style={{ width: '70px', height: '70px', background: style.iconBg, color: '#fff', fontSize: '1.8rem', boxShadow: `0 8px 24px ${style.color}35`, flexShrink: 0 }}>
+                            {style.icon}
+                        </div>
+                        
+                        {/* Title & Category */}
+                        <div className="flex-grow-1">
+                            <h5 className="mb-2 fw-bold" style={{ color: '#2C3E50', fontSize: '1.25rem', lineHeight: '1.3' }}>{habit.title}</h5>
+                            <div className="d-inline-block px-3 py-1 rounded-pill" style={{ background: style.gradient, fontSize: '0.7rem', fontWeight: '700', color: '#fff', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                                {habit.category}
                             </div>
                         </div>
-                        <button
-                            className="btn btn-sm text-white rounded-circle d-flex align-items-center justify-content-center p-0"
-                            style={{
-                                width: '30px',
-                                height: '30px',
-                                backgroundColor: style.color,
-                                border: 'none'
-                            }}
-                            onClick={handleInputSubmit}
-                            disabled={currentValue === 0}
-                        >
-                            <FaCheck size={12} />
-                        </button>
                     </div>
-                )}
 
-                {/* If No Goal OR Completed: Show Simple Checkbox */}
-                {/* Visual Check Circle */}
-                {(!hasGoal || isCompleted) && (
-                    <div
-                        onClick={handleCheckClick}
-                        className={`rounded-circle d-flex align-items-center justify-content-center cursor-pointer transition-all`}
-                        style={{
-                            width: '32px',
-                            height: '32px',
-                            border: `2px solid ${isCompleted ? style.color : '#e5e7eb'}`,
-                            backgroundColor: isCompleted ? style.color : 'transparent',
-                            color: 'white',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        {isCompleted && <FaCheck size={14} />}
+                    {/* Progress/Action Section */}
+                    <div className="mt-4">
+                        {hasGoal && (
+                            <div className="mb-3">
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#64748b' }}>Progress</span>
+                                    <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#2C3E50' }}>{currentValue} / {habit.targetValue}</span>
+                                </div>
+                                {!isCompleted && (
+                                    <div ref={scrubberRef} onMouseDown={handleMouseDown} className="position-relative rounded-pill overflow-hidden" style={{ width: '100%', height: '48px', cursor: 'grab', background: '#FFF8DE', border: `2px solid ${style.color}`, boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08)' }}>
+                                        <div className="h-100" style={{ width: `${progressPercent}%`, background: style.gradient, transition: isDragging ? 'none' : 'width 0.4s ease', boxShadow: `0 0 20px ${style.color}30` }} />
+                                        <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                            <span className="fw-bold" style={{ fontSize: '0.85rem', pointerEvents: 'none', color: '#2C3E50' }}>
+                                                Drag to set progress
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                                {isCompleted && (
+                                    <div className="rounded-pill overflow-hidden" style={{ width: '100%', height: '48px', background: '#FFF8DE', border: `2px solid ${style.color}` }}>
+                                        <div className="h-100 d-flex align-items-center justify-content-center" style={{ width: '100%', background: style.gradient }}>
+                                            <span className="fw-bold" style={{ fontSize: '0.85rem', color: '#fff' }}>Completed!</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        {!isCompleted ? (
+                            <button onClick={hasGoal ? handleInputSubmit : handleCheckClick} disabled={hasGoal && currentValue === 0} className="btn w-100 rounded-3 d-flex align-items-center justify-content-center gap-2 py-3" style={{ background: style.gradient, color: '#fff', border: 'none', fontSize: '1rem', fontWeight: '700', boxShadow: `0 6px 20px ${style.color}30`, transition: 'all 0.3s ease', opacity: (hasGoal && currentValue === 0) ? 0.5 : 1 }}>
+                                <FaCheck size={18} />
+                                <span>Complete Habit</span>
+                            </button>
+                        ) : (
+                            <button onClick={handleCheckClick} className="btn w-100 rounded-3 d-flex align-items-center justify-content-center gap-2 py-3" style={{ background: 'linear-gradient(135deg, #94a3b8, #64748b)', color: '#fff', border: 'none', fontSize: '1rem', fontWeight: '700', boxShadow: '0 6px 20px rgba(148,163,184,0.3)', transition: 'all 0.3s ease' }}>
+                                <FaCheck size={18} />
+                                <span>Mark Incomplete</span>
+                            </button>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

@@ -5,6 +5,39 @@ import HabitCard from "../../components/habits/HabitCard";
 import { useNavigate } from "react-router-dom";
 import ProgressRing from "../../components/common/ProgressRing";
 import { getCacheKey } from "../../utils/cache";
+import { FaClipboardList, FaBullseye, FaSeedling, FaPlus } from "react-icons/fa";
+import { QUOTES } from "../../data/quotes";
+
+const sortHabits = (list) => {
+    const today = new Date().toISOString().split("T")[0];
+
+    return [...list].sort((a, b) => {
+        const getScore = (h) => {
+            const isCompleted = h.completedToday;
+            const isPaused = h.status === "PAUSED";
+            const startDate = h.startDate ? new Date(h.startDate).toISOString().split('T')[0] : null;
+            const isUpcoming = startDate && startDate > today;
+
+            if (isUpcoming) return 4;
+            if (isPaused) return 3;
+            if (isCompleted) return 2;
+            return 1;
+        };
+
+        const scoreA = getScore(a);
+        const scoreB = getScore(b);
+
+        if (scoreA !== scoreB) return scoreA - scoreB;
+
+        if (scoreA === 1) {
+            const catCompare = (a.category || "").toLowerCase().localeCompare((b.category || "").toLowerCase());
+            if (catCompare !== 0) return catCompare;
+            return (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase());
+        }
+
+        return 0;
+    });
+};
 
 export default function HabitsList() {
     const [habits, setHabits] = useState([]);
@@ -54,6 +87,9 @@ export default function HabitsList() {
                 logId: todayStatus?.status?.[h.id]?.logId ?? null
             }));
 
+            list = sortHabits(list);
+
+
             localStorage.setItem(
                 cacheKey,
                 JSON.stringify({ date: today, data: list })
@@ -70,13 +106,14 @@ export default function HabitsList() {
     };
 
     const handleCompleteCallback = (habitId, actualValue, newLogId) => {
-        setHabits(prev =>
-            prev.map(h =>
+        setHabits(prev => {
+            const updated = prev.map(h =>
                 h.id === habitId
                     ? { ...h, completedToday: true, actualValue, logId: newLogId }
                     : h
-            )
-        );
+            );
+            return sortHabits(updated);
+        });
 
         const cacheKey = getCacheKey(userId);
         const cached = JSON.parse(localStorage.getItem(cacheKey));
@@ -91,13 +128,14 @@ export default function HabitsList() {
     };
 
     const handleUncompleteCallback = (habitId) => {
-        setHabits(prev =>
-            prev.map(h =>
+        setHabits(prev => {
+            const updated = prev.map(h =>
                 h.id === habitId
                     ? { ...h, completedToday: false, actualValue: null, logId: null }
                     : h
-            )
-        );
+            );
+            return sortHabits(updated);
+        });
 
         const cacheKey = getCacheKey(userId);
         const cached = JSON.parse(localStorage.getItem(cacheKey));
@@ -126,37 +164,45 @@ export default function HabitsList() {
     return (
         <div style={{
             minHeight: '100vh',
-            backgroundColor: '#f8f9fa',
+            background: 'linear-gradient(135deg, #FFF8DE 0%, #8CA9FF 100%)',
             paddingBottom: '40px'
         }}>
             <div className="container py-4">
 
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h1 className="fw-bold mb-0 text-dark">Welcome Back, Hero!</h1>
-                        <p className="text-muted mb-0">{formattedDate}</p>
+                        <h1 className="fw-bold mb-2" style={{ color: '#000', fontSize: '2rem' }}>Welcome back, Hero!</h1>
+                        <p className="text-muted mb-1" style={{ fontSize: '1rem', fontStyle: 'italic' }}>
+                            "{QUOTES[Math.floor(Math.random() * QUOTES.length)].text}"
+                        </p>
+                        <p className="text-muted mb-0 small">{formattedDate}</p>
                     </div>
                     <button
-                        className="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold"
+                        className="btn rounded-pill px-4 py-2 shadow-lg fw-semibold d-flex align-items-center gap-2"
+                        style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)', color: '#fff', border: '2px solid #6B8EFF' }}
                         onClick={() => navigate("/habits/create")}
                     >
-                        + Create Habit
+                        <FaPlus size={14} />
+                        <span>Create Habit</span>
                     </button>
                 </div>
 
-                <div className="card border-0 shadow-sm mb-4 bg-white overflow-hidden">
+                <div className="card border-0 shadow-lg mb-4 overflow-hidden rounded-4" style={{ background: 'linear-gradient(135deg, #8CA9FF 0%, #6B8EFF 100%)', border: '3px solid #6B8EFF' }}>
                     <div className="card-body p-4">
                         <div className="row align-items-center">
                             <div className="col-md-8">
-                                <h4 className="fw-bold text-primary mb-2">Daily Progress</h4>
-                                <p className="text-muted mb-0">
-                                    You've completed <span className="fw-bold text-dark">{completed}</span> out of <span className="fw-bold text-dark">{total}</span> habits today.
+                                <div className="d-flex align-items-center gap-2 mb-2">
+                                    <FaBullseye size={24} style={{ color: '#fff' }} />
+                                    <h4 className="fw-bold mb-0" style={{ color: '#fff' }}>Daily Progress</h4>
+                                </div>
+                                <p className="mb-0" style={{ color: '#fff', opacity: 0.95 }}>
+                                    You've completed <span className="fw-bold">{completed}</span> out of <span className="fw-bold">{total}</span> habits today.
                                     Keep it up!
                                 </p>
                             </div>
                             <div className="col-md-4 text-center text-md-end mt-3 mt-md-0">
-                                <div style={{ width: 80, height: 80, display: 'inline-block' }}>
-                                    <ProgressRing radius={40} stroke={8} progress={progress} />
+                                <div style={{ width: 90, height: 90, display: 'inline-block' }}>
+                                    <ProgressRing radius={45} stroke={9} progress={progress} />
                                 </div>
                             </div>
                         </div>
@@ -178,23 +224,36 @@ export default function HabitsList() {
                 )}
 
                 {!loading && !error && habits.length === 0 && (
-                    <div className="text-center py-5 text-muted">
-                        <div className="mb-3 display-1">🌱</div>
-                        <h5>No habits yet</h5>
-                        <p>Start your journey by creating your first habit!</p>
+                    <div className="card border-0 shadow-lg rounded-4 text-center py-5" style={{ background: 'white', border: '2px solid #8CA9FF' }}>
+                        <FaSeedling size={80} className="mb-3" style={{ color: '#8CA9FF' }} />
+                        <h5 className="fw-bold" style={{ color: '#2C3E50' }}>No habits yet</h5>
+                        <p className="text-muted">Start your journey by creating your first habit!</p>
                     </div>
                 )}
 
                 <div className="row g-3">
-                    {habits.map(habit => (
-                        <div className="col-12 col-sm-6 col-md-4 col-lg-3" key={habit.id}>
-                            <HabitCard
-                                habit={habit}
-                                onComplete={handleCompleteCallback}
-                                onUncomplete={handleUncompleteCallback}
-                            />
-                        </div>
-                    ))}
+                    {habits.map((habit, index) => {
+                        const showCategoryHeader = index === 0 || habits[index - 1].category !== habit.category;
+                        return (
+                            <React.Fragment key={habit.id}>
+                                {showCategoryHeader && (
+                                    <div className="col-12 mt-3">
+                                        <h5 className="fw-bold mb-0" style={{ color: '#2C3E50', fontSize: '1.1rem', letterSpacing: '0.5px' }}>
+                                            {habit.category}
+                                        </h5>
+                                        <hr style={{ borderTop: '2px solid #8CA9FF', opacity: 0.3, margin: '8px 0 16px 0' }} />
+                                    </div>
+                                )}
+                                <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                                    <HabitCard
+                                        habit={habit}
+                                        onComplete={handleCompleteCallback}
+                                        onUncomplete={handleUncompleteCallback}
+                                    />
+                                </div>
+                            </React.Fragment>
+                        );
+                    })}
                 </div>
             </div>
         </div>

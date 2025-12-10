@@ -144,16 +144,17 @@ export default function HomeDashboard() {
     };
 
     return (
-        <div className="" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', paddingBottom: '40px' }}>
-            <div className="container" style={{ maxWidth: '600px' }}> {/* Limit width for "Vertical Stack" app feel */}
+        <div style={{ background: 'linear-gradient(135deg, #FFF8DE 0%, #8CA9FF 100%)', minHeight: '100vh', paddingBottom: '40px' }}>
+            <div className="container" style={{ maxWidth: '700px' }}>
 
                 {/* 1. Top Header */}
-                <div className="d-flex justify-content-between align-items-end pt-4 pb-2">
+                <div className="d-flex justify-content-between align-items-center pt-5 pb-3">
                     <div>
-                        <h2 className="fw-bolder text-dark mb-0">Welcome back, Baby!</h2>
+                        <h2 className="fw-bold mb-1" style={{ color: '#fff', fontSize: '2rem' }}>Welcome back! 👋</h2>
+                        <p className="text-muted mb-0 small">Let's make today count</p>
                     </div>
-                    <div>
-                        <span className="text-secondary small fw-bold">
+                    <div className="text-end">
+                        <span className="badge rounded-pill px-3 py-2" style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)', color: '#fff', fontSize: '0.85rem' }}>
                             {formattedDate}
                         </span>
                     </div>
@@ -165,31 +166,25 @@ export default function HomeDashboard() {
                 </div>
 
                 {/* 3. Progress Section */}
-                <div className="card border-0 shadow-sm mb-4 bg-white rounded-4">
+                <div className="card border-0 shadow-lg mb-4 rounded-4 overflow-hidden" style={{ background: 'linear-gradient(135deg, #8CA9FF 0%, #6B8EFF 100%)', border: '2px solid rgba(255,255,255,0.3)' }}>
                     <div className="card-body p-4">
-                        <div className="d-flex justify-content-between align-items-end mb-2">
-                            <h5 className="fw-bold mb-0">Your Daily Goal</h5>
-                            <span className="h4 fw-bold text-primary mb-0">{progress}%</span>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h5 className="fw-bold mb-0" style={{ color: '#fff' }}>Daily Progress</h5>
+                            <span className="h2 fw-bold mb-0" style={{ color: '#fff' }}>{progress}%</span>
                         </div>
-                        <div className="progress" style={{ height: '12px', borderRadius: '10px', backgroundColor: '#e9ecef' }}>
-                            <div
-                                className="progress-bar bg-primary"
-                                role="progressbar"
-                                style={{ width: `${progress}%`, borderRadius: '10px', transition: 'width 0.5s ease' }}
-                                aria-valuenow={progress}
-                                aria-valuemin="0"
-                                aria-valuemax="100"
-                            ></div>
+                        <div className="progress" style={{ height: '16px', borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.3)' }}>
+                            <div className="progress-bar" role="progressbar" style={{ width: `${progress}%`, borderRadius: '12px', background: '#6B8EFF', transition: 'width 0.5s ease', boxShadow: '0 2px 8px rgba(107,142,255,0.5)' }} aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
-                        <div className="text-muted small mt-2">
-                            {totalCompletedCount} of {totalActiveCount} habits completed
+                        <div className="mt-3 d-flex align-items-center gap-2" style={{ color: '#fff' }}>
+                            <span className="small">{totalCompletedCount} of {totalActiveCount} habits completed</span>
+                            {progress === 100 && <span className="ms-auto">🎉</span>}
                         </div>
                     </div>
                 </div>
 
                 {/* 4. Habits List (Main Content) */}
                 <div className="mb-3">
-                    <h6 className="fw-bold text-secondary mb-3">⬇️ TODAY'S TASKS</h6>
+                    <h6 className="fw-bold mb-3" style={{ color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Today's Tasks</h6>
                     {loading ? (
                         <div className="text-center py-5">
                             <div className="spinner-border text-primary" role="status"></div>
@@ -199,9 +194,10 @@ export default function HomeDashboard() {
                     )}
 
                     {!loading && sortedActive.length === 0 && totalActiveCount > 0 && (
-                        <div className="text-center py-5 text-muted bg-white rounded-4 shadow-sm mb-3">
-                            <span className="display-4">🎉</span>
-                            <p className="mb-0 mt-2">All tasks completed!</p>
+                        <div className="text-center py-5 bg-white rounded-4 shadow-lg mb-3" style={{ border: '2px dashed #e2e8f0' }}>
+                            <span className="display-3">🎉</span>
+                            <h5 className="fw-bold mt-3 mb-1" style={{ color: '#2C3E50' }}>Amazing Work!</h5>
+                            <p className="text-muted mb-0">All tasks completed for today</p>
                         </div>
                     )}
                 </div>
@@ -209,7 +205,7 @@ export default function HomeDashboard() {
                 {/* Completed Section (if any) */}
                 {sortedCompleted.length > 0 && (
                     <div className="mt-5">
-                        <h6 className="fw-bold text-secondary mb-3">✅ COMPLETED</h6>
+                        <h6 className="fw-bold mb-3" style={{ color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Completed</h6>
                         {renderGroupedHabits(sortedCompleted)}
                     </div>
                 )}
