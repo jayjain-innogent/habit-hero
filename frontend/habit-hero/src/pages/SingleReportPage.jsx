@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { fetchWeeklyReport } from '../services/api';
 import './SingleReportPage.css';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Award, Target } from 'lucide-react';
-
+import { ArrowLeft, Zap, Award, Target, Download} from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 const SingleReportPage = () => {
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -15,6 +16,75 @@ const SingleReportPage = () => {
     const { habitId } = useParams();
     const navigate = useNavigate();
 
+     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+    const generatePDFReport = () => {
+        const pdf = new jsPDF();
+        const pageWidth = pdf.internal.pageSize.width;
+        let yPosition = 20;
+
+        pdf.setFontSize(20);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('HABIT TRACKING REPORT', pageWidth/2, yPosition, { align: 'center' });
+        
+        yPosition += 15;
+        pdf.setFontSize(16);
+        pdf.text(habit.habitName, pageWidth/2, yPosition, { align: 'center' });
+        
+        yPosition += 10;
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`Report Period: ${weekRange.startDate} to ${weekRange.endDate}`, pageWidth/2, yPosition, { align: 'center' });
+        pdf.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth/2, yPosition + 5, { align: 'center' });
+        
+        yPosition += 25;
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('PERFORMANCE SUMMARY', 20, yPosition);
+        yPosition += 15;
+        
+        pdf.setFontSize(11);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`Current Streak: ${summary.currentStreak || 0} days`, 20, yPosition);
+        pdf.text(`Longest Streak: ${summary.longestStreak || 0} days`, 20, yPosition + 7);
+        pdf.text(`Completion Rate: ${summary.completionRate || 0}%`, 20, yPosition + 14);
+        pdf.text(`Total Missed Days: ${Math.abs(summary.totalMissedDays || 0)}`, 20, yPosition + 21);
+        
+        yPosition += 35;
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('WEEKLY BREAKDOWN', 20, yPosition);
+        yPosition += 15;
+        
+        pdf.setFontSize(11);
+        pdf.setFont(undefined, 'normal');
+        weekDates.forEach((date, i) => {
+            const dateIndex = completionDates.findIndex(d => d.startsWith(date));
+            const value = dateIndex >= 0 ? completionValues[dateIndex] : 0;
+            const dayName = new Date(date).toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'});
+            const status = value > 0 ? 'Completed' : 'Missed';
+            pdf.text(`${dayName}: ${status} ${value > 0 ? `(${value} ${habit.goalUnit || 'units'})` : ''}`, 20, yPosition);
+            yPosition += 7;
+        });
+        
+        if (completionValues.length > 0) {
+            yPosition += 15;
+            pdf.setFontSize(14);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('AGGREGATE DATA', 20, yPosition);
+            yPosition += 15;
+            
+            const totalValue = completionValues.reduce((sum, val) => sum + val, 0);
+            const avgValue = Math.round(totalValue / completionValues.length);
+            
+            pdf.setFontSize(11);
+            pdf.setFont(undefined, 'normal');
+            pdf.text(`Total ${habit.goalUnit || 'Units'}: ${totalValue}`, 20, yPosition);
+            pdf.text(`Average per Day: ${avgValue} ${habit.goalUnit || 'units'}`, 20, yPosition + 7);
+        }
+        
+        pdf.save(`${habit.habitName}_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
     useEffect(() => {
         loadReportData();
     }, [habitId]);
@@ -114,15 +184,34 @@ const SingleReportPage = () => {
     return (
         <div className="report-page">
             <div className="report-container">
-                <div className="header">
-                    <button onClick={() => navigate('/habits')} className="back-btn">
-                        <ArrowLeft size={24} />
-                    </button>
-                     <div>
-                         <h1 className="title">{habit.habitName}</h1>
-                         <h1 className="tagline">{habit.description}</h1>
-                     </div>
-                </div>
+               <div className="header">
+                   <div className="header-left">
+                       {!isGeneratingPDF && (
+                           <button onClick={() => navigate('/habits')} className="back-btn">
+                               <ArrowLeft size={24} />
+                           </button>
+                       )}
+                       <div>
+                           {isGeneratingPDF ? (
+                               <>
+                                   <h1 className="title-GeneratingPdf">Habit Report: {habit.habitName}</h1>
+                                   <h1 className="tagline-GeneratingPdf">Report Period: {weekRange.startDate} to {weekRange.endDate}</h1>
+                               </>
+                           ) : (
+                               <>
+                                   <h1 className="title">{habit.habitName}</h1>
+                                   <h1 className="tagline">{habit.description}</h1>
+                               </>
+                           )}
+                       </div>
+                   </div>
+                   {!isGeneratingPDF && (
+                       <button onClick={generatePDFReport} className="generate-report-btn">
+                           <Download size={20} />
+                           Generate Report
+                       </button>
+                   )}
+               </div>
 
                 <div className="banner">
                     <div>
