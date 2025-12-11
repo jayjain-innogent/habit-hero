@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../routes/AppRoutes";
+import { useNavigate } from "react-router-dom";
 import {
   getFeedApi,
   likeActivityApi,
@@ -11,6 +12,7 @@ import SegmentedButton from "../../components/common/SegmentedButton";
 import "./ActivityFeed.css";
 
 export default function ActivityFeed() {
+  const navigate = useNavigate();
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -71,6 +73,10 @@ export default function ActivityFeed() {
     setShowCommentsModal(true);
   };
 
+  const handleProfileClick = (userId) => {
+  navigate(`/profile/${userId}`);
+};
+
   return (
     <div className="activity-feed">
       <div className="activity-content">
@@ -98,6 +104,7 @@ export default function ActivityFeed() {
                 activity={activity}
                 onLikeToggle={handleLikeToggle}
                 onCommentClick={() => handleCommentClick(activity.id)}
+                onProfileClick={handleProfileClick}
               />
             ))}
           </div>
@@ -118,7 +125,8 @@ export default function ActivityFeed() {
         isOpen={showCommentsModal}
         onClose={() => setShowCommentsModal(false)}
         activityId={selectedActivityId}
-        onCommentAdded={loadFeed} // Change this line
+        onCommentAdded={loadFeed}
+        onProfileClick={handleProfileClick} // Add this line
       />
     </div>
   );

@@ -91,12 +91,13 @@ public class ActivityServiceImpl implements ActivityService {
                 .visibility(activity.getVisibility())
                 .userId(activity.getUser().getUserId())
                 .username(activity.getUser().getUsername())
+                .profileImageUrl(activity.getUser().getProfileImageUrl()) // Add this line
                 .habitId(activity.getHabit() != null ? activity.getHabit().getId() : null)
                 .likesCount(activity.getLikesCount())
                 .commentsCount(activity.getCommentsCount())
                 .createdAt(activity.getCreatedAt())
                 .build();
-    }
+}
 
     @Transactional
     @Override
@@ -179,7 +180,32 @@ public class ActivityServiceImpl implements ActivityService {
                 .author(UserSummary.builder()
                         .userId(c.getAuthor().getUserId())
                         .username(c.getAuthor().getUsername())
+                        .profileImage(c.getAuthor().getProfileImageUrl()) // Use profileImage, not profileImageUrl
                         .build())
                 .build();
     }
+
+    @Override
+    public List<ActivityResponse> getUserActivities(Long userId, int page, int size) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Pageable pageable = PageRequest.of(page, size);
+        List<Activity> activities = activityRepository.findByUserOrderByCreatedAtDesc(user, pageable);
+
+        return activities.stream().map(this::mapToResponse).toList();
+    }
+
+    @Override
+    public void deleteActivity(Long activityId, Long userId) {
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new RuntimeException("Activity not found"));
+
+        if (!activity.getUser().getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to delete this activity");
+        }
+
+        activityRepository.delete(activity);
+    }
+
 }

@@ -3,6 +3,7 @@ import {
   GET_FEED,
   ADD_COMMENT,
   GET_COMMENTS,
+  GET_USER_ACTIVITIES,
 } from "./endpoints";
 
 const BASE_URL = "http://localhost:8080/";
@@ -51,4 +52,16 @@ export function addCommentApi({ activityId, userId, text }) {
 // GET COMMENTS 
 export function getCommentsApi({ activityId }) {
   return axios.get(`${BASE_URL}activity/comments/${activityId}`);
+}
+
+export function getUserActivitiesApi({ userId, page = 0, size = 10 }) {
+  return axios.get(`${BASE_URL}${GET_USER_ACTIVITIES}/${userId}`, {
+    params: { page, size }
+  });
+}
+
+export function deleteActivityApi({ activityId, userId }) {
+  return axios.delete(`${BASE_URL}activity/${activityId}`, {
+    params: { userId }
+  });
 }

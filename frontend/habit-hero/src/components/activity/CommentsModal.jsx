@@ -3,7 +3,7 @@ import { getCommentsApi, addCommentApi } from "../../api/activity";
 import Avatar from "../common/Avatar";
 import "./CommentsModal.css";
 
-const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded }) => {
+const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfileClick}) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
@@ -52,12 +52,23 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded }) => {
             <ul className="comments-list">
               {comments.map((comment) => (
                 <li key={comment.commentId} className="comment-item">
+                <div 
+                  onClick={() => onProfileClick?.(comment.author?.userId)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <Avatar src={comment.author?.profileImage} alt={comment.author?.username} />
-                  <div className="comment-content">
-                    <span className="comment-author">{comment.author?.username}</span>
-                    <p className="comment-text">{comment.text}</p>
-                  </div>
-                </li>
+                </div>
+                <div className="comment-content">
+                  <span 
+                    className="comment-author"
+                    onClick={() => onProfileClick?.(comment.author?.userId)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {comment.author?.username}
+                  </span>
+                  <p className="comment-text">{comment.text}</p>
+                </div>
+              </li>
               ))}
             </ul>
           )}

@@ -4,7 +4,7 @@ import { addCommentApi } from "../../api/activity";
 import Avatar from "../common/Avatar";
 import "./ActivityCard.css";
 
-const ActivityCard = ({ activity, onLikeToggle, onCommentClick }) => {
+const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, onDelete }) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState("");
   const { currentUserId } = useAppContext();
@@ -35,10 +35,14 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick }) => {
   return (
     <div className="activity-card">
       <div className="card-header">
-        <div className="user-avatar">
+        <div 
+          className="user-avatar" 
+          onClick={() => onProfileClick?.(activity.userId)}
+          style={{ cursor: 'pointer' }}
+        >
           <Avatar 
-            src={activity.user?.profileImage} 
-            alt={activity.user?.username}
+            src={activity.profileImageUrl} 
+            alt={activity.username}
             style={{ width: '48px', height: '48px' }}
           />
         </div>
@@ -47,7 +51,12 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick }) => {
           <div className="user-details">
             <div className="user-content">
               <div className="user-name">
-                {activity.username || "Unknown User"}
+                <span 
+                  onClick={() => onProfileClick?.(activity.userId)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {activity.username || "Unknown User"}
+                </span>
                 <span className="activity-text" style={{ whiteSpace: 'pre-line' }}>
                   {activity.title}
                 </span>
@@ -62,6 +71,23 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick }) => {
             </div>
           </div>
         </div>
+
+        {currentUserId === activity.userId && onDelete && (
+          <button
+            onClick={() => onDelete(activity.id)} 
+            className="delete-btn"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#dc3545',
+              cursor: 'pointer',
+              fontSize: '16px',
+              padding: '4px'
+            }}
+          >
+            🗑️
+          </button>
+        )}
       </div>
 
       {activity.activityType === "SUMMARY" && parsed && (
