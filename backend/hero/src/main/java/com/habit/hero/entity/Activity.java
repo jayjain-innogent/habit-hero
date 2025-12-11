@@ -39,6 +39,12 @@ public class Activity extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
+    @Column
+    private String description;
+
+    @Column
+    private String caption;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

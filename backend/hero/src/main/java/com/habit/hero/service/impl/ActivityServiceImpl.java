@@ -48,6 +48,8 @@ public class ActivityServiceImpl implements ActivityService {
                 .habit(habit)
                 .activityType(request.getActivityType())
                 .title(request.getTitle())
+                .description(request.getDescription())
+                .caption(request.getCaption())
                 .visibility(
                         request.getVisibility() != null
                                 ? request.getVisibility()
@@ -91,6 +93,8 @@ public class ActivityServiceImpl implements ActivityService {
                 .visibility(activity.getVisibility())
                 .userId(activity.getUser().getUserId())
                 .username(activity.getUser().getUsername())
+                .description(activity.getDescription())
+                .caption(activity.getCaption())
                 .profileImageUrl(activity.getUser().getProfileImageUrl()) // Add this line
                 .habitId(activity.getHabit() != null ? activity.getHabit().getId() : null)
                 .likesCount(activity.getLikesCount())

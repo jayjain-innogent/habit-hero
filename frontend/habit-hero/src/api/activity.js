@@ -9,13 +9,15 @@ import {
 const BASE_URL = "http://localhost:8080/";
 
 // CREATE
-export function createActivityApi({ userId, habitId, activityType, title, visibility }) {
+export function createActivityApi({ userId, habitId, activityType, title, visibility, description, caption }) {
   return axios.post(`${BASE_URL}activity`, {
     userId,
     habitId,
     activityType,
     title,
     visibility,
+    description,
+    caption,
   });
 }
 

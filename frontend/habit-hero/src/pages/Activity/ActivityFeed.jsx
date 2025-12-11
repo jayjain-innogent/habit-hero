@@ -10,6 +10,7 @@ import CreateActivityModal from "../../components/activity/CreateActivityModal";
 import CommentsModal from "../../components/activity/CommentsModal";
 import SegmentedButton from "../../components/common/SegmentedButton";
 import "./ActivityFeed.css";
+import { generateReportApi } from "../../utils/use-gemini";
 
 export default function ActivityFeed() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function ActivityFeed() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false); 
   const [selectedActivityId, setSelectedActivityId] = useState(null);
+  const [summaryRes, setSummaryRes] = useState(null);
   const [filter, setFilter] = useState("ALL");
   const { currentUserId } = useAppContext();
 
@@ -29,6 +31,8 @@ export default function ActivityFeed() {
     setLoading(true);
     try {
       const response = await getFeedApi({ userId: currentUserId, filter, page: 0, size: 20 });
+      const summary = generateReportApi(response.data);
+      setSummaryRes(summary)
       setFeed(response.data || []);
     } catch (error) {
       console.error("Failed to load feed:", error);
@@ -119,6 +123,7 @@ export default function ActivityFeed() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSubmit={loadFeed}
+        summary={summaryRes}
       />
 
       <CommentsModal

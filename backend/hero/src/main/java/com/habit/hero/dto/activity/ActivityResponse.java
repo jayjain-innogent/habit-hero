@@ -24,5 +24,6 @@ public class ActivityResponse {
     private int likesCount;
     private int commentsCount;
     private LocalDateTime createdAt;
-
+    private String description;
+    private String caption;
 }

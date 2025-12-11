@@ -84,7 +84,7 @@ export default function HabitsList() {
     const total = activeHabits.length;
     const completed = activeHabits.filter(h => h.completedToday).length;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-
+    
     const formattedDate = new Date().toLocaleDateString("en-US", {
         weekday: "long",
         month: "long",

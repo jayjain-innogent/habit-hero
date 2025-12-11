@@ -33,6 +33,23 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
 
   const parsed = parseContent(activity.content);
 
+  function timeAgo(dateString) {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diff = now - date; 
+
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return `0 days ago`;
+    if (minutes < 60) return `0 days ago`;
+    if (hours < 24) return `0 days ago`;
+    if (days === 1) return "one day";
+    return `${days}d ago`;
+}
+
   return (
     <div className="activity-card">
       <div className="card-header">
@@ -66,6 +83,10 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
                 {new Date(activity.createdAt).toLocaleString()}
               </div>
             </div>
+
+            {activity.activityType === "STREAK" && <div className="activity-time">
+                {timeAgo(activity.createdAt)}
+            </div>}
             
             <div className={`activity-icon ${activity.activityType.toLowerCase()}`}>
               {getActivityIcon(activity.activityType)}
