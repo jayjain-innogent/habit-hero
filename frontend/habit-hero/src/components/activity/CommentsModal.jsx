@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getCommentsApi, addCommentApi } from "../../api/activity";
 import Avatar from "../common/Avatar";
+import { X, Send } from "lucide-react";
 import "./CommentsModal.css";
 
 const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfileClick}) => {
@@ -42,7 +43,9 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfile
       <div className="modal-content">
         <div className="modal-header">
           <h2 className="modal-title">Comments</h2>
-          <button onClick={onClose} className="modal-close">✕</button>
+          <button onClick={onClose} className="modal-close">
+            <X size={18} />
+          </button>
         </div>
 
         <div className="modal-body">
@@ -82,7 +85,10 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfile
             placeholder="Write a comment..."
             className="comment-input"
           />
-          <button onClick={handleAddComment} className="btn-primary">Post</button>
+          <button onClick={handleAddComment} className="btn-primary">
+            <Send size={16} style={{ marginRight: '6px' }} />
+            Post
+          </button>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { BarChart3, Trophy, AlertTriangle } from 'lucide-react';
 import './StatsOverview.css';
 
 const StatsOverview = ({ cardData, tableData }) => {
@@ -25,7 +26,7 @@ const StatsOverview = ({ cardData, tableData }) => {
   return (
     <div className="stats-overview">
       <div className="stats-section">
-        <h3>📊 Category Performance</h3>
+        <h3><BarChart3 size={20} style={{ marginRight: '8px', color: '#667eea' }} /> Category Performance</h3>
         <div className="category-grid">
           {Object.entries(categoryStats).map(([category, stats]) => {
             const percentage = Math.round((stats.completed / stats.total) * 100) || 0;
@@ -47,7 +48,7 @@ const StatsOverview = ({ cardData, tableData }) => {
 
       {topPerformers.length > 0 && (
         <div className="stats-section">
-          <h3>🏆 Top Performers</h3>
+          <h3><Trophy size={20} style={{ marginRight: '8px', color: '#667eea' }} /> Top Performers</h3>
           <div className="performers-list">
             {topPerformers.map((habit, index) => (
               <div key={index} className="performer-item top">
@@ -61,7 +62,7 @@ const StatsOverview = ({ cardData, tableData }) => {
 
       {needsAttention.length > 0 && (
         <div className="stats-section">
-          <h3>⚠️ Needs Attention</h3>
+          <h3><AlertTriangle size={20} style={{ marginRight: '8px', color: '#667eea' }} /> Needs Attention</h3>
           <div className="performers-list">
             {needsAttention.map((habit, index) => (
               <div key={index} className="performer-item attention">

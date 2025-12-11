@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAppContext } from "../../routes/AppRoutes";
 import { addCommentApi } from "../../api/activity";
 import Avatar from "../common/Avatar";
+import { Target, Flame, Medal, BarChart3, AlertTriangle, FileText, Heart, MessageCircle, Trash2, Zap } from "lucide-react";
 import "./ActivityCard.css";
 
 const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, onDelete }) => {
@@ -11,13 +12,13 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
 
   const getActivityIcon = (type) => {
     const icons = {
-      COMPLETION: "🎯",
-      STREAK: "🔥", 
-      MILESTONE: "🏅",
-      SUMMARY: "📊",
-      MISSED: "⚠️",
+      COMPLETION: <Target size={16} />,
+      STREAK: <Flame size={16} />, 
+      MILESTONE: <Medal size={16} />,
+      SUMMARY: <BarChart3 size={16} />,
+      MISSED: <AlertTriangle size={16} />,
     };
-    return icons[type] || "📝";
+    return icons[type] || <FileText size={16} />;
   };
 
   const parseContent = (content) => {
@@ -67,7 +68,7 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
             </div>
             
             <div className={`activity-icon ${activity.activityType.toLowerCase()}`}>
-              <span>{getActivityIcon(activity.activityType)}</span>
+              {getActivityIcon(activity.activityType)}
             </div>
           </div>
         </div>
@@ -85,7 +86,7 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
               padding: '4px'
             }}
           >
-            🗑️
+            <Trash2 size={16} />
           </button>
         )}
       </div>
@@ -126,13 +127,13 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
         <div className="rich-content">
           <div className="missed-card">
             <div className="missed-header">
-              <span className="missed-icon">⚠️</span>
+              <AlertTriangle size={20} className="missed-icon" />
               <span className="missed-title">
                 Streak interrupted but bouncing back!
               </span>
             </div>
             <p className="missed-message">
-              Every setback is a setup for a comeback. You've got this! 💪
+              Every setback is a setup for a comeback. You've got this! <Zap size={16} style={{ display: 'inline' }} />
             </p>
           </div>
         </div>
@@ -144,7 +145,7 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
             onClick={() => onLikeToggle(activity)}
             className={`action-btn ${activity.likedByCurrentUser ? 'liked' : ''}`}
           >
-            <span>❤️</span>
+            <Heart size={16} />
             {activity.likesCount || 0}
           </button>
           
@@ -152,7 +153,7 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
             onClick={() => onCommentClick(activity.activityId)}
             className="action-btn comment-btn"
           >
-            💬 {activity.commentsCount || 0}
+            <MessageCircle size={16} style={{ marginRight: '4px' }} /> {activity.commentsCount || 0}
           </button>
         </div>
       </div>

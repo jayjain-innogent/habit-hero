@@ -7,6 +7,7 @@ import {
     VISIBILITY,
     STATUS
 } from "../../data/enums";
+import { Trash2 } from "lucide-react";
 import ConfirmationModal from "../common/ConfirmationModal";
 
 export default function HabitForm({ mode = "create", initialData = {}, onSubmit, onDelete }) {
@@ -190,7 +191,7 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
                             className="btn btn-outline-danger btn-sm"
                             onClick={handleDeleteClick}
                         >
-                            <i className="bi bi-trash me-1"></i> Delete Habit
+                            <Trash2 size={16} style={{ marginRight: '4px' }} /> Delete Habit
                         </button>
                     </div>
                 )}

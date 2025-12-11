@@ -6,6 +6,7 @@ import DashboardCards from '../../components/Dashboard/DashboardCards';
 import HabitsTable from '../../components/Dashboard/HabitsTable';
 import StatsOverview from '../../components/Dashboard/StatsOverview';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { ChartColumn, TrendingUp, Gauge, FileText } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -54,7 +55,7 @@ const Dashboard = () => {
   );
   if (!dashboardData) return (
     <div className="dashboard-error">
-      <h2>📊 No Data Available</h2>
+      <h2>ChartColumn No Data Available</h2>
       <p>Start tracking your habits to see your dashboard</p>
     </div>
   );
@@ -63,13 +64,13 @@ const Dashboard = () => {
     <div className="dashboard">
       <div className="dashboard-header">
         <div className="header-content">
-          <h1><i className="bi bi-speedometer2"></i> Analytics Dashboard</h1>
+          <h1><Gauge size={24} style={{ marginRight: '8px', color: '#667eea' }} /> Analytics Dashboard</h1>
           <p className="date-range">
             {formatDateRange(dashboardData.startDate, dashboardData.endDate)}
           </p>
         </div>
         <button onClick={handleGenerateReport} className="generate-report-btn">
-          <i className="bi bi-file-earmark-pdf"></i> Generate PDF Report
+          <FileText size={20} style={{ marginRight: '8px' }} /> Generate PDF Report
         </button>
       </div>
 
@@ -81,7 +82,7 @@ const Dashboard = () => {
       />
       
       <div className="habits-section">
-        <h2><i className="bi bi-list-check"></i> Habit Performance</h2>
+         <h2><TrendingUp size={20} style={{ marginRight: '8px', color: '#667eea' }} /> Habit Performance</h2>
         <HabitsTable tableData={dashboardData.tableData} />
       </div>
 
