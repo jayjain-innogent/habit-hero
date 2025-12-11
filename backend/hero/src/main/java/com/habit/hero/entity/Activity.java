@@ -1,5 +1,6 @@
 package com.habit.hero.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.habit.hero.enums.ActivityType;
 import com.habit.hero.enums.Visibility;
 import jakarta.persistence.*;
@@ -24,6 +25,7 @@ public class Activity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Enumerated(EnumType.STRING)

@@ -33,13 +33,18 @@ function FriendsPage() {
     }
   }, [loading, friends, requests, sentRequests]);
 
-  useEffect(() => {
+  // Add debounced search
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
     if (searchQuery.trim()) {
       searchUsers();
     } else {
       setSearchResults([]);
     }
-  }, [searchQuery]);
+  }, 500); // Wait 500ms after user stops typing
+
+  return () => clearTimeout(timeoutId);
+}, [searchQuery]);
 
   async function fetchAllData() {
     try {
@@ -62,24 +67,40 @@ function FriendsPage() {
   }
 
   async function fetchSuggestedUsers() {
-  try {
-    const res = await getAllUsersApi();
-    const allUsers = Array.isArray(res.data) ? res.data : [];
-    
-    const suggested = allUsers.filter(user => {
-      const isFriend = friends.some(f => f.friendId === user.userId);
-      const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
-      const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
-      const isCurrentUser = user.userId === userId;
+    try {
+      const res = await getAllUsersApi();
+      const allUsers = Array.isArray(res.data) ? res.data : [];
       
-      return !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser;
-    });
-    
-    setSuggestedUsers(suggested.slice(0, 5));
-  } catch (err) {
-    console.error("Failed to fetch suggested users:", err);
+      console.log("All users:", allUsers.length);
+      console.log("Friends:", friends);
+      console.log("Requests:", requests);
+      console.log("Sent requests:", sentRequests);
+      console.log("Current userId:", userId);
+      
+      const suggested = allUsers.filter(user => {
+        const isFriend = friends.some(f => f.friendId === user.userId);
+        const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
+        const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
+        const isCurrentUser = user.userId === userId;
+        
+        console.log(`User ${user.username}:`, {
+          isFriend,
+          hasIncomingRequest,
+          hasSentRequest,
+          isCurrentUser,
+          shouldInclude: !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser
+        });
+        
+        return !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser;
+      });
+      
+      console.log("Suggested users:", suggested);
+      setSuggestedUsers(suggested.slice(0, 5));
+    } catch (err) {
+      console.error("Failed to fetch suggested users:", err);
+    }
   }
-}
+
 
 
   async function searchUsers() {
@@ -99,7 +120,10 @@ function FriendsPage() {
     try {
       setButtonLoading({ [`accept_${requestId}`]: true });
       await acceptRequestApi({ requestId });
-      await fetchAllData();
+      
+      // Update state locally instead of refetching
+      setRequests(prev => prev.filter(req => req.requestId !== requestId));
+      
     } catch (err) {
       console.error("Failed to accept request:", err);
     } finally {
@@ -111,7 +135,10 @@ function FriendsPage() {
     try {
       setButtonLoading({ [`reject_${requestId}`]: true });
       await rejectRequestApi({ requestId });
-      await fetchAllData();
+      
+      // Update state locally instead of refetching
+      setRequests(prev => prev.filter(req => req.requestId !== requestId));
+      
     } catch (err) {
       console.error("Failed to reject request:", err);
     } finally {
@@ -119,11 +146,14 @@ function FriendsPage() {
     }
   }
 
+
   async function handleAddFriend(receiverId) {
     try {
       setButtonLoading({ [`add_${receiverId}`]: true });
       await sendRequestApi({ senderId: userId, receiverId });
-      await fetchAllData();
+      
+      setSuggestedUsers(prev => prev.filter(user => user.userId !== receiverId));
+      
     } catch (err) {
       console.error("Failed to send friend request:", err);
     } finally {
