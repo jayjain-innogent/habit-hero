@@ -1,4 +1,4 @@
-package com.habit.hero.utils;
+package com.habit.hero.util;
 
 import com.habit.hero.entity.User;
 import io.jsonwebtoken.*;

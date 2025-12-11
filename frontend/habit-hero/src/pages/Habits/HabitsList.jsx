@@ -9,7 +9,14 @@ import { FaClipboardList, FaBullseye, FaSeedling, FaPlus } from "react-icons/fa"
 import { QUOTES } from "../../data/quotes";
 
 const sortHabits = (list) => {
-    const today = new Date().toISOString().split("T")[0];
+    const getTodayDate = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    const today = getTodayDate();
 
     return [...list].sort((a, b) => {
         const getScore = (h) => {

@@ -12,7 +12,7 @@ import com.habit.hero.repository.UserRepository;
 import com.habit.hero.repository.VerificationTokenRepository;
 import com.habit.hero.service.AuthService;
 import com.habit.hero.service.MailService;
-import com.habit.hero.utils.JwtUtil;
+import com.habit.hero.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;

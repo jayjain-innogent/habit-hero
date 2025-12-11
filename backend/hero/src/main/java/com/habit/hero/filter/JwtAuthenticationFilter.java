@@ -1,6 +1,6 @@
 package com.habit.hero.filter;
 
-import com.habit.hero.utils.JwtUtil;
+import com.habit.hero.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

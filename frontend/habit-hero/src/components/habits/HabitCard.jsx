@@ -55,7 +55,14 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
     const isPaused = habit.status === "PAUSED";
     const hasGoal = habit.goalType !== "OFF";
 
-    const today = new Date().toISOString().split('T')[0];
+    const getTodayDate = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    const today = getTodayDate();
     const startDate = habit.startDate ? new Date(habit.startDate).toISOString().split('T')[0] : null;
     const isFuture = startDate && startDate > today;
 

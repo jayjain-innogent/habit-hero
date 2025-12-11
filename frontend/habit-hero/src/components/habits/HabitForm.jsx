@@ -92,11 +92,7 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
         if (!form.cadence) newErrors.cadence = "Cadence required";
         if (!form.startDate) newErrors.startDate = "Start Date is required";
 
-        const today = getTodayDate();
-        if (mode === 'create' && form.startDate < today) {
-            newErrors.startDate = "Start Date cannot be in the past";
-        }
-
+        // Past date validation removed to allow backdating
         if (form.goalType !== "OFF") {
             if (!form.targetValue || form.targetValue <= 0) {
                 newErrors.targetValue = "Target value required";
@@ -160,14 +156,8 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
     };
 
     const isStartDateEditable = () => {
-        if (mode === 'create') return true;
-        if (!initialData.startDate) return true; // Should ideally have a start date, but fallback
-
-        const today = getTodayDate();
-        const start = new Date(initialData.startDate).toISOString().split('T')[0];
-
-        // Editable only if start date is in the future (greater than today)
-        return start > today;
+        // ALWAYS allow editing start date
+        return true;
     };
 
     return (
