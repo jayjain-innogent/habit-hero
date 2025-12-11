@@ -18,7 +18,6 @@ import java.util.List;
 @RequestMapping("/habits")
 @RequiredArgsConstructor
 @Slf4j
-//@CrossOrigin("*")
 public class HabitLogController {
 
     private final HabitLogService habitLogService;

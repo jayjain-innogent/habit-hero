@@ -10,7 +10,7 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
   const [activityType, setActivityType] = useState("COMPLETION");
   const [selectedHabit, setSelectedHabit] = useState(null);
   const [note, setNote] = useState("");
-  const [visibility, setVisibility] = useState("FRIENDS"); // New state for visibility
+  const [visibility, setVisibility] = useState("FRIENDS"); 
   const [habits, setHabits] = useState([]);
   const { currentUserId } = useAppContext();
 
@@ -33,14 +33,30 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
     e.preventDefault();
     if (!selectedHabit) return;
 
+    const getActivityTitle = (type, habitTitle) => {
+      switch (type) {
+        case 'COMPLETION':
+          return `completed ${habitTitle}`;
+        case 'STREAK':
+          return `achieved streak for ${habitTitle}`;
+        case 'MILESTONE':
+          return `reached milestone for ${habitTitle}`;
+        case 'SUMMARY':
+          return `summary for ${habitTitle}`;
+        default:
+          return `completed ${habitTitle}`;
+      }
+    };
+
     try {
       const payload = {
         userId: currentUserId,
         habitId: selectedHabit.id,
         activityType,
-        title: `completed ${selectedHabit.title}`,
+        title: `${getActivityTitle(activityType, selectedHabit.title)}${note ? `\n${note}` : ''}`,
         visibility,
       };
+
 
       await createActivityApi(payload);
       onSubmit();
@@ -67,7 +83,6 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
-
           <div className="form-group">
             <label className="form-label">Activity Type</label>
             <select

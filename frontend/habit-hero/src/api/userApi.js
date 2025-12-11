@@ -14,3 +14,7 @@ export const updateUserApi = (userId, data) => {
 export async function searchUsersApi({ query }) {
   return axios.get(`${BASE_URL}users/search`, { params: { query } });
 }
+
+export async function getAllUsersApi() {
+  return axios.get(`${BASE_URL}users`);
+}

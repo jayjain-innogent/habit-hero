@@ -5,5 +5,5 @@ public enum NotificationType {
     FRIEND_ACCEPTED,
     STREAK_REACTION,
     STREAK_BREAK,
-    COMMENT
+    MILESTONE, COMMENT
 }

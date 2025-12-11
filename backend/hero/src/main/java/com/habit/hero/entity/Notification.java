@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notifications")
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -21,24 +21,42 @@ public class Notification {
     private Long notificationId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "notification_type")
+    @Column(name = "notification_type", nullable = false)
     private NotificationType notificationType;
 
-    @Column(name = "comment")
-    private String comment;
+    // Notification ka text (e.g., "Rahul liked your post")
+    @Column(name = "message", nullable = false)
+    private String message;
 
-    @Column(name = "created_at")
+    // Red Dot Logic: False = Unread, True = Read
+    @Builder.Default
+    @Column(name = "is_read", nullable = false)
+    private Boolean isRead = false;
+
+    // Navigation Logic: Post ID ya User ID yahan aayega
+    @Column(name = "reference_id")
+    private Long referenceId;
+
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "is_deleted")
+    @Builder.Default
+    @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
+    // Jisko notification milegi (Receiver)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "related_user_id")
     private User relatedUser;
-}
 
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+    }
+}

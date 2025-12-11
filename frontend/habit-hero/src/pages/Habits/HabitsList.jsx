@@ -22,11 +22,14 @@ export default function HabitsList() {
             setLoading(true);
             setError("");
 
-            const today = new Date().toISOString().split("T")[0];
+            console.log("Fetching habits for userId:", userId);
 
             // Fetch fresh data from backend
             const habitList = await getAllHabits(userId);
             const todayStatus = await getTodayStatus(userId);
+
+            console.log("Habits response:", habitList);
+            console.log("Today status response:", todayStatus);
 
             let list = Array.isArray(habitList) ? habitList : [];
             list = list.filter(h => h.status !== "ARCHIVED");
@@ -40,6 +43,7 @@ export default function HabitsList() {
 
             setHabits(list);
         } catch (err) {
+            console.error("Error loading habits:", err);
             setError("Failed to load habits. Please try again.");
             setHabits([]);
         } finally {
@@ -70,7 +74,6 @@ export default function HabitsList() {
     const activeHabits = habits.filter(h => h.status === "ACTIVE");
     const total = activeHabits.length;
     const completed = activeHabits.filter(h => h.completedToday).length;
-    const remaining = total - completed;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     const formattedDate = new Date().toLocaleDateString("en-US", {
@@ -79,6 +82,9 @@ export default function HabitsList() {
         day: "numeric"
     });
 
+    if (loading) return <div className="loading">Loading habits...</div>;
+    if (error) return <div className="error">{error}</div>;
+
     return (
         <div style={{
             minHeight: '100vh',
@@ -86,7 +92,6 @@ export default function HabitsList() {
             paddingBottom: '40px'
         }}>
             <div className="container py-4">
-
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h1 className="fw-bold mb-0 text-dark">Welcome Back, Hero!</h1>
@@ -119,21 +124,7 @@ export default function HabitsList() {
                     </div>
                 </div>
 
-                {loading && (
-                    <div className="text-center py-5">
-                        <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                )}
-
-                {error && (
-                    <div className="alert alert-danger shadow-sm border-0" role="alert">
-                        {error}
-                    </div>
-                )}
-
-                {!loading && !error && habits.length === 0 && (
+                {habits.length === 0 && (
                     <div className="text-center py-5 text-muted">
                         <div className="mb-3 display-1">🌱</div>
                         <h5>No habits yet</h5>

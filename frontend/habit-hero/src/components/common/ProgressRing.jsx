@@ -17,7 +17,7 @@ export default function ProgressRing({ progress = 0, size = 100, stroke = 10 }) 
             />
 
             <circle
-                stroke="#3081faff"
+                stroke="#8CA9FF"
                 fill="transparent"
                 strokeWidth={stroke}
                 strokeLinecap="round"
@@ -35,7 +35,7 @@ export default function ProgressRing({ progress = 0, size = 100, stroke = 10 }) 
                 dominantBaseline="middle"
                 textAnchor="middle"
                 fontSize="18"
-                fill="#1e3a8a"
+                fill="#2C3E50"
                 fontWeight="600"
             >
                 {progress}%

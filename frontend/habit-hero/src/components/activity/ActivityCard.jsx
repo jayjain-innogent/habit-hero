@@ -48,7 +48,7 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick }) => {
             <div className="user-content">
               <div className="user-name">
                 {activity.username || "Unknown User"}
-                <span className="activity-text">
+                <span className="activity-text" style={{ whiteSpace: 'pre-line' }}>
                   {activity.title}
                 </span>
               </div>

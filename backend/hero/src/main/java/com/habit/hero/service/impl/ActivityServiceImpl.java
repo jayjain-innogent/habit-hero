@@ -3,8 +3,11 @@ package com.habit.hero.service.impl;
 import com.habit.hero.dto.activity.*;
 import com.habit.hero.entity.*;
 import com.habit.hero.enums.Visibility;
+import com.habit.hero.enums.ActivityType;
+import com.habit.hero.enums.NotificationType;
 import com.habit.hero.repository.*;
 import com.habit.hero.service.ActivityService;
+import com.habit.hero.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +27,9 @@ public class ActivityServiceImpl implements ActivityService {
     private final CommentRepository commentRepository;
     private final FriendListRepository friendListRepository;
     private final HabitRepository habitRepository;
+    private final NotificationService notificationService;
 
+    // Create a new activity post for a user
     @Override
     @Transactional
     public Activity createActivity(ActivityCreateRequest request) {

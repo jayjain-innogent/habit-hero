@@ -3,7 +3,7 @@ import { getCommentsApi, addCommentApi } from "../../api/activity";
 import Avatar from "../common/Avatar";
 import "./CommentsModal.css";
 
-const CommentsModal = ({ isOpen, onClose, activityId }) => {
+const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
@@ -26,9 +26,10 @@ const CommentsModal = ({ isOpen, onClose, activityId }) => {
     if (!newComment.trim()) return;
 
     try {
-      await addCommentApi({ activityId, text: newComment });
+      await addCommentApi({ activityId, userId: 1, text: newComment });
       setNewComment("");
       fetchComments();
+      onCommentAdded?.(); 
     } catch (error) {
       console.error("Failed to add comment:", error);
     }
@@ -50,7 +51,7 @@ const CommentsModal = ({ isOpen, onClose, activityId }) => {
           ) : (
             <ul className="comments-list">
               {comments.map((comment) => (
-                <li key={comment.id} className="comment-item">
+                <li key={comment.commentId} className="comment-item">
                   <Avatar src={comment.author?.profileImage} alt={comment.author?.username} />
                   <div className="comment-content">
                     <span className="comment-author">{comment.author?.username}</span>

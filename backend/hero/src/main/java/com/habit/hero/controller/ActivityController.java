@@ -27,7 +27,6 @@ public class ActivityController {
                 "Activity created successfully",
                 true
         );
-
         return ResponseEntity.ok(response);
     }
 

@@ -94,7 +94,7 @@ export default function ActivityFeed() {
           <div className="activity-list">
             {feed.map((activity) => (
               <ActivityCard
-                key={activity.activityId}
+                key={activity.id}
                 activity={activity}
                 onLikeToggle={handleLikeToggle}
                 onCommentClick={() => handleCommentClick(activity.id)}
@@ -118,6 +118,7 @@ export default function ActivityFeed() {
         isOpen={showCommentsModal}
         onClose={() => setShowCommentsModal(false)}
         activityId={selectedActivityId}
+        onCommentAdded={loadFeed} // Change this line
       />
     </div>
   );

@@ -10,6 +10,12 @@ import ActivityFeed from "../pages/Activity/ActivityFeed";
 import FriendsPage from "../pages/Friends/FriendsPage";
 import ProfilePage from "../pages/Profile/ProfilePage";
 import FriendListPage from "../pages/Profile/FriendListPage";
+import LandingPage from "../pages/LandingPage";
+import LoginPage from "../pages/LoginPage";
+import SignupPage from "../pages/SignupPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import OtpVerificationPage from "../pages/OtpVerificationPage";
+import DashboardLayout from "../components/common/DashboardLayout";
 
 const AppContext = createContext();
 
@@ -43,23 +49,27 @@ export default function AppRoutes() {
 
   return (
     <AppContext.Provider value={contextValue}>
-      <div style={{ display: "flex", height: "100vh" }}>
-        <SideBar items={menuItems} onItemClick={handleClick} />
-        <div style={{ flex: 1, padding: "20px" }}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/habits" replace />} />
-            <Route path="/habits" element={<HabitsList />} />
-            <Route path="/habits/create" element={<HabitCreate />} />
-            <Route path="/habits/:habitId/edit" element={<HabitEdit />} />
-            <Route path="/friends" element={<FriendsPage />} />
-            <Route path="/activity" element={<ActivityFeed />} />
-            <Route path="/settings" element={<div style={{padding:'20px'}}><h2>Settings</h2><p>Coming soon...</p></div>} />
-            <Route path="/profile" element={<ProfilePage currentUserId={currentUserId} />} />
-            <Route path="/profile/:userId" element={<ProfilePage currentUserId={currentUserId} />} />
-            <Route path="/profile/:userId/friends" element={<FriendListPage currentUserId={currentUserId} />} />
-          </Routes>
-        </div>
-      </div>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-otp" element={<OtpVerificationPage />} />
+
+        {/* Protected Dashboard Routes */}
+        <Route element={<DashboardLayout menuItems={menuItems} onItemClick={handleClick} />}>
+          <Route path="/habits" element={<HabitsList />} />
+          <Route path="/habits/create" element={<HabitCreate />} />
+          <Route path="/habits/:habitId/edit" element={<HabitEdit />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/activity" element={<ActivityFeed />} />
+          <Route path="/settings" element={<div style={{ padding: '20px' }}><h2>Settings</h2><p>Coming soon...</p></div>} />
+          <Route path="/profile" element={<ProfilePage currentUserId={currentUserId} />} />
+          <Route path="/profile/:userId" element={<ProfilePage currentUserId={currentUserId} />} />
+          <Route path="/profile/:userId/friends" element={<FriendListPage currentUserId={currentUserId} />} />
+        </Route>
+      </Routes>
     </AppContext.Provider>
   );
 }
