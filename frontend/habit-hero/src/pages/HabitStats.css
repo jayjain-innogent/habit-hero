@@ -54,7 +54,7 @@
 }
 
 .banner {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 16px;
   padding: 30px;
   color: white;
@@ -197,6 +197,7 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s;
+  border: 2px solid #8a63dc;
 }
 
 .card-label:hover {
@@ -346,6 +347,7 @@ background: gray;
 
 .snapshot-card.current {
   background: #f8fafc;
+  border: 2px solid #6366f1;
   border: 2px solid #6366f1;
 }
 

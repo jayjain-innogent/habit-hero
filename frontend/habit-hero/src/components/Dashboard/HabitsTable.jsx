@@ -49,7 +49,7 @@ const HabitsTable = ({ tableData }) => {
               </td>
               <td className="progress-cell">
                 <div className="progress-info">
-                  <span>{habit.completed}/{habit.target}</span>
+                  <span>{habit.taskCompletedCount}/{habit.totalTargetTask}</span>
                   <div className="progress-bar">
                     <div 
                       className="progress-fill"

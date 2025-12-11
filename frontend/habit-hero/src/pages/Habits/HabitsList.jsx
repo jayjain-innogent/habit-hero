@@ -82,31 +82,77 @@ export default function HabitsList() {
     return (
         <div style={{
             minHeight: '100vh',
-            backgroundColor: '#f8f9fa',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
             paddingBottom: '40px'
         }}>
             <div className="container py-4">
 
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h1 className="fw-bold mb-0 text-dark">Welcome Back, Hero!</h1>
-                        <p className="text-muted mb-0">{formattedDate}</p>
+                        <h1 style={{
+                            fontSize: '2.5rem',
+                            fontWeight: '700',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                            margin: 0
+                        }}>Welcome Back, Hero!</h1>
+                        <p style={{
+                            color: '#6b7280',
+                            fontSize: '16px',
+                            fontWeight: '500',
+                            margin: 0
+                        }}>{formattedDate}</p>
                     </div>
                     <button
-                        className="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold"
+                        style={{
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '12px 24px',
+                            color: 'white',
+                            fontWeight: '600',
+                            fontSize: '15px',
+                            boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer'
+                        }}
                         onClick={() => navigate("/habits/create")}
+                        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+                        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
                     >
                         + Create Habit
                     </button>
                 </div>
 
-                <div className="card border-0 shadow-sm mb-4 bg-white overflow-hidden">
-                    <div className="card-body p-4">
+                <div style={{
+                    background: 'white',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                    border: '1px solid #f0f0f0',
+                    marginBottom: '32px',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{ padding: '32px' }}>
                         <div className="row align-items-center">
                             <div className="col-md-8">
-                                <h4 className="fw-bold text-primary mb-2">Daily Progress</h4>
-                                <p className="text-muted mb-0">
-                                    You've completed <span className="fw-bold text-dark">{completed}</span> out of <span className="fw-bold text-dark">{total}</span> habits today.
+                                <h4 style={{
+                                    fontSize: '1.5rem',
+                                    fontWeight: '600',
+                                    color: '#1f2937',
+                                    marginBottom: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px'
+                                }}>📊 Daily Progress</h4>
+                                <p style={{
+                                    color: '#6b7280',
+                                    fontSize: '16px',
+                                    margin: 0,
+                                    lineHeight: '1.6'
+                                }}>
+                                    You've completed <span style={{ fontWeight: '600', color: '#1f2937' }}>{completed}</span> out of <span style={{ fontWeight: '600', color: '#1f2937' }}>{total}</span> habits today.
                                     Keep it up!
                                 </p>
                             </div>

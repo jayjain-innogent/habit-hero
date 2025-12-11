@@ -2,6 +2,8 @@ package com.habit.hero.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "activity_comments")
@@ -17,12 +19,13 @@ public class Comment extends BaseEntity {
     @Column(name = "comment_id")
     private Long commentId;
 
+    @ManyToOne
+    @JoinColumn(name = "activity_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Activity activity;
+
     @Column(name = "comment_text", nullable = false)
     private String commentText;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "activity_id", nullable = false)
-    private Activity activity;
 
     @Column(nullable = false)
     private boolean isDeleted = false;

@@ -17,7 +17,11 @@ public class ReportCardDto {
     private int currentStreak;
 
     private int perfectDays;
-
+    private int consistencyScore;
+    private String momentum;
+    private int totalTimeInvested;
+    private int activeDaysCount;
+    private int longestStreak;
     private String bestCategory;
 
     private List<Boolean> weeklyTrend;

@@ -40,7 +40,6 @@ public class ReportController {
             throw e;
         }
     }
-
     @GetMapping("/dashboard")
     public ResponseEntity<FullReportResponse> getDashboardReport(
             @RequestHeader("userId") Long userId,

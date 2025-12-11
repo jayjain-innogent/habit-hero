@@ -18,15 +18,15 @@ public class ReportMapper {
         return HabitRowDto.builder()
                 .habitName(habit.getTitle())
                 .category(habit.getCategory() != null ? habit.getCategory().name() : "General") // Enum -> String
-                .completed(completedCount)
-                .target(totalTarget)
+                .taskCompletedCount(completedCount)
+                .totalTargetTask(totalTarget)
                 .efficiency(efficiency)
                 .grade(calculateGrade(efficiency))
                 .build();
     }
 
     public ReportCardDto mapToReportCard(int totalCompleted, int totalTarget, int streak,
-                                         int perfectDays, String bestCategory, List<Boolean> weeklyTrend) {
+                                         int perfectDays, String bestCategory, List<Boolean> weeklyTrend, int consistencyScore, String momentum, int totalTimeInvested, int activeDaysCount, int longestStreak) {
 
         return ReportCardDto.builder()
                 .totalCompleted(totalCompleted)
@@ -36,6 +36,11 @@ public class ReportMapper {
                 .perfectDays(perfectDays)
                 .bestCategory(bestCategory)
                 .weeklyTrend(weeklyTrend)
+                .consistencyScore(consistencyScore)
+                .momentum(momentum) // Placeholder
+                .totalTimeInvested(totalTimeInvested) // Placeholder
+                .activeDaysCount(activeDaysCount) // Placeholder
+                .longestStreak(longestStreak) // Placeholder
                 .build();
     }
 

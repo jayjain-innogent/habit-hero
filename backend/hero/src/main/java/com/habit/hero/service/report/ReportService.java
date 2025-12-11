@@ -345,78 +345,54 @@ public class ReportService {
     }
 
     public FullReportResponse getDashboardReport(Long userId, int year, int month, Integer week) {
-
         if (userId == null) throw new BadRequestException("UserId required");
 
-        // Calculate Date Range
         LocalDate[] range = resolveDateRange(year, month, week);
         LocalDate start = range[0];
         LocalDate end = range[1];
+        LocalDate today = LocalDate.now();
 
         log.info("Generating Dashboard Report. user={} start={} end={}", userId, start, end);
 
-        // Fetch ALL habits (Active + Paused) using generic findByUserId
-        List<Habit> allHabits = habitDAO.findByUserId(userId);
-
-        // Filter: Include Active/Paused, Exclude Archived, Exclude Future starts
-        List<Habit> habits = allHabits.stream()
+        // Fetch active habits only
+        List<Habit> habits = habitDAO.findByUserId(userId).stream()
                 .filter(h -> h.getStartDate() != null && !h.getStartDate().isAfter(end))
-                .filter(h -> h.getStatus() != HabitStatus.ARCHIVED)
+                .filter(h -> h.getStatus() == HabitStatus.ACTIVE)
                 .collect(Collectors.toList());
+
+        if (habits.isEmpty()) {
+            return createEmptyDashboard(start, end, week);
+        }
 
         // Fetch logs for the range
         List<HabitLog> allLogs = habitLogRepository.findByHabit_User_UserIdAndLogDateBetweenOrderByLogDate(userId, start, end);
-
-        // Group logs by Habit ID
         Map<Long, List<HabitLog>> logsByHabit = allLogs.stream()
                 .collect(Collectors.groupingBy(log -> log.getHabit().getId()));
 
-        List<HabitRowDto> habitRows = new ArrayList<>();
-        int grandTotalCompleted = 0;
-        int grandTotalTarget = 0;
-        int maxStreak = 0;
-        String bestCategory = "General";
-        int maxEfficiency = -1;
-
-        // Process each habit for table rows
-        for (Habit habit : habits) {
-            List<HabitLog> habitLogs = logsByHabit.getOrDefault(habit.getId(), Collections.emptyList());
-
-            int completedCount = habitLogs.size();
-            int targetCount = calculateTarget(habit, start, end);
-
-            grandTotalCompleted += completedCount;
-            grandTotalTarget += targetCount;
-
-            // Calculate Efficiency & Best Category
-            int efficiency = (targetCount > 0) ? (completedCount * 100) / targetCount : 0;
-            if (efficiency > maxEfficiency) {
-                maxEfficiency = efficiency;
-                bestCategory = habit.getCategory() != null ? habit.getCategory().name() : "General";
-            }
-
-            if (habit.getCurrentStreak() > maxStreak) {
-                maxStreak = habit.getCurrentStreak();
-            }
-
-            habitRows.add(reportMapper.mapToHabitRow(habit, completedCount, targetCount));
-        }
-
-        // Overall Card Stats
-        int perfectDays = calculatePerfectDays(allLogs);
-        List<Boolean> weeklyTrend = calculateWeeklyTrend(allLogs, end);
+        // Calculate professional metrics
+        DashboardMetrics metrics = calculateDashboardMetrics(habits, logsByHabit, start, end, today);
+        
+        // Create habit rows
+        List<HabitRowDto> habitRows = habits.stream()
+                .map(habit -> createHabitRow(habit, logsByHabit.getOrDefault(habit.getId(), Collections.emptyList()), start, end))
+                .collect(Collectors.toList());
 
         ReportCardDto cardDto = reportMapper.mapToReportCard(
-                grandTotalCompleted,
-                grandTotalTarget,
-                maxStreak,
-                perfectDays,
-                bestCategory,
-                weeklyTrend
+                metrics.totalCompleted,
+                metrics.totalTarget,
+                metrics.currentStreak,
+                metrics.perfectDays,
+                metrics.bestCategory,
+                metrics.weeklyTrend,
+                metrics.consistencyScore,
+                metrics.momentum,
+                metrics.totalTimeInvested,
+                metrics.activeDaysCount,
+                metrics.longestStreak
         );
 
-        String title = (week != null) ? "Weekly Report (Week " + week + ")" : "Monthly Report (" + start.getMonth() + ")";
-        String motivation = generateMotivation(cardDto.getScorePercentage());
+        String title = (week != null) ? "Weekly Dashboard (Week " + week + ")" : "Monthly Dashboard (" + start.getMonth() + ")";
+        String motivation = generatePersonalizedMotivation(metrics);
 
         return reportMapper.mapToFullReport(start, end, title, cardDto, habitRows, motivation);
     }
@@ -447,16 +423,165 @@ public class ReportService {
         return 0;
     }
 
-    private int calculatePerfectDays(List<HabitLog> allLogs) {
-        return allLogs.stream().map(HabitLog::getLogDate).collect(Collectors.toSet()).size();
+    private DashboardMetrics calculateDashboardMetrics(List<Habit> habits, Map<Long, List<HabitLog>> logsByHabit, 
+                                                      LocalDate start, LocalDate end, LocalDate today) {
+        DashboardMetrics metrics = new DashboardMetrics();
+        
+        int totalCompleted = 0;
+        int totalTarget = 0;
+        int longestCurrentStreak = 0;
+        Map<String, CategoryStats> categoryStats = new HashMap<>();
+        
+        for (Habit habit : habits) {
+            List<HabitLog> habitLogs = logsByHabit.getOrDefault(habit.getId(), Collections.emptyList());
+            int completed = habitLogs.size();
+            int target = calculateTarget(habit, start, end);
+            
+            totalCompleted += completed;
+            totalTarget += target;
+            
+            // Calculate current streak
+            int currentStreak = calculateCurrentStreak(habit, today);
+            longestCurrentStreak = Math.max(longestCurrentStreak, currentStreak);
+            
+            // Category performance tracking
+            String category = habit.getCategory() != null ? habit.getCategory().name() : "General";
+            categoryStats.computeIfAbsent(category, k -> new CategoryStats())
+                    .addHabit(completed, target);
+        }
+        
+        metrics.totalCompleted = totalCompleted;
+        metrics.totalTarget = totalTarget;
+        metrics.currentStreak = longestCurrentStreak;
+        metrics.bestCategory = findBestCategory(categoryStats);
+        metrics.perfectDays = calculatePerfectDays(habits, logsByHabit, start, end);
+        metrics.weeklyTrend = calculateWeeklyTrend(habits, logsByHabit, end);
+        
+        return metrics;
+    }
+    
+    private int calculateCurrentStreak(Habit habit, LocalDate today) {
+        List<HabitLog> logs = habitLogDao.findByHabitId(habit.getId());
+        if (logs.isEmpty()) return 0;
+        
+        Set<LocalDate> completedDates = logs.stream()
+                .map(HabitLog::getLogDate)
+                .collect(Collectors.toSet());
+        
+        int streak = 0;
+        LocalDate checkDate = today;
+        
+        while (completedDates.contains(checkDate)) {
+            streak++;
+            checkDate = checkDate.minusDays(1);
+        }
+        
+        return streak;
+    }
+    
+    private String findBestCategory(Map<String, CategoryStats> categoryStats) {
+        return categoryStats.entrySet().stream()
+                .max(Comparator.comparing(entry -> entry.getValue().getSuccessRate()))
+                .map(Map.Entry::getKey)
+                .orElse("General");
+    }
+    
+    private int calculatePerfectDays(List<Habit> habits, Map<Long, List<HabitLog>> logsByHabit, LocalDate start, LocalDate end) {
+        if (habits.isEmpty()) return 0;
+        
+        int perfectDays = 0;
+        for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+            final LocalDate currentDate = date;
+            
+            boolean isPerfectDay = habits.stream()
+                    .filter(habit -> !habit.getStartDate().isAfter(currentDate))
+                    .allMatch(habit -> logsByHabit.getOrDefault(habit.getId(), Collections.emptyList())
+                            .stream().anyMatch(log -> log.getLogDate().equals(currentDate)));
+            
+            if (isPerfectDay) perfectDays++;
+        }
+        return perfectDays;
+    }
+    
+    private HabitRowDto createHabitRow(Habit habit, List<HabitLog> logs, LocalDate start, LocalDate end) {
+        int completed = logs.size();
+        int target = calculateTarget(habit, start, end);
+        return reportMapper.mapToHabitRow(habit, completed, target);
+    }
+    
+    private FullReportResponse createEmptyDashboard(LocalDate start, LocalDate end, Integer week) {
+        ReportCardDto emptyCard = reportMapper.mapToReportCard(0, 0, 0, 0, "General", 
+                Arrays.asList(false, false, false, false, false, false, false),0,"",0,0,0);
+        String title = (week != null) ? "Weekly Dashboard (Week " + week + ")" : "Monthly Dashboard";
+        return reportMapper.mapToFullReport(start, end, title, emptyCard, Collections.emptyList(), 
+                "Start building habits to see your progress!");
+    }
+    
+    private String generatePersonalizedMotivation(DashboardMetrics metrics) {
+        int completionRate = metrics.totalTarget > 0 ? (metrics.totalCompleted * 100) / metrics.totalTarget : 0;
+        
+        if (metrics.currentStreak >= 7) {
+            return "🔥 Amazing " + metrics.currentStreak + "-day streak! You're building unstoppable momentum.";
+        } else if (completionRate >= 80) {
+            return "⭐ Excellent consistency! You're " + completionRate + "% on track to your goals.";
+        } else if (completionRate >= 60) {
+            return "💪 Good progress! Keep pushing - you're " + completionRate + "% there.";
+        } else if (metrics.perfectDays > 0) {
+            return "🎯 You had " + metrics.perfectDays + " perfect days! Build on that success.";
+        } else {
+            return "🌱 Every expert was once a beginner. Start small, stay consistent!";
+        }
+    }
+    
+    private static class DashboardMetrics {
+        int totalCompleted;
+        int totalTarget;
+        int currentStreak;
+        int perfectDays;
+        String bestCategory;
+        List<Boolean> weeklyTrend;
+        int consistencyScore;
+        String momentum;
+        String difficultyBalance;
+        int totalTimeInvested;
+        double recoveryRate;
+        int longestStreak;
+        int activeDaysCount;
+    }
+    
+    private static class CategoryStats {
+        private int totalCompleted = 0;
+        private int totalTarget = 0;
+        
+        void addHabit(int completed, int target) {
+            this.totalCompleted += completed;
+            this.totalTarget += target;
+        }
+        
+        double getSuccessRate() {
+            return totalTarget > 0 ? (double) totalCompleted / totalTarget : 0;
+        }
     }
 
-    private List<Boolean> calculateWeeklyTrend(List<HabitLog> allLogs, LocalDate endDate) {
+    private List<Boolean> calculateWeeklyTrend(List<Habit> habits, Map<Long, List<HabitLog>> logsByHabit, LocalDate endDate) {
         List<Boolean> trend = new ArrayList<>();
-        Set<LocalDate> activeDays = allLogs.stream().map(HabitLog::getLogDate).collect(Collectors.toSet());
-
+        
         for (int i = 6; i >= 0; i--) {
-            trend.add(activeDays.contains(endDate.minusDays(i)));
+            LocalDate checkDate = endDate.minusDays(i);
+            
+            long activeHabitsForDay = habits.stream()
+                    .filter(habit -> !habit.getStartDate().isAfter(checkDate))
+                    .count();
+            
+            long completedHabitsForDay = habits.stream()
+                    .filter(habit -> !habit.getStartDate().isAfter(checkDate))
+                    .filter(habit -> logsByHabit.getOrDefault(habit.getId(), Collections.emptyList())
+                            .stream().anyMatch(log -> log.getLogDate().equals(checkDate)))
+                    .count();
+            
+            boolean goodDay = activeHabitsForDay > 0 && 
+                    (double) completedHabitsForDay / activeHabitsForDay >= 0.5;
+            trend.add(goodDay);
         }
         return trend;
     }
@@ -480,7 +605,7 @@ public class ReportService {
         if (week != null) {
             if (week < 1 || week > 53) throw new BadRequestException("Invalid week number");
             try {
-                LocalDate firstDay = LocalDate.of(year, 1, 1);
+                LocalDate firstDay = LocalDate.of(year, month, 1);
                 int offset = firstDay.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue();
                 LocalDate firstMonday = firstDay.minusDays(offset);
                 start = firstMonday.plusWeeks(week - 1);

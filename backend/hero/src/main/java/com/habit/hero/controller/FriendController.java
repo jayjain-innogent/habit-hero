@@ -18,9 +18,9 @@ public class FriendController {
     @PostMapping("/request")
     public ResponseEntity<ApiResponse> sendFriendRequest(
             @RequestParam Long senderId,
-            @RequestBody SendFriendRequestDto dto) {
+            @RequestParam Long receiverId) {
 
-        friendService.sendFriendRequest(senderId, dto);
+        friendService.sendFriendRequest(senderId, receiverId);
         return ResponseEntity.ok(new ApiResponse("Friend request sent successfully", true));
     }
 
@@ -70,4 +70,13 @@ public class FriendController {
         List<FriendRequestResponseDto> list = friendService.getPendingRequests(userId);
         return ResponseEntity.ok(list);
     }
+
+    @GetMapping("/requests/sent")
+    public ResponseEntity<List<FriendRequestResponseDto>> getSentRequests(
+            @RequestParam Long userId) {
+
+        List<FriendRequestResponseDto> list = friendService.getSentRequests(userId);
+        return ResponseEntity.ok(list);
+    }
+
 }

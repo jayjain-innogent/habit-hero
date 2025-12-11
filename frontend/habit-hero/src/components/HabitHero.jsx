@@ -111,23 +111,23 @@ const HabitHero = () => {
       {/* Today Cards Row */}
       <div className="today-cards">
         <div className="card">
-          <h3>Today</h3>
+          <h3><i className="bi bi-calendar-day"></i> Today</h3>
           <div className={`status ${habitData.today.status.toLowerCase()}`}>
-            {habitData.today.status}
+            <i className="bi bi-check-circle-fill"></i> {habitData.today.status}
           </div>
           <p className="subtext">{habitData.today.details}</p>
         </div>
 
         <div className="card">
-          <h3>Current streak</h3>
+          <h3><i className="bi bi-fire"></i> Current streak</h3>
           <div className="streak-number">{habitData.streak.days} days</div>
           <span className={`chip ${habitData.streak.status === 'On track' ? 'green' : 'orange'}`}>
-            {habitData.streak.status}
+            <i className="bi bi-graph-up-arrow"></i> {habitData.streak.status}
           </span>
         </div>
 
         <div className="card">
-          <h3>This week goal</h3>
+          <h3><i className="bi bi-target"></i> This week goal</h3>
           <div className="progress-container">
             <div className="progress-bar">
               <div 
@@ -145,7 +145,7 @@ const HabitHero = () => {
       {/* Calendar Section */}
       <div className="calendar-section">
         <div className="calendar-header">
-          <h2>Recent days</h2>
+          <h2><i className="bi bi-calendar3"></i> Recent days</h2>
           <select 
             value={calendarView} 
             onChange={(e) => setCalendarView(e.target.value)}
@@ -188,9 +188,9 @@ const HabitHero = () => {
       <div className="trend-stats-row">
         <div className="card trend-card">
           <div className="card-header">
-            <h3>Trend</h3>
+            <h3><i className="bi bi-graph-up"></i> Trend</h3>
             <span className={`trend-badge ${habitData.trend.status.toLowerCase()}`}>
-              {habitData.trend.status}
+              <i className="bi bi-arrow-up"></i> {habitData.trend.status}
             </span>
           </div>
           <div className="trend-chart">
@@ -222,7 +222,7 @@ const HabitHero = () => {
         </div>
 
         <div className="card stats-card">
-          <h3>Stats</h3>
+          <h3><i className="bi bi-bar-chart"></i> Stats</h3>
           <div className="stats-grid">
             <div className="stat-item">
               <span className="stat-value">{habitData.stats.avgCompletion}%</span>
@@ -246,7 +246,7 @@ const HabitHero = () => {
 
       {/* Weekly Summary Table */}
       <div className="weekly-summary">
-        <h3>Weekly Summary</h3>
+        <h3><i className="bi bi-table"></i> Weekly Summary</h3>
         <div className="summary-table">
           <div className="table-header">
             <div className="metric">Metric</div>
@@ -295,7 +295,7 @@ const HabitHero = () => {
 
       {/* Insights and Actions */}
       <div className="insights-section">
-        <h3>Insights</h3>
+        <h3><i className="bi bi-lightbulb"></i> Insights</h3>
         <ul className="insights-list">
           {habitData.insights.map((insight, index) => (
             <li key={index}>{insight}</li>

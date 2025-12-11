@@ -1,55 +1,203 @@
 .dashboard {
-  padding: 20px;
-  max-width: 1200px;
+  padding: 24px;
+  max-width: 1400px;
   margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .dashboard-header {
-  text-align: center;
-  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding: 32px 0;
+}
+
+.header-content {
+  flex: 1;
 }
 
 .dashboard-header h1 {
-  color: #333;
-  margin-bottom: 10px;
+  color: #1f2937;
+  margin-bottom: 12px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .date-range {
-  color: #666;
-  font-size: 14px;
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 500;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .habits-section {
-  margin: 30px 0;
+  margin: 48px 0;
 }
 
 .habits-section h2 {
-  color: #333;
-  margin-bottom: 20px;
+  color: #1f2937;
+  margin-bottom: 24px;
+  font-size: 1.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.habits-section h2::before {
+  content: '📊';
+  font-size: 1.5rem;
 }
 
 .motivation-section {
   text-align: center;
-  margin-top: 30px;
-  padding: 20px;
+  margin-top: 48px;
+  padding: 32px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.motivation-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="30" r="1" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+  pointer-events: none;
 }
 
 .motivation-message {
   color: white;
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 20px;
+  font-weight: 600;
   margin: 0;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .dashboard-loading,
 .dashboard-error {
   text-align: center;
-  padding: 50px;
+  padding: 80px 20px;
   font-size: 18px;
+  border-radius: 16px;
+  margin: 40px 0;
+}
+
+.dashboard-loading {
+  background: white;
+  color: #6b7280;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .dashboard-error {
-  color: #e74c3c;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.dashboard-error h2 {
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+.dashboard-error p {
+  margin-bottom: 24px;
+  opacity: 0.8;
+}
+
+.retry-button {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.generate-report-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.generate-report-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.generate-report-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+  }
+  
+  .dashboard-header {
+    padding: 24px 0;
+    margin-bottom: 32px;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+  
+  .date-range {
+    font-size: 14px;
+  }
+  
+  .habits-section {
+    margin: 32px 0;
+  }
+  
+  .habits-section h2 {
+    font-size: 1.5rem;
+  }
+  
+  .motivation-section {
+    padding: 24px;
+    margin-top: 32px;
+  }
+  
+  .motivation-message {
+    font-size: 18px;
+  }
 }

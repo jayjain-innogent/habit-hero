@@ -9,7 +9,7 @@ const Navbar = () => {
                 <div className="d-flex align-items-center">
                     {/* Placeholder for User Profile Dropdown or other items if needed later */}
                     <div className="me-3">
-                        {/* Potential space for user greeting or other top-bar items */}
+                        <i className="bi bi-person-circle fs-4 text-muted"></i>
                     </div>
                     {/* Notification Dropdown */}
                     <NotificationDropdown />
