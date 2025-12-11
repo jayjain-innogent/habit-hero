@@ -1,22 +1,18 @@
 package com.habit.hero.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.habit.hero.dto.activity.*;
 import com.habit.hero.entity.*;
-import com.habit.hero.enums.ActivityType;
-import com.habit.hero.enums.NotificationType;
+import com.habit.hero.enums.Visibility;
 import com.habit.hero.repository.*;
 import com.habit.hero.service.ActivityService;
-import com.habit.hero.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,54 +23,79 @@ public class ActivityServiceImpl implements ActivityService {
     private final ReactionRepository reactionRepository;
     private final CommentRepository commentRepository;
     private final FriendListRepository friendListRepository;
-    private final NotificationService notificationService;
+    private final HabitRepository habitRepository;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    // Create a new activity post for a user
     @Override
-    public FeedItemResponse createActivity(ActivityCreateRequest request) {
+    @Transactional
+    public Activity createActivity(ActivityCreateRequest request) {
+
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        Habit habit = null;
+        if (request.getHabitId() != null) {
+            habit = habitRepository.findById(request.getHabitId())
+                    .orElseThrow(() -> new RuntimeException("Habit not found"));
+        }
+
         Activity activity = Activity.builder()
                 .user(user)
-                .habit(null)
+                .habit(habit)
                 .activityType(request.getActivityType())
                 .title(request.getTitle())
-                .content(request.getContentJson())
-                .visibility(request.getVisibility())
+                .visibility(
+                        request.getVisibility() != null
+                                ? request.getVisibility()
+                                : Visibility.PUBLIC
+                )
+                .likesCount(0)
+                .commentsCount(0)
                 .build();
 
-        Activity saved = activityRepository.save(activity);
-
-        return mapToFeedResponse(saved, user.getUserId());
+        return activityRepository.save(activity);
     }
 
-    // Get feed items for a user (including friends' activities)
+    // get user feed isme we have two options either we will only show friends or we will show all (friends + public)
+    @Transactional(readOnly = true)
     @Override
-    public List<FeedItemResponse> getFeedForUser(Long userId, int page, int size) {
+    public List<ActivityResponse> getFeed(Long userId, String filter, int page, int size) {
 
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<FriendList> relations = friendListRepository.findFriendsOfUser(currentUser);
+        List<User> friends = friendListRepository.findUserFriends(currentUser);
+        Pageable pageable = PageRequest.of(page, size);
 
-        List<User> friends = relations.stream()
-                .map(fl -> fl.getUser().equals(currentUser) ? fl.getFriend() : fl.getUser())
-                .collect(Collectors.toList());
+        List<Activity> activities;
 
-        List<Activity> activities =
-                activityRepository.fetchFeed(currentUser, friends, PageRequest.of(page, size));
+        if ("FRIENDS".equalsIgnoreCase(filter)) {
+            activities = activityRepository.fetchFriendsOnlyFeed(friends, pageable);
 
-        return activities.stream()
-                .map(a -> mapToFeedResponse(a, userId))
-                .collect(Collectors.toList());
+        } else {
+            activities = activityRepository.fetchFeed(currentUser, friends, pageable);
+        }
+
+        return activities.stream().map(this::mapToResponse).toList();
     }
 
-    // Like an activity and notify the post owner
+    private ActivityResponse mapToResponse(Activity activity) {
+        return ActivityResponse.builder()
+                .id(activity.getActivityId())
+                .title(activity.getTitle())
+                .activityType(activity.getActivityType().name())
+                .visibility(activity.getVisibility())
+                .userId(activity.getUser().getUserId())
+                .username(activity.getUser().getUsername())
+                .habitId(activity.getHabit() != null ? activity.getHabit().getId() : null)
+                .likesCount(activity.getLikesCount())
+                .commentsCount(activity.getCommentsCount())
+                .createdAt(activity.getCreatedAt())
+                .build();
+    }
+
+    @Transactional
     @Override
-    public void likeActivity(Long userId, Long activityId) {
+    public LikeResponse toggleLike(Long userId, Long activityId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -84,195 +105,76 @@ public class ActivityServiceImpl implements ActivityService {
 
         boolean alreadyLiked = reactionRepository.existsByActivityAndReactor(activity, user);
 
-        if (alreadyLiked) return;
+        if (alreadyLiked) {
+            reactionRepository.deleteByActivityAndReactor(activity, user);
+            activity.setLikesCount(activity.getLikesCount() - 1);
+        } else {
+            Reaction reaction = Reaction.builder()
+                    .activity(activity)
+                    .reactor(user)
+                    .build();
+            reactionRepository.save(reaction);
+            activity.setLikesCount(activity.getLikesCount() + 1);
+        }
 
-        Reaction reaction = Reaction.builder()
-                .activity(activity)
-                .reactor(user)
+        activityRepository.save(activity);
+
+        return LikeResponse.builder()
+                .activityId(activityId)
+                .isLiked(!alreadyLiked)
+                .likesCount(activity.getLikesCount())
                 .build();
-
-        reactionRepository.save(reaction);
-
-        activity.setLikesCount(activity.getLikesCount() + 1);
-        activityRepository.save(activity);
-
-        // Notify post owner if liker is not the owner
-        if (!activity.getUser().getUserId().equals(userId)) {
-            notificationService.createNotification(
-                    activity.getUser().getUserId(),
-                    userId,
-                    NotificationType.STREAK_REACTION,
-                    "reacted to your streak update",
-                    activity.getActivityId()
-            );
-        }
     }
 
-    // Unlike an activity and remove the notification
-    @Override
     @Transactional
-    public void unlikeActivity(Long userId, Long activityId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Activity activity = activityRepository.findById(activityId)
-                .orElseThrow(() -> new RuntimeException("Activity not found"));
-
-        if (!reactionRepository.existsByActivityAndReactor(activity, user)) return;
-
-        reactionRepository.deleteByActivityAndReactor(activity, user);
-
-        activity.setLikesCount(activity.getLikesCount() - 1);
-        activityRepository.save(activity);
-
-        // Delete the notification associated with this like
-        if (!activity.getUser().getUserId().equals(userId)) {
-            try {
-                notificationService.deleteSocialNotification(
-                        activity.getUser().getUserId(),
-                        userId,
-                        NotificationType.STREAK_REACTION,
-                        activityId
-                );
-            } catch (Exception e) {
-                // Ignore if notification deletion fails
-            }
-        }
-    }
-
-    // Add a comment to an activity and notify the post owner
     @Override
     public CommentResponse addComment(CommentCreateRequest request) {
-
-        User user = userRepository.findById(request.getAuthorUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Activity activity = activityRepository.findById(request.getActivityId())
                 .orElseThrow(() -> new RuntimeException("Activity not found"));
 
+        User author = userRepository.findById(request.getAuthorUserId())
+                .orElseThrow(() -> new RuntimeException("Author user not found"));
+
         Comment comment = Comment.builder()
                 .activity(activity)
-                .author(user)
+                .author(author)
                 .commentText(request.getText())
                 .build();
-
-        Comment saved = commentRepository.save(comment);
 
         activity.setCommentsCount(activity.getCommentsCount() + 1);
         activityRepository.save(activity);
 
-        // Notify post owner if commenter is not the owner
-        if (!activity.getUser().getUserId().equals(user.getUserId())) {
-            notificationService.createNotification(
-                    activity.getUser().getUserId(),
-                    user.getUserId(),
-                    NotificationType.COMMENT,
-                    "commented on your update",
-                    activity.getActivityId()
-            );
-        }
+        comment = commentRepository.save(comment);
 
-        return CommentResponse.builder()
-                .commentId(saved.getCommentId())
-                .text(saved.getCommentText())
-                .createdAt(saved.getCreatedAt())
-                .author(
-                        UserSummary.builder()
-                                .userId(user.getUserId())
-                                .name(user.getName())
-                                .username(user.getUsername())
-                                .profileImage(user.getProfileImageUrl())
-                                .build()
-                )
-                .build();
+        return mapToResponse(comment);
     }
 
-    // Get all comments for an activity
+    @Transactional(readOnly = true)
     @Override
-    public List<CommentResponse> getComments(Long activityId) {
-
+    public List<CommentResponse> getCommentsByActivity(Long activityId) {
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new RuntimeException("Activity not found"));
 
-        return commentRepository.findByActivityAndIsDeletedFalseOrderByCreatedAtAsc(activity)
+        List<Comment> comments = commentRepository.findAll()
                 .stream()
-                .map(c -> CommentResponse.builder()
-                        .commentId(c.getCommentId())
-                        .text(c.getCommentText())
-                        .createdAt(c.getCreatedAt())
-                        .author(UserSummary.builder()
-                                .userId(c.getAuthor().getUserId())
-                                .name(c.getAuthor().getName())
-                                .username(c.getAuthor().getUsername())
-                                .profileImage(c.getAuthor().getProfileImageUrl())
-                                .build())
-                        .build())
-                .collect(Collectors.toList());
+                .filter(c -> c.getActivity().equals(activity))
+                .toList();
+
+        return comments.stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    // Map Activity entity to FeedItemResponse DTO
-    private FeedItemResponse mapToFeedResponse(Activity a, Long currentUserId) {
-
-        boolean likedByUser =
-                reactionRepository.existsByActivityAndReactor(a, userRepository.getReferenceById(currentUserId));
-
-        Object contentObject = null;
-
-        try {
-            contentObject = parseContent(a);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Invalid activity content");
-        }
-
-        return FeedItemResponse.builder()
-                .activityId(a.getActivityId())
-                .user(UserSummary.builder()
-                        .userId(a.getUser().getUserId())
-                        .name(a.getUser().getName())
-                        .username(a.getUser().getUsername())
-                        .profileImage(a.getUser().getProfileImageUrl())
+    private CommentResponse mapToResponse(Comment c) {
+        return CommentResponse.builder()
+                .commentId(c.getCommentId())
+                .text(c.getCommentText())
+                .createdAt(c.getCreatedAt())
+                .author(UserSummary.builder()
+                        .userId(c.getAuthor().getUserId())
+                        .username(c.getAuthor().getUsername())
                         .build())
-                .activityType(a.getActivityType())
-                .title(a.getTitle())
-                .createdAt(a.getCreatedAt())
-                .visibility(a.getVisibility())
-                .likesCount(a.getLikesCount())
-                .commentsCount(a.getCommentsCount())
-                .likedByCurrentUser(likedByUser)
-                .content(contentObject)
-                .recentComments(
-                        commentRepository.findTop2ByActivityAndIsDeletedFalseOrderByCreatedAtDesc(a)
-                                .stream()
-                                .map(c -> CommentResponse.builder()
-                                        .commentId(c.getCommentId())
-                                        .text(c.getCommentText())
-                                        .createdAt(c.getCreatedAt())
-                                        .author(UserSummary.builder()
-                                                .userId(c.getAuthor().getUserId())
-                                                .name(c.getAuthor().getName())
-                                                .username(c.getAuthor().getUsername())
-                                                .profileImage(c.getAuthor().getProfileImageUrl())
-                                                .build())
-                                        .build())
-                                .collect(Collectors.toList())
-                )
                 .build();
-    }
-
-    // Parse activity content JSON to appropriate DTO based on activity type
-    private Object parseContent(Activity a) throws JsonProcessingException {
-        if (a.getContent() == null) return null;
-
-        try {
-            return switch (a.getActivityType()) {
-                case COMPLETION -> objectMapper.readValue(a.getContent(), CompletionContent.class);
-                case STREAK -> objectMapper.readValue(a.getContent(), StreakContent.class);
-                case MILESTONE -> objectMapper.readValue(a.getContent(), MilestoneContent.class);
-                case SUMMARY -> objectMapper.readValue(a.getContent(), WeeklySummaryContent.class);
-                case MISSED -> objectMapper.readValue(a.getContent(), MissedDaysContent.class);
-            };
-        } catch (Exception e) {
-            return a.getContent();
-        }
     }
 }

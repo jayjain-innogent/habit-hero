@@ -4,7 +4,7 @@ import { getTodayStatus } from "../../api/habitLogs";
 import HabitCard from "../../components/habits/HabitCard";
 import { useNavigate } from "react-router-dom";
 import ProgressRing from "../../components/common/ProgressRing";
-import { getCacheKey } from "../../utils/cache";
+
 import { FaClipboardList, FaBullseye, FaSeedling, FaPlus } from "react-icons/fa";
 import { QUOTES } from "../../data/quotes";
 
@@ -56,25 +56,7 @@ export default function HabitsList() {
             setLoading(true);
             setError("");
 
-            const today = new Date().toISOString().split("T")[0];
-            const cacheKey = getCacheKey(userId);
-            const habitsCacheKey = `habits_list_${userId}`;
-            const shouldBypassCache = window.forceReloadHabits;
-
-            let habitList;
-
-            if (!shouldBypassCache) {
-                const cachedHabits = localStorage.getItem(habitsCacheKey);
-                if (cachedHabits) {
-                    habitList = JSON.parse(cachedHabits);
-                }
-            }
-
-            if (!habitList) {
-                habitList = await getAllHabits(userId);
-                localStorage.setItem(habitsCacheKey, JSON.stringify(habitList));
-            }
-
+            const habitList = await getAllHabits(userId);
             const todayStatus = await getTodayStatus(userId);
 
             let list = Array.isArray(habitList) ? habitList : [];
@@ -88,15 +70,7 @@ export default function HabitsList() {
             }));
 
             list = sortHabits(list);
-
-
-            localStorage.setItem(
-                cacheKey,
-                JSON.stringify({ date: today, data: list })
-            );
-
             setHabits(list);
-            window.forceReloadHabits = false;
         } catch (err) {
             setError("Failed to load habits. Please try again.");
             setHabits([]);
@@ -114,17 +88,6 @@ export default function HabitsList() {
             );
             return sortHabits(updated);
         });
-
-        const cacheKey = getCacheKey(userId);
-        const cached = JSON.parse(localStorage.getItem(cacheKey));
-        if (cached) {
-            const updated = cached.data.map(h =>
-                h.id === habitId
-                    ? { ...h, completedToday: true, actualValue, logId: newLogId }
-                    : h
-            );
-            localStorage.setItem(cacheKey, JSON.stringify({ date: cached.date, data: updated }));
-        }
     };
 
     const handleUncompleteCallback = (habitId) => {
@@ -136,17 +99,6 @@ export default function HabitsList() {
             );
             return sortHabits(updated);
         });
-
-        const cacheKey = getCacheKey(userId);
-        const cached = JSON.parse(localStorage.getItem(cacheKey));
-        if (cached) {
-            const updated = cached.data.map(h =>
-                h.id === habitId
-                    ? { ...h, completedToday: false, actualValue: null, logId: null }
-                    : h
-            );
-            localStorage.setItem(cacheKey, JSON.stringify({ date: cached.date, data: updated }));
-        }
     };
 
     const activeHabits = habits.filter(h => h.status === "ACTIVE");

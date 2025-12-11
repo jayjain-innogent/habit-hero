@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import "../../styles/habits.css";
 import { useNavigate } from "react-router-dom";
 import { createLog, deleteLog } from "../../api/habitLogs";
-import { updateTodayStatusCache } from "../../utils/cache";
 import NoteModal from "./NoteModal";
 import ConfirmationModal from "../common/ConfirmationModal";
 
@@ -67,8 +66,6 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
 
             const resp = await createLog(userId, habit.id, { actualValue });
             const newLogId = resp.logId;
-
-            updateTodayStatusCache(userId, habit.id, actualValue);
 
             if (onComplete) onComplete(habit.id, actualValue, newLogId);
         } catch (err) {

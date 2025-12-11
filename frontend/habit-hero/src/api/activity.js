@@ -1,53 +1,56 @@
-import axios from "axios";
+import axiosInstance from "./axiosConfig";
 import {
-  CREATE_ACTIVITY,
   GET_FEED,
-  LIKE_ACTIVITY,
-  UNLIKE_ACTIVITY,
   ADD_COMMENT,
   GET_COMMENTS,
 } from "./endpoints";
 
-const BASE_URL = "http://localhost:8080/";
+// BASE_URL is handled in axiosConfig (http://localhost:8080)
+// Endpoints in endpoints.js are relative paths like "activity/feed"
+// So we just need to join them.
 
 // CREATE
-export function createActivityApi(payload) {
-  return axios.post(`${BASE_URL}${CREATE_ACTIVITY}`, payload);
+export function createActivityApi({ userId, habitId, activityType, title, visibility }) {
+  return axiosInstance.post(`/activity`, {
+    userId,
+    habitId,
+    activityType,
+    title,
+    visibility,
+  });
 }
 
 // GET FEED
-export function getFeedApi({ userId, page = 0, size = 20 }) {
-  return axios.get(`${BASE_URL}${GET_FEED}`, { params: { userId, page, size } });
+export function getFeedApi({ userId, filter = "ALL", page = 0, size = 10 }) {
+  return axiosInstance.get(`/${GET_FEED}`, {
+    params: {
+      userId,
+      filter,
+      page,
+      size,
+    },
+  });
 }
 
-// LIKE (note: route is /activity/{id}/like)
+// LIKE/UNLIKE 
 export function likeActivityApi({ activityId, userId }) {
-  return axios.post(
-    `${BASE_URL}${LIKE_ACTIVITY}/${activityId}/like`,
-    null,
-    { params: { userId } }
-  );
-}
-
-// UNLIKE (route is /activity/{id}/unlike)
-export function unlikeActivityApi({ activityId, userId }) {
-  return axios.post(
-    `${BASE_URL}${UNLIKE_ACTIVITY}/${activityId}/unlike`,
-    null,
-    { params: { userId } }
-  );
+  return axiosInstance.post(`/activity/${activityId}/like`, null, {
+    params: {
+      userId,
+    },
+  });
 }
 
 // ADD COMMENT
 export function addCommentApi({ activityId, userId, text }) {
-  return axios.post(`${BASE_URL}${ADD_COMMENT}`, {
+  return axiosInstance.post(`/${ADD_COMMENT}`, {
     activityId,
     authorUserId: userId,
     text,
   });
 }
 
-// GET COMMENTS (route is /activity/{id}/comments)
+// GET COMMENTS 
 export function getCommentsApi({ activityId }) {
-  return axios.get(`${BASE_URL}${GET_COMMENTS}/${activityId}/comments`);
+  return axiosInstance.get(`/activity/comments/${activityId}`);
 }

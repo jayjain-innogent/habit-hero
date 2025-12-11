@@ -6,7 +6,12 @@ import ImageWithFallback from "../../components/ImageWithFallback";
 import { FaUserFriends } from "react-icons/fa";
 import "./FriendListPage.css";
 
-export default function FriendListPage({ currentUserId }) {
+import { useAuth } from "../../context/AuthContext";
+// ... imports
+
+export default function FriendListPage() {
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.userId;
   const { userId } = useParams();
   const navigate = useNavigate();
   const viewedUserId = parseInt(userId, 10);
@@ -75,7 +80,7 @@ export default function FriendListPage({ currentUserId }) {
 
   const handleFriendClick = (friendId) => {
     navigate(`/profile/${friendId}`, {
-    state: { from: "friendsList" }
+      state: { from: "friendsList" }
     });
   };
 

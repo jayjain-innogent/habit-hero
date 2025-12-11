@@ -34,6 +34,9 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "verified", nullable = false)
+    private Boolean verified = false;
+
     @Builder.Default
     private String timezone = "Asia/Kolkata";
 

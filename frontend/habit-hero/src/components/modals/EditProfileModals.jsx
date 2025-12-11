@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { updateUserApi } from "../../api/userApi";
+import { updateUserProfileApi } from "../../api/userApi";
 import "./EditProfileModals.css";
 
 export default function EditProfileModal({ user, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
+    name: user.name || "",
     username: user.username || "",
     userBio: user.userBio || "",
-    profileImageUrl: user.profileImageUrl || ""
   });
+  const [profileImage, setProfileImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -17,12 +18,26 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
     });
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfileImage(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      const response = await updateUserApi(user.userId, formData);
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("username", formData.username);
+      data.append("userBio", formData.userBio);
+      if (profileImage) {
+        data.append("profileImage", profileImage);
+      }
+
+      const response = await updateUserProfileApi(user.userId, data);
       onUpdate(response.data);
     } catch (err) {
       console.error("Failed to update profile:", err);
@@ -38,8 +53,19 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
           <h3>Edit Profile</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="edit-form">
+          <div className="form-group">
+            <label htmlFor="name">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+            />
+          </div>
+
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
@@ -51,7 +77,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="userBio">Bio</label>
             <textarea
@@ -63,19 +89,18 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
               placeholder="Tell us about yourself..."
             />
           </div>
-          
+
           <div className="form-group">
-            <label htmlFor="profileImageUrl">Profile Image URL</label>
+            <label htmlFor="profileImage">Profile Image</label>
             <input
-              type="url"
-              id="profileImageUrl"
-              name="profileImageUrl"
-              value={formData.profileImageUrl}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
+              type="file"
+              id="profileImage"
+              name="profileImage"
+              accept="image/*"
+              onChange={handleFileChange}
             />
           </div>
-          
+
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel

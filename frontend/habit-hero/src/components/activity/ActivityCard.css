@@ -1,0 +1,283 @@
+.activity-card {
+  background: #FFFFFF;
+  border: 2px solid #E5E5E5;
+  border-radius: 16px;
+  padding: 24px;
+  transition: border-color 0.2s ease;
+}
+
+.activity-card:hover {
+  border-color: #D4D4D8;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-details {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.user-content {
+  flex: 1;
+}
+
+.user-name {
+  color: #171717;
+  font-weight: bold;
+}
+
+.activity-text {
+  color: #525252;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+.activity-time {
+  color: #737373;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.activity-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 16px;
+  font-size: 20px;
+}
+
+.activity-icon.streak { background-color: #FFF7ED; }
+.activity-icon.summary { background-color: #FAF5FF; }
+.activity-icon.missed { background-color: #FEF2F2; }
+.activity-icon.completion { background-color: #EFF6FF; }
+.activity-icon.milestone { background-color: #FEFCE8; }
+
+.rich-content {
+  margin-top: 12px;
+}
+
+.summary-card {
+  background: linear-gradient(180deg, #FAF5FF 0%, #EFF6FF 100%);
+  border: 1px solid #F3E8FF;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.summary-title {
+  font-weight: 600;
+  color: #171717;
+  margin: 0;
+}
+
+.summary-trend {
+  color: #22C55E;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.summary-item {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.summary-label {
+  color: #525252;
+  font-size: 14px;
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #171717;
+}
+
+.summary-habit {
+  font-weight: 600;
+  color: #171717;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.missed-card {
+  background-color: #FEF2F2;
+  border: 1px solid #FEE2E2;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.missed-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.missed-icon {
+  color: #EF4444;
+}
+
+.missed-title {
+  font-weight: 600;
+  color: #7F1D1D;
+}
+
+.missed-message {
+  color: #DC2626;
+  font-size: 14px;
+  margin: 0;
+}
+
+.card-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #F5F5F5;
+}
+
+.actions-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  color: #737373;
+}
+
+.action-btn.liked {
+  color: #EF4444;
+  font-weight: 600;
+}
+
+.action-btn:hover:not(.liked) {
+  color: #EF4444;
+}
+
+.comment-btn:hover {
+  color: #171717;
+}
+
+.comment-input-row {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 12px 16px;
+  background-color: #FAFAFA;
+  border: 1px solid #E5E5E5;
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.comment-input:focus {
+  border-color: #171717;
+}
+
+.comment-submit {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+}
+
+.comment-submit:enabled {
+  background-color: #171717;
+  color: #FFFFFF;
+}
+
+.comment-submit:enabled:hover {
+  background-color: #404040;
+}
+
+.comment-submit:disabled {
+  background-color: #F5F5F5;
+  color: #737373;
+  cursor: not-allowed;
+}
+
+.comments-preview {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #F5F5F5;
+}
+
+.comment-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-text {
+  font-size: 14px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #171717;
+}
+
+.comment-message {
+  color: #525252;
+  margin-left: 8px;
+}
+
+.comment-time {
+  color: #737373;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,45 +1,32 @@
 package com.habit.hero.controller;
 
-
+import com.habit.hero.dto.report.FullReportResponse;
 import com.habit.hero.service.ReportService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/reports")
 @RequiredArgsConstructor
 @Slf4j
+//@CrossOrigin("*")
 public class ReportController {
+
     private final ReportService reportService;
 
-    @GetMapping("/overall")
-    public void downloadOverallReport(
-            @RequestHeader Long userId,
+    @GetMapping("/dashboard")
+    public ResponseEntity<FullReportResponse> getDashboardReport(
+            @RequestHeader("userId") Long userId,
             @RequestParam int year,
-            @RequestParam int month,
-            @RequestParam(required = false) Integer week,
-            HttpServletResponse response
+            @RequestParam(defaultValue = "0") int month,
+            @RequestParam(required = false) Integer week
     ) {
-        log.info("Request: OVERALL report for user={}, year={}, month={}, week={}", userId, year, month, week);
-        reportService.downloadOverallReport(userId, year, month, week, response);
-    }
+        log.info("API: Fetching Dashboard report for user={}, year={}, month={}, week={}", userId, year, month, week);
 
-    @GetMapping("/habit")
-    public void downloadSingleHabitReport(
-            @RequestHeader Long userId,
-            @RequestParam Long habitId,
-            @RequestParam int year,
-            @RequestParam int month,
-            @RequestParam(required = false) Integer week,
-            HttpServletResponse response
-    ) {
-        log.info("Request: SINGLE HABIT report user={}, habitId={}, year={}, month={}, week={}",
-                userId, habitId, year, month, week);
+        FullReportResponse response = reportService.getDashboardReport(userId, year, month, week);
 
-        reportService.downloadSingleHabitReport(userId, habitId, year, month, week, response);
-
+        return ResponseEntity.ok(response);
     }
 }

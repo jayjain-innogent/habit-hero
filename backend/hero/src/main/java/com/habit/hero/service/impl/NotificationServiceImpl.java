@@ -8,7 +8,6 @@ import com.habit.hero.enums.NotificationType;
 import com.habit.hero.mapper.NotificationMapper;
 import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.NotificationService;
-import com.habit.hero.util.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,7 +23,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationDAO notificationDAO;
     private final NotificationMapper notificationMapper;
-    private final CurrentUserUtil currentUserUtil;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -37,7 +34,7 @@ public class NotificationServiceImpl implements NotificationService {
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Check if user has notifications disabled
+        // check if user has notifications disabled
         if (Boolean.FALSE.equals(targetUser.getNotificationEnabled())) {
             return;
         }
@@ -60,15 +57,14 @@ public class NotificationServiceImpl implements NotificationService {
         Notification savedNotification = notificationDAO.save(notification);
         NotificationResponseDto responseDto = notificationMapper.toDto(savedNotification);
 
-        // Send notification to frontend via WebSocket
+        // send notification to frontend via WebSocket
         messagingTemplate.convertAndSend("/topic/user/" + targetUserId, responseDto);
     }
 
     // Get all notifications for the current user
     @Override
-    public List<NotificationResponseDto> getUserNotifications() {
-        Long currentUserId = currentUserUtil.getCurrentUserId();
-        List<Notification> notifications = notificationDAO.findAllByUserId(currentUserId);
+    public List<NotificationResponseDto> getUserNotifications(Long userId) {
+        List<Notification> notifications = notificationDAO.findAllByUserId(userId);
         return notifications.stream()
                 .map(notificationMapper::toDto)
                 .collect(Collectors.toList());
@@ -76,20 +72,19 @@ public class NotificationServiceImpl implements NotificationService {
 
     // Get count of unread notifications for the current user
     @Override
-    public long getUnreadCount() {
-        Long currentUserId = currentUserUtil.getCurrentUserId();
-        return notificationDAO.countUnread(currentUserId);
+    public long getUnreadCount(Long userId) {
+        return notificationDAO.countUnread(userId);
     }
 
     // Mark a specific notification as read
     @Override
     @Transactional
-    public void markAsRead(Long notificationId) {
+    public void markAsRead(Long userId, Long notificationId) {
         Notification notification = notificationDAO.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-        Long currentUserId = currentUserUtil.getCurrentUserId();
-        if (!notification.getUser().getUserId().equals(currentUserId)) {
+        // check if the notification belongs to the user
+        if (!notification.getUser().getUserId().equals(userId)) {
             throw new RuntimeException("Unauthorized access");
         }
 
@@ -100,9 +95,8 @@ public class NotificationServiceImpl implements NotificationService {
     // Mark all notifications as read for the current user
     @Override
     @Transactional
-    public void markAllAsRead() {
-        Long currentUserId = currentUserUtil.getCurrentUserId();
-        List<Notification> notifications = notificationDAO.findAllByUserId(currentUserId);
+    public void markAllAsRead(Long userId) {
+        List<Notification> notifications = notificationDAO.findAllByUserId(userId);
 
         for (Notification n : notifications) {
             if (!n.getIsRead()) {
@@ -112,15 +106,15 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    // Delete a specific notification (manual delete from notification screen)
+    // Delete a specific notification
     @Override
     @Transactional
-    public void deleteNotification(Long notificationId) {
+    public void deleteNotification(Long userId, Long notificationId) {
         Notification notification = notificationDAO.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-        Long currentUserId = currentUserUtil.getCurrentUserId();
-        if (!notification.getUser().getUserId().equals(currentUserId)) {
+        // check if the notification belongs to the user
+        if (!notification.getUser().getUserId().equals(userId)) {
             throw new RuntimeException("Unauthorized access");
         }
 
@@ -133,20 +127,20 @@ public class NotificationServiceImpl implements NotificationService {
     public void deleteNotificationByReference(Long userId, NotificationType type, Long referenceId) {
         notificationDAO.deleteDirectly(userId, type, referenceId);
 
-        // Send refresh command to frontend
+        // send refresh command to frontend
         NotificationResponseDto refreshSignal = NotificationResponseDto.builder()
                 .message("REFRESH_COMMAND")
                 .build();
         messagingTemplate.convertAndSend("/topic/user/" + userId, refreshSignal);
     }
 
-    // Delete social notification by reference and related user, then notify frontend to refresh
+    // Delete social notification by reference and related user
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteSocialNotification(Long targetUserId, Long relatedUserId, NotificationType type, Long referenceId) {
         notificationDAO.deleteSocialDirectly(targetUserId, type, referenceId, relatedUserId);
 
-        // Send refresh command to frontend
+        // send refresh command to frontend
         NotificationResponseDto refreshSignal = NotificationResponseDto.builder()
                 .message("REFRESH_COMMAND")
                 .build();

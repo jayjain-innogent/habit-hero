@@ -1,4 +1,4 @@
-package com.habit.hero.service.monitoring;
+package com.habit.hero.monitoring;
 
 import com.habit.hero.dao.HabitDAO;
 import com.habit.hero.entity.Habit;

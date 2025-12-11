@@ -2,6 +2,7 @@ package com.habit.hero.service.impl;
 
 import com.habit.hero.dao.HabitDAO;
 import com.habit.hero.dao.HabitLogDAO;
+import com.habit.hero.dto.habit.HabitResponse;
 import com.habit.hero.dto.habitlog.HabitLogCreateRequest;
 import com.habit.hero.dto.habitlog.HabitLogResponse;
 import com.habit.hero.dto.habitlog.HabitStatusItem;
