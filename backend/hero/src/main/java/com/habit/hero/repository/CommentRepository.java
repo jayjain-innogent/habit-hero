@@ -8,9 +8,4 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    List<Comment> findByActivityAndIsDeletedFalseOrderByCreatedAtAsc(Activity activity);
-
-    int countByActivityAndIsDeletedFalse(Activity activity);
-
-    List<Comment> findTop2ByActivityAndIsDeletedFalseOrderByCreatedAtDesc(Activity activity);
 }

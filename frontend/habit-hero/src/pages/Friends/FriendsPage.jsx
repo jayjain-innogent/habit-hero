@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getPendingApi, acceptRequestApi, rejectRequestApi, sendRequestApi, getFriendsListApi, getSentRequestsApi } from "../../api/social";
-import { searchUsersApi } from "../../api/userApi";
+import { searchUsersApi, getAllUsersApi } from "../../api/userApi";
 import FriendRequestCard from "../../components/friends/FriendRequestCard";
 import { useNavigate } from "react-router-dom";
 import ImageWithFallback from "../../components/ImageWithFallback";
@@ -21,20 +21,25 @@ function FriendsPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
   const [buttonLoading, setButtonLoading] = useState({});
-  const [activeTab, setActiveTab] = useState("requests");
+  const [activeTab, setActiveTab] = useState("search");
 
   useEffect(() => {
     fetchAllData();
   }, []);
 
   useEffect(() => {
+    if (!loading) {
+      fetchSuggestedUsers();
+    }
+  }, [loading, friends, requests, sentRequests]);
+
+  useEffect(() => {
     if (searchQuery.trim()) {
       searchUsers();
     } else {
       setSearchResults([]);
-      fetchSuggestedUsers();
     }
-  }, [searchQuery, friends, requests, sentRequests]);
+  }, [searchQuery]);
 
   async function fetchAllData() {
     try {
@@ -57,24 +62,25 @@ function FriendsPage() {
   }
 
   async function fetchSuggestedUsers() {
-    try {
-      const res = await searchUsersApi({ query: "" });
-      const allUsers = res.data || [];
+  try {
+    const res = await getAllUsersApi();
+    const allUsers = Array.isArray(res.data) ? res.data : [];
+    
+    const suggested = allUsers.filter(user => {
+      const isFriend = friends.some(f => f.friendId === user.userId);
+      const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
+      const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
+      const isCurrentUser = user.userId === userId;
       
-      const suggested = allUsers.filter(user => {
-        const isFriend = friends.some(f => f.friendId === user.userId);
-        const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
-        const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
-        const isCurrentUser = user.userId === userId;
-        
-        return !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser;
-      });
-      
-      setSuggestedUsers(suggested.slice(0, 5));
-    } catch (err) {
-      console.error("Failed to fetch suggested users:", err);
-    }
+      return !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser;
+    });
+    
+    setSuggestedUsers(suggested.slice(0, 5));
+  } catch (err) {
+    console.error("Failed to fetch suggested users:", err);
   }
+}
+
 
   async function searchUsers() {
     try {
@@ -128,13 +134,15 @@ function FriendsPage() {
   const getRelationshipStatus = (user) => {
     const isFriend = friends.some(f => f.friendId === user.userId);
     const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
-    const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId); 
+    const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
     
     if (isFriend) return "friends";
     if (hasIncomingRequest) return "incoming";
     if (hasSentRequest) return "sent";
     return "none";
   };
+
+  console.log("Render - activeTab:", activeTab, "suggestedUsers:", suggestedUsers.length, "searchQuery:", searchQuery);
 
   if (loading) return <div className="loading">Loading requests…</div>;
   if (error) return <div className="error">{error}</div>;
@@ -199,41 +207,44 @@ function FriendsPage() {
             />
           </div>
 
-          {!searchQuery && suggestedUsers.length > 0 && (
+          {!searchQuery && (
             <div className="suggested-section">
-              <h3>Suggested for you</h3>
-              <div className="users-list">
-                {suggestedUsers.map(user => (
-                  <div key={user.userId} className="user-card">
-                    <div 
-                      className="user-info" 
-                      onClick={() => navigate(`/profile/${user.userId}`)}
-                    >
-                      <ImageWithFallback
-                        src={user.profileImageUrl}
-                        fallbackSrc="../../public/avator.jpeg"
-                        alt={`${user.username} avatar`}
-                        className="user-avatar"
-                      />
-                      <div className="user-details">
-                        <h4 className="username">{user.username}</h4>
-                        <p className="user-bio">{user.userBio || "No bio available"}</p>
+              <h3>Suggested for you ({suggestedUsers.length})</h3>
+              {suggestedUsers.length === 0 && <p>No suggestions available</p>}
+              {suggestedUsers.length > 0 && (
+                <div className="users-list">
+                  {suggestedUsers.map(user => (
+                    <div key={user.userId} className="user-card">
+                      <div 
+                        className="user-info" 
+                        onClick={() => navigate(`/profile/${user.userId}`)}
+                      >
+                        <ImageWithFallback
+                          src={user.profileImageUrl}
+                          fallbackSrc="../../public/avator.jpeg"
+                          alt={`${user.username} avatar`}
+                          className="user-avatar"
+                        />
+                        <div className="user-details">
+                          <h4 className="username">{user.username}</h4>
+                          <p className="user-bio">{user.userBio || "No bio available"}</p>
+                        </div>
+                      </div>
+                      <div className="user-actions">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => handleAddFriend(user.userId)}
+                          disabled={buttonLoading[`add_${user.userId}`]}
+                        >
+                          <UserPlus size={16} />
+                          {buttonLoading[`add_${user.userId}`] ? "Sending..." : "Add Friend"}
+                        </button>
                       </div>
                     </div>
-                    <div className="user-actions">
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => handleAddFriend(user.userId)}
-                        disabled={buttonLoading[`add_${user.userId}`]}
-                      >
-                        <UserPlus size={16} />
-                        {buttonLoading[`add_${user.userId}`] ? "Sending..." : "Add Friend"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

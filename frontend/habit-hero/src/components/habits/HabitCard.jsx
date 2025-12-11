@@ -5,6 +5,38 @@ import { createLog, deleteLog } from "../../api/habitLogs";
 import NoteModal from "./NoteModal";
 import ConfirmationModal from "../common/ConfirmationModal";
 
+const getCategoryColor = (category) => {
+    if (!category) return "secondary";
+    const lower = category.toLowerCase();
+
+    if (lower.includes("health") || lower.includes("fitness") || lower.includes("sport") || lower.includes("diet")) return "success"; // Green
+    if (lower.includes("work") || lower.includes("career") || lower.includes("job") || lower.includes("business")) return "primary"; // Blue
+    if (lower.includes("learn") || lower.includes("study") || lower.includes("read") || lower.includes("school")) return "info"; // Cyan
+    if (lower.includes("mind") || lower.includes("meditation") || lower.includes("spirit")) return "secondary"; // Grey
+    if (lower.includes("finance") || lower.includes("money") || lower.includes("budget")) return "warning"; // Yellow
+    if (lower.includes("social") || lower.includes("family") || lower.includes("friend")) return "danger"; // Red/Pink
+    if (lower.includes("art") || lower.includes("creat") || lower.includes("hobby")) return "pink"; // Custom? default to something else if pink not generic. Bootstrap has 'danger' or 'dark'. Let's stick to standard bootstrap.
+
+    // Hash fallback for consistency if not matched
+    const colors = ["primary", "success", "info", "warning", "danger", "secondary", "dark"];
+    let hash = 0;
+    for (let i = 0; i < lower.length; i++) {
+        hash = lower.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+};
+
+const CATEGORY_HEX_COLORS = {
+    primary: "#0d6efd", // Blue (Work)
+    success: "#198754", // Green (Health)
+    info: "#0dcaf0",    // Cyan (Study)
+    warning: "#ffc107", // Yellow (Finance)
+    danger: "#dc3545",  // Red (Social)
+    secondary: "#6c757d", // Grey (Mind)
+    dark: "#212529",    // Black
+    pink: "#d63384"     // Pink (Art)
+};
+
 export default function HabitCard({ habit, onComplete, onUncomplete }) {
     const navigate = useNavigate();
     const userId = 1;
@@ -112,6 +144,7 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
     }, [isDragging]);
 
     const progressPercent = hasGoal ? (currentValue / habit.targetValue) * 100 : 0;
+    const categoryColor = getCategoryColor(habit.category);
 
     return (
         <>
@@ -139,17 +172,11 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
                 className={`card border-0 shadow-sm h-100 bg-white`}
                 style={{
                     transition: "all 0.3s ease",
-                    opacity: isCompleted ? 0.8 : (isPaused || isFuture) ? 0.7 : 1,
-                    borderLeft: isCompleted
-                        ? "4px solid #10b981"
-                        : isPaused
-                            ? "4px solid #f59e0b"
-                            : isFuture
-                                ? "4px solid #6c757d"
-                                : "4px solid transparent"
+                    transition: "all 0.3s ease",
+                    borderTop: `6px solid ${CATEGORY_HEX_COLORS[categoryColor] || "#6c757d"}`
                 }}
             >
-                <div className="card-body d-flex flex-column p-4">
+                <div className="card-body d-flex flex-column p-3">
 
                     <div className="d-flex justify-content-between align-items-start mb-2">
                         <h5 className="card-title fw-bold text-dark mb-0">
@@ -165,7 +192,7 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
                         </div>
                     </div>
 
-                    <p className="card-text text-secondary small mb-3" style={{ minHeight: "40px" }}>
+                    <p className="card-text text-secondary small mb-2" style={{ minHeight: "20px" }}>
                         {habit.description
                             ? habit.description.length > 70
                                 ? habit.description.substring(0, 70) + "..."
@@ -238,32 +265,49 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
                             </div>
                         )}
 
-                        {!isPaused && !isFuture && (
-                            <div className="fire-toggle-wrapper mb-3">
-                                <div
-                                    className={`fire-switch ${isCompleted ? 'completed' : ''}`}
-                                    onClick={handleFireClick}
-                                    style={{
-                                        opacity: (hasGoal && currentValue === 0 && !isCompleted) ? 0.5 : 1,
-                                        cursor: (isCompleted || completing || (hasGoal && currentValue === 0)) ? 'pointer' : 'pointer'
-                                    }}
-                                    title={isCompleted ? "Click to Uncomplete" : "Ignite to Complete"}
-                                >
-                                    <div className="fire-knob">
-                                        <span className="fire-icon">🔥</span>
-                                    </div>
-                                </div>
+                        {!isPaused && !isFuture && !isCompleted && (
+                            <button
+                                className="btn w-100 rounded-3 py-2 fw-bold mb-3"
+                                onClick={handleFireClick}
+                                disabled={completing || (hasGoal && currentValue === 0)}
+                                style={{
+                                    background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)',
+                                    color: '#fff',
+                                    border: '2px solid #6B8EFF',
+                                    boxShadow: '0 4px 12px rgba(140,169,255,0.3)'
+                                }}
+                            >
+                                Complete Habit
+                            </button>
+                        )}
 
-                                {isCompleted && (
-                                    <button
-                                        className="note-btn"
-                                        onClick={() => setShowNoteModal(true)}
-                                        title="Add/Edit Note"
-                                    >
-                                        Note
-                                    </button>
-                                )}
-                            </div>
+                        {isCompleted && (
+                            <>
+                                <button
+                                    className="btn w-100 rounded-3 py-2 fw-bold mb-2"
+                                    onClick={() => setShowNoteModal(true)}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)',
+                                        color: '#fff',
+                                        border: '2px solid #6B8EFF',
+                                        boxShadow: '0 4px 12px rgba(140,169,255,0.3)'
+                                    }}
+                                >
+                                    Add Note
+                                </button>
+                                <button
+                                    className="btn w-100 rounded-3 py-2 fw-bold mb-3"
+                                    onClick={() => setShowUncompleteWarning(true)}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #94a3b8, #64748b)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        boxShadow: '0 4px 12px rgba(148,163,184,0.3)'
+                                    }}
+                                >
+                                    Mark Incomplete
+                                </button>
+                            </>
                         )}
 
                     <div className="d-flex justify-content-between border-top pt-3">

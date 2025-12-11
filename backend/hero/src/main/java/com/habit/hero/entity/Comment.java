@@ -27,9 +27,6 @@ public class Comment extends BaseEntity {
     @Column(name = "comment_text", nullable = false)
     private String commentText;
 
-    @Column(nullable = false)
-    private boolean isDeleted = false;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_user_id", nullable = false)
     private User author;

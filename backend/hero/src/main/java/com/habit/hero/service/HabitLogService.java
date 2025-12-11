@@ -10,19 +10,19 @@ import java.util.List;
 
 public interface HabitLogService {
 
-    //create
+    // Create a new log entry manually
     HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request);
 
-    //get all logs for habit
+    // Get all logs for a specific habit
     List<HabitLogResponse> getLogsForHabit(Long userId, Long habitId);
 
-    //delete
+    // Delete a specific log entry
     void deleteLog(Long userId, Long logId);
 
-    //range logs (weekly/monthly)
+    // Get logs within a specific date range
     List<HabitLogResponse> getLogsInRange(Long userId, Long habitId, LocalDate start, LocalDate end);
 
-    //today-status for all habits
+    // Get completion status for today for all habits (Dashboard)
     TodayStatusResponse getTodayStatus(Long userId);
 
     // Get note for a specific log
@@ -33,5 +33,4 @@ public interface HabitLogService {
 
     // Delete note from a specific log
     void deleteNote(Long userId, Long logId);
-
 }

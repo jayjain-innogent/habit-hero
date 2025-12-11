@@ -44,4 +44,11 @@ public class UserController {
         List<User> users = userRepository.searchUsers(query);
         return ResponseEntity.ok(users);
     }
+
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return ResponseEntity.ok(users);
+    }
+
 }

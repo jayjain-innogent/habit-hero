@@ -17,21 +17,25 @@ import java.time.LocalDate;
 public class HabitResponse {
 
     private Long id;
-    private Long userId;                 // Extracted from habit.getUser().getId()
+    private Long userId;
 
     private String title;
     private String description;
-    private String category;             // Enum → String
+    private String category;
 
     private LocalDate startDate;
 
     private Cadence cadence;
-    private Integer sessionCount;      // sessionCount
+    private Integer sessionCount;
 
     private GoalType goalType;
     private BigDecimal targetValue;
-    private String unit;                 // GoalUnit enum → String
+    private String unit;
 
     private Visibility visibility;
     private HabitStatus status;
+
+    private Integer currentStreak;
+    private Integer longestStreak;
+    private LocalDate lastActivityDate;
 }

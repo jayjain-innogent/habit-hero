@@ -1,9 +1,6 @@
 import axios from "axios";
 import {
-  CREATE_ACTIVITY,
   GET_FEED,
-  LIKE_ACTIVITY,
-  UNLIKE_ACTIVITY,
   ADD_COMMENT,
   GET_COMMENTS,
 } from "./endpoints";
@@ -11,31 +8,35 @@ import {
 const BASE_URL = "http://localhost:8080/";
 
 // CREATE
-export function createActivityApi(payload) {
-  return axios.post(`${BASE_URL}${CREATE_ACTIVITY}`, payload);
+export function createActivityApi({ userId, habitId, activityType, title, visibility }) {
+  return axios.post(`${BASE_URL}activity`, {
+    userId,
+    habitId,
+    activityType,
+    title,
+    visibility,
+  });
 }
 
 // GET FEED
-export function getFeedApi({ userId, page = 0, size = 20 }) {
-  return axios.get(`${BASE_URL}${GET_FEED}`, { params: { userId, page, size } });
+export function getFeedApi({ userId, filter = "ALL", page = 0, size = 10 }) {
+  return axios.get(`${BASE_URL}${GET_FEED}`, {
+    params: {
+      userId,
+      filter,
+      page,
+      size,
+    },
+  });
 }
 
-// LIKE (note: route is /activity/{id}/like)
+// LIKE/UNLIKE 
 export function likeActivityApi({ activityId, userId }) {
-  return axios.post(
-    `${BASE_URL}${LIKE_ACTIVITY}/${activityId}/like`,
-    null,
-    { params: { userId } }
-  );
-}
-
-// UNLIKE (route is /activity/{id}/unlike)
-export function unlikeActivityApi({ activityId, userId }) {
-  return axios.post(
-    `${BASE_URL}${UNLIKE_ACTIVITY}/${activityId}/unlike`,
-    null,
-    { params: { userId } }
-  );
+  return axios.post(`${BASE_URL}activity/${activityId}/like`, null, {
+    params: {
+      userId,
+    },
+  });
 }
 
 // ADD COMMENT
@@ -47,7 +48,7 @@ export function addCommentApi({ activityId, userId, text }) {
   });
 }
 
-// GET COMMENTS (route is /activity/{id}/comments)
+// GET COMMENTS 
 export function getCommentsApi({ activityId }) {
-  return axios.get(`${BASE_URL}${GET_COMMENTS}/${activityId}/comments`);
+  return axios.get(`${BASE_URL}activity/comments/${activityId}`);
 }

@@ -2,6 +2,7 @@ package com.habit.hero.controller;
 
 import com.habit.hero.dto.activity.*;
 import com.habit.hero.dto.friend.ApiResponse;
+import com.habit.hero.entity.Activity;
 import com.habit.hero.service.ActivityService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,56 +18,46 @@ public class ActivityController {
 
     private final ActivityService activityService;
 
-    @PostMapping("/create")
-    public ResponseEntity<FeedItemResponse> createActivity(
-            @RequestBody ActivityCreateRequest request) {
+    @PostMapping
+    public ResponseEntity<ApiResponse> createActivity(@RequestBody ActivityCreateRequest request) {
 
-        FeedItemResponse response = activityService.createActivity(request);
+        activityService.createActivity(request);
+
+        ApiResponse response = new ApiResponse(
+                "Activity created successfully",
+                true
+        );
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/feed")
-    public ResponseEntity<List<FeedItemResponse>> getUserFeed(
-            @RequestParam Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        List<FeedItemResponse> feed = activityService.getFeedForUser(userId, page, size);
-        return ResponseEntity.ok(feed);
-    }
-
+    // same api for adding and deleting likes :D
     @PostMapping("/{activityId}/like")
-    public ResponseEntity<String> likeActivity(
+    public LikeResponse toggleLike(
             @PathVariable Long activityId,
-            @RequestParam Long userId) {
-
-        activityService.likeActivity(userId, activityId);
-        return ResponseEntity.ok("Liked successfully");
+            @RequestParam Long userId
+    ) {
+        return activityService.toggleLike(userId, activityId);
     }
 
-    @PostMapping("/{activityId}/unlike")
-    public ResponseEntity<String> unlikeActivity(
-            @PathVariable Long activityId,
-            @RequestParam Long userId) {
-
-        activityService.unlikeActivity(userId, activityId);
-        return ResponseEntity.ok("Unliked successfully");
+    // api to get all feed for a specific user (PUBLIC + FRIENDS | ALL)
+    @GetMapping("/feed")
+    public List<ActivityResponse> getFeed(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "ALL") String filter,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return activityService.getFeed(userId, filter, page, size);
     }
 
-
-    @PostMapping("/comment")
-    public ResponseEntity<CommentResponse> addComment(
-            @RequestBody CommentCreateRequest request) {
-
-        CommentResponse response = activityService.addComment(request);
-        return ResponseEntity.ok(response);
+    @PostMapping("/comments/add")
+    public CommentResponse addComment(@RequestBody CommentCreateRequest request) {
+        return activityService.addComment(request);
     }
 
-    @GetMapping("/{activityId}/comments")
-    public ResponseEntity<List<CommentResponse>> getComments(
-            @PathVariable Long activityId) {
-
-        List<CommentResponse> comments = activityService.getComments(activityId);
-        return ResponseEntity.ok(comments);
+    @GetMapping("/comments/{activityId}")
+    public List<CommentResponse> getCommentsByActivity(@PathVariable Long activityId) {
+        return activityService.getCommentsByActivity(activityId);
     }
+
 }

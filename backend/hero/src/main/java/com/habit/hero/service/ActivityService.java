@@ -1,19 +1,25 @@
 package com.habit.hero.service;
 
 import com.habit.hero.dto.activity.*;
+import com.habit.hero.entity.Activity;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 public interface ActivityService {
 
-    FeedItemResponse createActivity(ActivityCreateRequest request);
+    @Transactional
+    Activity createActivity(ActivityCreateRequest request);
 
-    List<FeedItemResponse> getFeedForUser(Long userId, int page, int size);
+    @Transactional(readOnly = true)
+    List<ActivityResponse> getFeed(Long userId, String filter, int page, int size);
 
-    void likeActivity(Long userId, Long activityId);
+    @Transactional
+    LikeResponse toggleLike(Long userId, Long activityId);
 
-    void unlikeActivity(Long userId, Long activityId);
-
+    @Transactional
     CommentResponse addComment(CommentCreateRequest request);
 
-    List<CommentResponse> getComments(Long activityId);
+    @Transactional(readOnly = true)
+    List<CommentResponse> getCommentsByActivity(Long activityId);
 }
