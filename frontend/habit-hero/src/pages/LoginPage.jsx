@@ -1,20 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaLeaf, FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa';
+import { FaLeaf, FaEnvelope, FaLock } from 'react-icons/fa';
+import AuthService from '../services/authService';
+import { useAuth } from '../context/AuthContext';
+import { getUserIdFromToken } from '../utils/jwtUtil';
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [formData, setFormData] = useState({ email: '', password: '' });
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Login Data:", formData);
-        // Mock successful login
-        navigate('/habits');
+        setError('');
+        setIsLoading(true);
+        try {
+            const response = await AuthService.login(formData);
+            if (response.accessToken) {
+                // Extract userId from token and store in localStorage
+                const userId = getUserIdFromToken(response.accessToken);
+                if (userId) {
+                    localStorage.setItem('userId', userId);
+                }
+                login(response.accessToken);
+                navigate('/habits');
+            } else {
+                setError('Login failed. No token received.');
+            }
+        } catch (err) {
+            console.error("Login Error:", err);
+            setError(err.response?.data?.message || 'Invalid email or password.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -41,6 +65,8 @@ const LoginPage = () => {
                         <h3 className="fw-bold text-center text-lg-start mb-2" style={{ color: '#0f172a', fontSize: '2rem' }}>Sign In</h3>
                         <p className="text-muted text-center text-lg-start mb-4">Welcome back! Please enter your details</p>
 
+                        {error && <div className="alert alert-danger">{error}</div>}
+
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label className="form-label fw-semibold small" style={{ color: '#0f172a' }}>Email Address</label>
@@ -61,8 +87,8 @@ const LoginPage = () => {
                                 </div>
                             </div>
 
-                            <button type="submit" className="btn w-100 py-3 rounded-pill fw-bold shadow-lg mb-3" style={{ background: 'linear-gradient(135deg, #8CA9FF, #AAC4F5)', color: 'white', border: 'none', fontSize: '1rem' }}>
-                                Sign In
+                            <button type="submit" disabled={isLoading} className="btn w-100 py-3 rounded-pill fw-bold shadow-lg mb-3" style={{ background: 'linear-gradient(135deg, #8CA9FF, #AAC4F5)', color: 'white', border: 'none', fontSize: '1rem' }}>
+                                {isLoading ? 'Signing In...' : 'Sign In'}
                             </button>
 
                             <div className="text-center">

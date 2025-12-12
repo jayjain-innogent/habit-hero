@@ -1,4 +1,4 @@
-package com.habit.hero.utils;
+package com.habit.hero.util;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

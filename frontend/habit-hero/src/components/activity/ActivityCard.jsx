@@ -56,7 +56,7 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
                   onClick={() => onProfileClick?.(activity.userId)}
                   style={{ cursor: 'pointer' }}
                 >
-       
+                {activity.username || "Unknown User"}
                 </span>
                 <span className="activity-text" style={{ whiteSpace: 'pre-line' }}>
                   {activity.title}

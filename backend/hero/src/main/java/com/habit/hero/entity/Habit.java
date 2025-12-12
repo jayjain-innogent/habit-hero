@@ -82,9 +82,6 @@ public class Habit {
     @OneToMany(mappedBy = "habit", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<HabitLog> completions;
 
-    @OneToOne(mappedBy = "habit", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private Streak streak;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private HabitStatus status;

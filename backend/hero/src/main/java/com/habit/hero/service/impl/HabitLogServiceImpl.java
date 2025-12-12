@@ -20,8 +20,6 @@ import com.habit.hero.repository.HabitLogRepository;
 import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.HabitLogService;
 import com.habit.hero.service.NotificationService;
-import com.habit.hero.utils.StreakCalculator;
-
 import com.habit.hero.service.report.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,24 +55,23 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Creating log for user {} habit {}", userId, habitId);
 
-        //user check
+        // Check user existence
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         //Habit check
         Habit habit = habitDAO.findByIdAndUserId(habitId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Habit not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
         LocalDate logDate = request.getLogDate() == null ? LocalDate.now() : request.getLogDate();
 
-        //unique check
+        // Check if log already exists for this date
         habitLogDAO.findTodayLog(habitId, logDate)
                 .ifPresent(l -> {
                     throw new BadRequestException("Log already exists for this date");
                 });
 
         // Create and Save Log
-        //map to entity
         HabitLog logEntity = HabitLogMapper.toEntity(request, habit);
         logEntity.setCreatedAt(LocalDateTime.now());
         logEntity.setLogDate(logDate);
@@ -127,15 +124,18 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Fetching logs for user {} habit {}", userId, habitId);
 
+        // Verify Habit ownership
         habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
+        // Return list of logs
         return habitLogDAO.findByHabitId(habitId)
                 .stream()
                 .map(HabitLogMapper::toResponse)
                 .toList();
     }
 
+    // Delete a specific habit log and its notification
     @Override
     @Transactional
     public void deleteLog(Long userId, Long logId) {
@@ -175,11 +175,9 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Fetching logs in range {} to {} for user {} habit {}", start, end, userId, habitId);
 
-        // Verify Habit ownership
         habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
-        // Fetch logs in date range
         return habitLogDAO.findByHabitIdAndDateRange(habitId, start, end)
                 .stream()
                 .map(HabitLogMapper::toResponse)
@@ -202,6 +200,7 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         // Iterate through habits and check today's log status
         for (Habit habit : habits) {
+
             Optional<HabitLog> todayLog = habitLogDAO.findTodayLog(habit.getId(), today);
 
             HabitStatusItem item = todayLog
@@ -209,6 +208,7 @@ public class HabitLogServiceImpl implements HabitLogService {
                     .orElse(HabitStatusItem.builder()
                             .completedToday(false)
                             .actualValue(null)
+                            .logId(null)
                             .build());
 
             responseMap.put(habit.getId(), item);
@@ -217,6 +217,7 @@ public class HabitLogServiceImpl implements HabitLogService {
         return new TodayStatusResponse(responseMap);
     }
 
+    // Get a specific note for a habit log
     @Override
     public HabitLogResponse getNote(Long userId, Long logId) {
 
@@ -232,7 +233,6 @@ public class HabitLogServiceImpl implements HabitLogService {
         return HabitLogMapper.toResponse(logEntity);
     }
 
-    // Update the note for a specific habit log
     @Override
     public HabitLogResponse updateNote(Long userId, Long logId, String note) {
 

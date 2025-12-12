@@ -68,14 +68,20 @@ const DashboardCards = ({ cardData }) => {
         <h3><CalendarDays size={20} style={{ marginRight: '8px' }} /> Weekly Progress</h3>
 
         <div className="progress-cards">
-          {weeklyTrend.map((completed, index) => (
-            <div key={index} className={`progress-card ${completed ? 'completed' : 'missed'}`}>
-              <div className="card-icon">
-                {completed ? <CheckCircle size={16} /> : <XCircle size={16} />}
+          {weeklyTrend && weeklyTrend.length > 0 ? (
+            weeklyTrend.map((completed, index) => (
+              <div key={index} className={`progress-card ${completed ? 'completed' : 'missed'}`}>
+                <div className="card-icon">
+                  {completed ? <CheckCircle size={20} style={{ color: '#16a34a' }} /> : <XCircle size={20} style={{ color: '#dc2626' }} />}
+                </div>
+                <span className="card-day">{dayLabels[index]}</span>
               </div>
-              <span className="card-day">{dayLabels[index]}</span>
+            ))
+          ) : (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', color: '#64748b' }}>
+              No weekly data available
             </div>
-          ))}
+          )}
         </div>
       </div>
     </>

@@ -1,7 +1,6 @@
-package com.habit.hero.utils;
+package com.habit.hero.util;
 
 import com.opencsv.CSVWriter;
-import com.opencsv.ICSVWriter;
 import lombok.experimental.UtilityClass;
 
 import java.io.IOException;

@@ -1,12 +1,17 @@
 package com.habit.hero.controller;
 
+import com.habit.hero.dto.user.UserResponse;
+import com.habit.hero.dto.user.UserUpdateRequest;
 import com.habit.hero.entity.User;
 import com.habit.hero.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.habit.hero.service.UserService;
+import com.habit.hero.util.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -14,34 +19,43 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
-
+    private final UserService userService;
+    private final CurrentUserUtil currentUserUtil;
+   private final UserRepository userRepository;
+    // get any user profile by their id
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
-        return ResponseEntity.ok(user);
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getUserById(userId));
     }
 
-    @PutMapping("/{userId}")
-    public ResponseEntity<User> updateUserProfile(
+    // get the profile of the currently logged in user
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile() {
+        Long currentUserId = currentUserUtil.getCurrentUserId();
+        return ResponseEntity.ok(userService.getUserById(currentUserId));
+    }
+
+    // update user profile
+    // uses model attribute to handle form data with image file
+    @PutMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponse> updateUserProfile(
             @PathVariable Long userId,
-            @RequestBody User updatedUserData) {
+            @ModelAttribute UserUpdateRequest request) throws IOException {
 
-        User existing = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        // security check to prevent updating someone else profile
+        Long currentUserId = currentUserUtil.getCurrentUserId();
+        if (!currentUserId.equals(userId)) {
+            throw new RuntimeException("You are not authorized to update this profile");
+        }
 
-        existing.setUsername(updatedUserData.getUsername());
-        existing.setUserBio(updatedUserData.getUserBio());
-        existing.setProfileImageUrl(updatedUserData.getProfileImageUrl());
-
-        User saved = userRepository.save(existing);
-        return ResponseEntity.ok(saved);
+        UserResponse updatedUser = userService.updateUserProfile(userId, request);
+        return ResponseEntity.ok(updatedUser);
     }
 
+    // search users by name or bio
     @GetMapping("/search")
-    public ResponseEntity<List<User>> searchUsers(@RequestParam String query) {
-        List<User> users = userRepository.searchUsers(query);
+    public ResponseEntity<List<UserResponse>> searchUsers(@RequestParam String query) {
+        List<UserResponse> users = userService.searchUsers(query);
         return ResponseEntity.ok(users);
     }
 

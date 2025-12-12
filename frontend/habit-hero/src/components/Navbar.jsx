@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaLeaf, FaBars } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import NotificationDropdown from './Notification/NotificationDropdown';
 
 const Navbar = ({ onToggleSidebar, sidebarOpen }) => {
     return (
@@ -17,7 +18,7 @@ const Navbar = ({ onToggleSidebar, sidebarOpen }) => {
                         <span className="fw-bold fs-4" style={{ color: 'white' }}>Habit<span style={{ color: 'rgba(255,255,255,0.8)' }}>Hero</span></span>
                     </div>
                 </div>
-                {/* NotificationDropdown temporarily removed due to missing sockjs-client dependency */}
+                <NotificationDropdown />
             </div>
         </nav>
     );

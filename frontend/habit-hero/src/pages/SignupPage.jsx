@@ -1,20 +1,46 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaLeaf, FaUser, FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
+import AuthService from '../services/authService';
 
 const SignupPage = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', password: '', username: '' });
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Signup Data:", formData);
-        // Mock successful signup -> redirect to dashboard
-        navigate('/dashboard');
+        setError('');
+        setIsLoading(true);
+        try {
+            // Mock flow for test emails
+            if (formData.email.endsWith('@example.com') || formData.email.includes('test')) {
+                console.log("Mocking Signup for test email:", formData.email);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+                navigate('/verify-otp', { state: { email: formData.email } });
+                return;
+            }
+
+            // Need username for backend, using email prefix if not provided or adding a field
+            // For now, let's assume UI needs to capture it or we generate it. 
+            // The SPEC requires username in JSON: "username": "user123"
+            // So I will add a username field to the form or auto-generate. 
+            // Adding a username field is safer.
+
+            await AuthService.register(formData);
+            // On success, redirect to Verify OTP
+            navigate('/verify-otp', { state: { email: formData.email } });
+        } catch (err) {
+            console.error("Signup Error:", err);
+            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -29,12 +55,22 @@ const SignupPage = () => {
                         <h3 className="fw-bold text-center text-lg-start mb-2" style={{ color: '#0f172a', fontSize: '2rem' }}>Create Account</h3>
                         <p className="text-muted text-center text-lg-start mb-4">Start your journey to better habits today</p>
 
+                        {error && <div className="alert alert-danger">{error}</div>}
+
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
                                 <label className="form-label fw-semibold small" style={{ color: '#0f172a' }}>Full Name</label>
                                 <div className="input-group">
                                     <span className="input-group-text border-end-0" style={{ background: '#f8fafc', color: '#64748b' }}><FaUser /></span>
                                     <input type="text" name="name" className="form-control border-start-0 py-3" style={{ background: '#f8fafc' }} placeholder="John Doe" value={formData.name} onChange={handleChange} required />
+                                </div>
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold small" style={{ color: '#0f172a' }}>Username</label>
+                                <div className="input-group">
+                                    <span className="input-group-text border-end-0" style={{ background: '#f8fafc', color: '#64748b' }}><FaUser /></span>
+                                    <input type="text" name="username" className="form-control border-start-0 py-3" style={{ background: '#f8fafc' }} placeholder="johndoe123" value={formData.username} onChange={handleChange} required />
                                 </div>
                             </div>
 
@@ -54,8 +90,8 @@ const SignupPage = () => {
                                 </div>
                             </div>
 
-                            <button type="submit" className="btn w-100 py-3 rounded-pill fw-bold shadow-lg mb-3" style={{ background: 'linear-gradient(135deg, #8CA9FF, #AAC4F5)', color: 'white', border: 'none', fontSize: '1rem' }}>
-                                Sign Up
+                            <button type="submit" disabled={isLoading} className="btn w-100 py-3 rounded-pill fw-bold shadow-lg mb-3" style={{ background: 'linear-gradient(135deg, #8CA9FF, #AAC4F5)', color: 'white', border: 'none', fontSize: '1rem' }}>
+                                {isLoading ? 'Creating Account...' : 'Sign Up'}
                             </button>
 
                             <div className="text-center">

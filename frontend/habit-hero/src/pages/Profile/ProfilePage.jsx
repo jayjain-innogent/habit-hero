@@ -279,8 +279,8 @@ export default function ProfilePage({ currentUserId }) {
           </div>
 
           {/* Stats Cards */}
-          <div className="profile-stats-grid">
-            <div className="profile-stat-card">
+          {/* <div className="profile-stats-grid"> */}
+            {/* <div className="profile-stat-card">
               <div className="profile-stat-icon orange">
                 <Flame size={20} />
               </div>
@@ -288,9 +288,9 @@ export default function ProfilePage({ currentUserId }) {
                 <span className="profile-stat-label">Current Streak</span>
                 <span className="profile-stat-value">{dashboardData?.cardData?.currentStreak || 0} days</span>
               </div>
-            </div>
+            </div> */}
 
-            <div className="profile-stat-card">
+            {/* <div className="profile-stat-card">
               <div className="profile-stat-icon blue">
                 <Target size={20} />
               </div>
@@ -298,9 +298,9 @@ export default function ProfilePage({ currentUserId }) {
                 <span className="profile-stat-label">Active Habits</span>
                 <span className="profile-stat-value">{dashboardData?.tableData?.length || 0}</span>
               </div>
-            </div>
+            </div> */}
 
-            <div className="profile-stat-card">
+            {/* <div className="profile-stat-card">
               <div className="profile-stat-icon green">
                 <TrendingUp size={20} />
               </div>
@@ -308,9 +308,9 @@ export default function ProfilePage({ currentUserId }) {
                 <span className="profile-stat-label">Completion Rate</span>
                 <span className="profile-stat-value">{dashboardData?.cardData?.scorePercentage || 0}%</span>
               </div>
-            </div>
+            </div> */}
 
-            <div className="profile-stat-card">
+            {/* <div className="profile-stat-card">
               <div className="profile-stat-icon purple">
                 <Users size={20} />
               </div>
@@ -318,8 +318,8 @@ export default function ProfilePage({ currentUserId }) {
                 <span className="profile-stat-label">Friends</span>
                 <span className="profile-stat-value">{friendsOfViewed.length}</span>
               </div>
-            </div>
-          </div>
+            </div> */}
+          {/* </div> */}
         </div>
 
         {/* Action Buttons for non-own profiles */}

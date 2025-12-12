@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { updateUserApi } from "../../api/userApi";
+import { updateUserProfileApi } from "../../api/userApi";
 import "./EditProfileModals.css";
 
 export default function EditProfileModal({ user, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
+    name: user.name || "",
     username: user.username || "",
-    userBio: user.userBio || ""
+    userBio: user.userBio || "",
   });
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(user.profileImageUrl || "");
+  const [profileImage, setProfileImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -19,31 +19,26 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+    if (e.target.files && e.target.files[0]) {
+      setProfileImage(e.target.files[0]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      if (selectedFile) {
-        const formDataWithFile = new FormData();
-        formDataWithFile.append('username', formData.username);
-        formDataWithFile.append('userBio', formData.userBio);
-        formDataWithFile.append('profileImage', selectedFile);
-        
-        const response = await updateUserApi(user.userId, formDataWithFile);
-        onUpdate(response.data);
-      } else {
-        const response = await updateUserApi(user.userId, formData);
-        onUpdate(response.data);
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("username", formData.username);
+      data.append("userBio", formData.userBio);
+      if (profileImage) {
+        data.append("profileImage", profileImage);
       }
+
+      const response = await updateUserProfileApi(user.userId, data);
+      onUpdate(response.data);
     } catch (err) {
       console.error("Failed to update profile:", err);
     } finally {
@@ -58,36 +53,17 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
           <h3>Edit Profile</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="edit-form">
-          <div className="form-group profile-image-section">
-            <div className="image-preview">
-              <img 
-                src={previewUrl || "../../public/avator.jpeg"} 
-                alt="Profile" 
-                style={{ 
-                  width: '120px', 
-                  height: '120px', 
-                  objectFit: 'cover', 
-                  borderRadius: '50%',
-                  margin: '0 auto',
-                  display: 'block'
-                }} 
-              />
-            </div>
-            
-            <div className="upload-section">
-              <label htmlFor="imageFile" className="upload-btn">
-                Change Photo
-              </label>
-              <input
-                type="file"
-                id="imageFile"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-              />
-            </div>
+          <div className="form-group">
+            <label htmlFor="name">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+            />
           </div>
 
           <div className="form-group">
@@ -101,7 +77,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="userBio">Bio</label>
             <textarea
@@ -113,7 +89,18 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
               placeholder="Tell us about yourself..."
             />
           </div>
-          
+
+          <div className="form-group">
+            <label htmlFor="profileImage">Profile Image</label>
+            <input
+              type="file"
+              id="profileImage"
+              name="profileImage"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </div>
+
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
@@ -127,4 +114,3 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
     </div>
   );
 }
-

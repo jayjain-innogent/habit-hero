@@ -1,16 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaLeaf, FaEnvelope, FaArrowLeft } from 'react-icons/fa';
+import AuthService from '../services/authService';
 
 const ForgotPasswordPage = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Forgot Password Email:", email);
-        // Mock sending OTP
-        navigate('/verify-otp');
+        setError('');
+        setIsLoading(true);
+        try {
+            // Mock flow for test emails
+            if (email.endsWith('@example.com') || email.includes('test')) {
+                console.log("Mocking Forgot Password for test email:", email);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+                // On success, redirect to Reset Password Page
+                navigate('/reset-password');
+                return;
+            }
+
+            await AuthService.forgotPassword(email);
+            // On success, redirect to Reset Password Page
+            navigate('/reset-password', { state: { email } });
+        } catch (err) {
+            console.error("Forgot Password Error:", err);
+            setError(err.response?.data?.message || 'Failed to send OTP. Please check your email.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -37,6 +58,8 @@ const ForgotPasswordPage = () => {
                         <h3 className="fw-bold text-center text-lg-start mb-2" style={{ color: '#0f172a', fontSize: '2rem' }}>Forgot Password?</h3>
                         <p className="text-muted text-center text-lg-start mb-4">Enter your email and we'll send you an OTP.</p>
 
+                        {error && <div className="alert alert-danger">{error}</div>}
+
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label className="form-label fw-semibold small" style={{ color: '#0f172a' }}>Email Address</label>
@@ -46,8 +69,8 @@ const ForgotPasswordPage = () => {
                                 </div>
                             </div>
 
-                            <button type="submit" className="btn w-100 py-3 rounded-pill fw-bold shadow-lg mb-3" style={{ background: 'linear-gradient(135deg, #8CA9FF, #AAC4F5)', color: 'white', border: 'none', fontSize: '1rem' }}>
-                                Send OTP
+                            <button type="submit" disabled={isLoading} className="btn w-100 py-3 rounded-pill fw-bold shadow-lg mb-3" style={{ background: 'linear-gradient(135deg, #8CA9FF, #AAC4F5)', color: 'white', border: 'none', fontSize: '1rem' }}>
+                                {isLoading ? 'Sending OTP...' : 'Send OTP'}
                             </button>
 
                             <div className="text-center">
