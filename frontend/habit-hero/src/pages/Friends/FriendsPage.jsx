@@ -6,10 +6,13 @@ import { useNavigate } from "react-router-dom";
 import ImageWithFallback from "../../components/ImageWithFallback";
 import { FaUserFriends } from "react-icons/fa";
 import { Bell, UserPlus } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+
 import "./FriendsPage.css";
 
 function FriendsPage() {
-  const userId = 1;
+  const { user } = useAuth();
+  const userId = user?.userId;
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
@@ -21,11 +24,16 @@ function FriendsPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
   const [buttonLoading, setButtonLoading] = useState({});
-  const [activeTab, setActiveTab] = useState("search");
+
+  const [activeTab, setActiveTab] = useState(() => {
+  return localStorage.getItem('friendsActiveTab') || 'search';
+  });
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    if (userId) {
+      fetchAllData();
+    }
+  }, [userId]);
 
   useEffect(() => {
     if (!loading) {
@@ -174,6 +182,7 @@ useEffect(() => {
 
   console.log("Render - activeTab:", activeTab, "suggestedUsers:", suggestedUsers.length, "searchQuery:", searchQuery);
 
+  if (!userId) return <div className="loading">Loading user...</div>;
   if (loading) return <div className="loading">Loading requests…</div>;
   if (error) return <div className="error">{error}</div>;
 
@@ -187,14 +196,20 @@ useEffect(() => {
       <div className="tab-navigation">
         <button 
           className={`tab ${activeTab === "requests" ? "active" : ""}`}
-          onClick={() => setActiveTab("requests")}
+          onClick={() => {
+                  setActiveTab("requests");
+                  localStorage.setItem('friendsActiveTab', 'requests');
+                }}
         >
           <Bell size={18} />
           Requests ({requests.length})
         </button>
         <button 
           className={`tab ${activeTab === "search" ? "active" : ""}`}
-          onClick={() => setActiveTab("search")}
+          onClick={() => {
+            setActiveTab("search");
+            localStorage.setItem('friendsActiveTab', 'search');
+          }}
         >
           <UserPlus size={18} />
           Discover
@@ -203,6 +218,7 @@ useEffect(() => {
 
       {activeTab === "requests" && (
         <div className="requests-section">
+
           {requests.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon"><FaUserFriends /></div>

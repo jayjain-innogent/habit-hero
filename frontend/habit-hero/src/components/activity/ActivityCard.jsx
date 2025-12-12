@@ -59,7 +59,7 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
           style={{ cursor: 'pointer' }}
         >
           <Avatar 
-            src={activity.profileImageUrl} 
+            src={activity.profileImage} 
             alt={activity.username}
             style={{ width: '48px', height: '48px' }}
           />
@@ -75,10 +75,26 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
                 >
                   {activity.username || "Unknown User"}
                 </span>
+                
                 <span className="activity-text" style={{ whiteSpace: 'pre-line' }}>
                   {activity.title}
                 </span>
               </div>
+              
+              {/* Caption for non-SUMMARY activities */}
+              {activity.activityType !== "SUMMARY" && activity.caption && (
+                <div className="activity-caption" style={{ fontSize: '14px', marginTop: '4px', color: '#333' }}>
+                  {activity.caption}
+                </div>
+              )}
+              
+              {/* Description for SUMMARY activities */}
+              {activity.activityType === "SUMMARY" && activity.description && (
+                <div className="activity-description" style={{ fontSize: '14px', marginTop: '4px', color: '#333' }}>
+                  {activity.description}
+                </div>
+              )}
+              
               <div className="activity-time">
                 {new Date(activity.createdAt).toLocaleString()}
               </div>

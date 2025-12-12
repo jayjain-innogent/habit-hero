@@ -47,12 +47,12 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
 
                         // private endpoints explicitly defined
-                        .requestMatchers("/activity/").authenticated()
-                        .requestMatchers("/friends/").authenticated()
-                        .requestMatchers("/habits/").authenticated()
-                        .requestMatchers("/notifications/").authenticated()
-                        .requestMatchers("/reports/").authenticated()
-                        .requestMatchers("/users/").authenticated()
+                        .requestMatchers("/activity/**").authenticated()
+                        .requestMatchers("/friends/**").authenticated()
+                        .requestMatchers("/habits/**").authenticated()
+                        .requestMatchers("/notifications/**").authenticated()
+                        .requestMatchers("/reports/**").authenticated()
+                        .requestMatchers("/users/**").authenticated()
 
                         // secure any other request not listed above
                         .anyRequest().authenticated()

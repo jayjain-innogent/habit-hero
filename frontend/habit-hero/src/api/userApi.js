@@ -22,5 +22,5 @@ export async function searchUsersApi({ query }) {
 }
 
 export async function getAllUsersApi() {
-  return axios.get(`${BASE_URL}users`);
+  return axiosInstance.get(`/users`);
 }
