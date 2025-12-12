@@ -15,6 +15,8 @@ import ImageWithFallback from "../../components/ImageWithFallback";
 import EditProfileModal from "../../components/modals/EditProfileModals";
 import { getUserActivitiesApi, deleteActivityApi } from "../../api/activity";
 import ActivityCard from "../../components/activity/ActivityCard";
+import { fetchDashboardData } from "../../services/api";
+import { Edit3, Calendar, Flame, Target, TrendingUp, Users, Activity } from "lucide-react";
 import "./ProfilePage.css";
 
 export default function ProfilePage({ currentUserId }) {
@@ -37,6 +39,8 @@ export default function ProfilePage({ currentUserId }) {
 
   const [status, setStatus] = useState("none");
   const [activities, setActivities] = useState([]);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [activeTab, setActiveTab] = useState('activity');
 
 
 
@@ -59,7 +63,16 @@ export default function ProfilePage({ currentUserId }) {
   }
 }, [viewedUserId]);
 
-  
+  const fetchDashboard = useCallback(async () => {
+    try {
+      const data = await fetchDashboardData();
+      setDashboardData(data);
+    } catch (err) {
+      console.error("fetchDashboard:", err);
+    }
+  }, []);
+
+
   const fetchFriendsOfViewed = useCallback(async () => {
     try {
       const res = await getFriendsListApi({ userId: viewedUserId });
@@ -95,7 +108,8 @@ export default function ProfilePage({ currentUserId }) {
       fetchFriendsOfViewed(),
       fetchPendingToMe(),
       fetchSentByMe(),
-      fetchActivities()
+      fetchActivities(),
+      fetchDashboard()
     ]);
     setLoading(false);
   }, [fetchUser, fetchFriendsOfViewed, fetchPendingToMe, fetchSentByMe, fetchActivities]);
@@ -143,14 +157,14 @@ export default function ProfilePage({ currentUserId }) {
       if (status === "pending_outgoing") {
         return;
       }
-      
+
       await sendRequestApi({ senderId: currentUserId, receiverId: viewedUserId });
-      
-      setJustSentRequest({ 
+
+      setJustSentRequest({
         requestId: Date.now(),
-        receiverId: viewedUserId 
+        receiverId: viewedUserId
       });
-      
+
       await Promise.all([fetchSentByMe(), fetchPendingToMe(), fetchFriendsOfViewed()]);
       computeStatus();
     } catch (err) {
@@ -165,12 +179,12 @@ export default function ProfilePage({ currentUserId }) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
   try {
     await removeFriendApi({ userId: currentUserId, friendId });
-    setJustSentRequest(null); 
+    setJustSentRequest(null);
     await Promise.all([fetchFriendsOfViewed(), fetchSentByMe(), fetchPendingToMe()]);
     computeStatus();
   } catch (err) {
     console.error("Failed to remove friend:", err);
-    setJustSentRequest(null); 
+    setJustSentRequest(null);
     await Promise.all([fetchFriendsOfViewed(), fetchSentByMe(), fetchPendingToMe()]);
     computeStatus();
   }
@@ -191,12 +205,12 @@ export default function ProfilePage({ currentUserId }) {
   const handleReject = async (requestId) => {
   try {
     await rejectRequestApi({ requestId });
-    setJustSentRequest(null); 
+    setJustSentRequest(null);
     await Promise.all([fetchPendingToMe(), fetchSentByMe(), fetchFriendsOfViewed()]);
     computeStatus();
   } catch (err) {
     console.error("Failed to reject request:", err);
-    setJustSentRequest(null); 
+    setJustSentRequest(null);
     await Promise.all([fetchPendingToMe(), fetchSentByMe(), fetchFriendsOfViewed()]);
     computeStatus();
   }
@@ -209,7 +223,7 @@ export default function ProfilePage({ currentUserId }) {
         computeStatus();
         return;
       }
-      
+
       await cancelRequestApi({ requestId });
       setJustSentRequest(null);
       await Promise.all([fetchSentByMe(), fetchPendingToMe(), fetchFriendsOfViewed()]);
@@ -229,75 +243,214 @@ export default function ProfilePage({ currentUserId }) {
   if (error) return <div className="profile-page"><p className="error-message">{error}</p></div>;
 
   return (
-    <div className="profile-page">
-      <div className="profile-nav">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-      </div>
+    <div className="modern-profile-page">
+      <div className="profile-container">
+        {/* Profile Header */}
+        <div className="profile-header-card">
+          <div className="profile-main-info">
+            <div className="profile-avatar-section">
+              <ImageWithFallback
+                src={user?.profileImageUrl}
+                fallbackSrc="../../public/avator.jpeg"
+                alt={`${user?.username} avatar`}
+                className="modern-avatar"
+              />
+            </div>
 
-      <div className="profile-header">
-        <div className="profile-avatar">
-          <ImageWithFallback
-            src={user?.profileImageUrl}
-            fallbackSrc="../../public/avator.jpeg"
-            alt={`${user?.username} avatar`}
-            className="avatar-large"
-          />
-        </div>
-        <h2 className="profile-username">{user?.username}</h2>
-        <p className="profile-bio">{user?.userBio || "No bio available"}</p>
+            <div className="profile-details">
+              <div className="profile-name-section">
+                <h1 className="profile-name">{user?.username || 'User'}</h1>
+                {isOwn && (
+                  <button className="edit-profile-btn" onClick={() => setShowEditModal(true)}>
+                    <Edit3 size={16} />
+                    Edit Profile
+                  </button>
+                )}
+              </div>
 
-        <div className="profile-stats">
-          <div className="stat">
-            <span className="stat-number">{friendsOfViewed.length}</span>
-            <span className="stat-label">Friends</span>
+              <p className="profile-handle">@{user?.username?.toLowerCase() || 'user'}</p>
+              <p className="profile-bio">{user?.userBio || 'Building better habits, one day at a time 🚀'}</p>
+
+              <div className="profile-meta">
+                <Calendar size={16} />
+                <span>Joined January 2024</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="profile-stats-grid">
+            <div className="profile-stat-card">
+              <div className="profile-stat-icon orange">
+                <Flame size={20} />
+              </div>
+              <div className="profile-stat-content">
+                <span className="profile-stat-label">Current Streak</span>
+                <span className="profile-stat-value">{dashboardData?.cardData?.currentStreak || 0} days</span>
+              </div>
+            </div>
+
+            <div className="profile-stat-card">
+              <div className="profile-stat-icon blue">
+                <Target size={20} />
+              </div>
+              <div className="profile-stat-content">
+                <span className="profile-stat-label">Active Habits</span>
+                <span className="profile-stat-value">{dashboardData?.tableData?.length || 0}</span>
+              </div>
+            </div>
+
+            <div className="profile-stat-card">
+              <div className="profile-stat-icon green">
+                <TrendingUp size={20} />
+              </div>
+              <div className="profile-stat-content">
+                <span className="profile-stat-label">Completion Rate</span>
+                <span className="profile-stat-value">{dashboardData?.cardData?.scorePercentage || 0}%</span>
+              </div>
+            </div>
+
+            <div className="profile-stat-card">
+              <div className="profile-stat-icon purple">
+                <Users size={20} />
+              </div>
+              <div className="profile-stat-content">
+                <span className="profile-stat-label">Friends</span>
+                <span className="profile-stat-value">{friendsOfViewed.length}</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="profile-actions">
-        {isOwn ? (
-          <>
-            <button className="btn btn-primary" onClick={() => navigate(`/profile/${viewedUserId}/friends`)}>
-              Friend List ({friendsOfViewed.length})
-            </button>
-            <button className="btn btn-secondary" onClick={() => setShowEditModal(true)}>
-              Edit Profile
-            </button>
-          </>
-        ) : (
-          <>
+        {/* Action Buttons for non-own profiles */}
+        {!isOwn && (
+          <div className="profile-actions-modern">
             {status === "none" && (
-              <button type="button" className="btn btn-primary" onClick={handleAddFriend}>
+              <button className="action-btn primary" onClick={handleAddFriend}>
                 Add Friend
               </button>
             )}
-
             {status === "pending_incoming" && incomingRequest && (
               <>
-                <button type="button" className="btn btn-success" onClick={() => handleAccept(incomingRequest.requestId)}>
+                <button className="action-btn success" onClick={() => handleAccept(incomingRequest.requestId)}>
                   Accept
                 </button>
-                <button type="button" className="btn btn-danger" onClick={() => handleReject(incomingRequest.requestId)}>
+                <button className="action-btn danger" onClick={() => handleReject(incomingRequest.requestId)}>
                   Reject
                 </button>
               </>
             )}
-
             {status === "pending_outgoing" && outgoingRequest && (
-              <button type="button" className="btn btn-warning" onClick={() => handleCancelRequest(outgoingRequest.requestId)}>
+              <button className="action-btn warning" onClick={() => handleCancelRequest(outgoingRequest.requestId)}>
                 Cancel Request
               </button>
             )}
-
             {status === "friends" && (
-              <button type="button" className="btn btn-danger" onClick={(e) => handleRemoveFriend(e, viewedUserId)}>
+              <button className="action-btn danger" onClick={(e) => handleRemoveFriend(e, viewedUserId)}>
                 Remove Friend
               </button>
             )}
-          </>
+          </div>
         )}
+
+        {/* Tab Navigation */}
+        <div className="tab-navigation">
+          <button
+            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+            onClick={() => setActiveTab('activity')}
+          >
+            My Activity
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'friends' ? 'active' : ''}`}
+            onClick={() => setActiveTab('friends')}
+          >
+            Friends ({friendsOfViewed.length})
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        <div className="tab-content">
+          {activeTab === 'activity' && (
+            <div className="activities-section">
+              {isOwn ? (
+                activities.length === 0 ? (
+                  <div className="empty-state">
+                    <Activity size={48} />
+                    <p>No activities yet</p>
+                    <span>Start tracking habits to see your activity here</span>
+                  </div>
+                ) : (
+                  <div className="activities-list">
+                    {activities.map((activity) => (
+                      <ActivityCard
+                        key={activity.id}
+                        activity={activity}
+                        onLikeToggle={() => {}}
+                        onCommentClick={() => {}}
+                        onProfileClick={(userId) => navigate(`/profile/${userId}`)}
+                        onDelete={handleDeleteActivity}
+                      />
+                    ))}
+                  </div>
+                )
+              ) : (
+                (() => {
+                  const visibleActivities = activities.filter(activity => {
+                    if (activity.visibility === 'PUBLIC') return true;
+                    if (activity.visibility === 'FRIENDS' && status === 'friends') return true;
+                    return false;
+                  });
+
+                  return visibleActivities.length === 0 ? (
+                    <div className="empty-state">
+                      <Activity size={48} />
+                      <p>{status === 'friends' ? 'No activities to show' : 'This account is private'}</p>
+                    </div>
+                  ) : (
+                    <div className="activities-list">
+                      {visibleActivities.map((activity) => (
+                        <ActivityCard
+                          key={activity.id}
+                          activity={activity}
+                          onLikeToggle={() => {}}
+                          onCommentClick={() => {}}
+                          onProfileClick={(userId) => navigate(`/profile/${userId}`)}
+                        />
+                      ))}
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          )}
+
+          {activeTab === 'friends' && (
+            <div className="friends-section">
+              {friendsOfViewed.length === 0 ? (
+                <div className="empty-state">
+                  <Users size={48} />
+                  <p>No friends yet</p>
+                  <span>Connect with others to build habits together</span>
+                </div>
+              ) : (
+                <div className="friends-grid">
+                  {friendsOfViewed.map((friend) => (
+                    <div key={friend.friendId} className="friend-card" onClick={() => navigate(`/profile/${friend.friendId}`)}>
+                      <ImageWithFallback
+                        src={friend.profileImageUrl}
+                        fallbackSrc="../../public/avator.jpeg"
+                        alt={friend.username}
+                        className="friend-avatar"
+                      />
+                      <span className="friend-name">{friend.username}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {showEditModal && (
@@ -310,56 +463,6 @@ export default function ProfilePage({ currentUserId }) {
           }}
         />
       )}
-
-
-      {/* Activities Section */}
-      <div className="profile-activities">
-        <h3>Activities</h3>
-        {isOwn ? (
-          // Current user sees all their activities
-          activities.length === 0 ? (
-            <p>No activities yet.</p>
-          ) : (
-            <div className="activities-list">
-              {activities.map((activity) => (
-                <ActivityCard
-                  key={activity.id}
-                  activity={activity}
-                  onLikeToggle={() => {}}
-                  onCommentClick={() => {}}
-                  onProfileClick={(userId) => navigate(`/profile/${userId}`)}
-                  onDelete={handleDeleteActivity}
-                />
-              ))}
-            </div>
-          )
-        ) : (
-          // Other users - filter by visibility
-          (() => {
-            const visibleActivities = activities.filter(activity => {
-              if (activity.visibility === 'PUBLIC') return true;
-              if (activity.visibility === 'FRIENDS' && status === 'friends') return true;
-              return false;
-            });
-
-            return visibleActivities.length === 0 ? (
-              <p>{status === 'friends' ? 'No activities to show.' : 'This account is private.'}</p>
-            ) : (
-              <div className="activities-list">
-                {visibleActivities.map((activity) => (
-                  <ActivityCard
-                    key={activity.id}
-                    activity={activity}
-                    onLikeToggle={() => {}}
-                    onCommentClick={() => {}}
-                    onProfileClick={(userId) => navigate(`/profile/${userId}`)}
-                  />
-                ))}
-              </div>
-            );
-          })()
-        )}
-      </div>
     </div>
   );
 }

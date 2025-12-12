@@ -52,11 +52,11 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
           <div className="user-details">
             <div className="user-content">
               <div className="user-name">
-                <span 
+                <span
                   onClick={() => onProfileClick?.(activity.userId)}
                   style={{ cursor: 'pointer' }}
                 >
-                  {activity.username || "Unknown User"}
+       
                 </span>
                 <span className="activity-text" style={{ whiteSpace: 'pre-line' }}>
                   {activity.title}
@@ -66,7 +66,7 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
                 {new Date(activity.createdAt).toLocaleString()}
               </div>
             </div>
-            
+
             <div className={`activity-icon ${activity.activityType.toLowerCase()}`}>
               {getActivityIcon(activity.activityType)}
             </div>

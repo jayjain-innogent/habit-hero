@@ -86,87 +86,113 @@ public class ReportService {
     private HabitSummary calculateSummary(Habit habit) {
         log.debug("Calculating summary for habit: {}", habit.getId());
 
-        List<HabitLog> habitLogList = habitLogDao.findByHabitId(habit.getId());
-        if (habitLogList == null) {
-            log.warn("No habit logs found for habitId: {}", habit.getId());
-            return new HabitSummary(0, 0d, 0, 0, null);
-        }
-
-        HabitSummary summary = new HabitSummary();
-
-        if (habit.getCadence() == null || habit.getStartDate() == null) {
-            log.warn("Habit cadence is null for habitId: {}", habit.getId());
-            return new HabitSummary(0, 0d, 0, 0, null);
-        }
-
-        LocalDate today = LocalDate.now();
-
-        Integer totalDaysSinceStart = Math.toIntExact(ChronoUnit.DAYS.between(habit.getStartDate(), today));
-        long totalWeeks = (totalDaysSinceStart + 6) / 7;
-        long totalMonths = (totalDaysSinceStart + 29) / 30;
-        Double expectedValue = 0d;
-        Double completionCount = 0d;
-
-        if (habit.getCadence() != Cadence.DAILY) {
-            if (habit.getGoalType() != GoalType.OFF) {
-                if (habit.getTargetValue() != null && habit.getSessionCount() != null) {
-                    if (habit.getCadence() == Cadence.WEEKLY) {
-
-                        expectedValue = habit.getTargetValue().multiply(BigDecimal.valueOf(habit.getSessionCount()).multiply(BigDecimal.valueOf(totalWeeks))).doubleValue();
-                        summary.setTotalMissedDays((int) (totalWeeks * habit.getSessionCount() - habitLogList.size()));
-                    } else if (habit.getCadence() == Cadence.MONTHLY) {
-                        expectedValue = habit.getTargetValue().multiply(BigDecimal.valueOf(habit.getSessionCount()).multiply(BigDecimal.valueOf(totalMonths))).doubleValue();
-                        summary.setTotalMissedDays((int) (totalMonths * habit.getSessionCount() - habitLogList.size()));
-                    }
-                    for (HabitLog log : habitLogList) {
-                        if (log.getActualValue() != null) {
-                            completionCount += log.getActualValue().doubleValue();
-                        }
-                    }
-                }
-            } else {
-                if (habit.getCadence() == Cadence.WEEKLY) {
-                    expectedValue = (double) (habit.getSessionCount() * totalWeeks);
-                } else if (habit.getCadence() == Cadence.MONTHLY) {
-                    expectedValue = (double) (habit.getSessionCount() * totalMonths);
-                }
-                completionCount = (double) habitLogList.size();
+        try {
+            List<HabitLog> habitLogList = habitLogDao.findByHabitId(habit.getId());
+            if (habitLogList == null) {
+                habitLogList = Collections.emptyList();
             }
-        } else {
-            if (habit.getGoalType() != GoalType.OFF) {
-                expectedValue = (habit.getTargetValue().multiply(BigDecimal.valueOf(totalDaysSinceStart))).doubleValue();
-                for (HabitLog log : habitLogList) {
-                    if (log.getActualValue() != null) {
-                        completionCount += log.getActualValue().doubleValue();
-                    }
-                }
-            } else {
-                expectedValue = (double) totalDaysSinceStart;
-                completionCount = (double) habitLogList.size();
+
+            HabitSummary summary = new HabitSummary();
+
+            if (habit.getCadence() == null || habit.getStartDate() == null) {
+                log.warn("Habit missing required fields for habitId: {}", habit.getId());
+                return createEmptySummary();
             }
-            summary.setTotalMissedDays(totalDaysSinceStart - habitLogList.size());
+
+            LocalDate today = LocalDate.now();
+            LocalDate effectiveEndDate = today.isBefore(habit.getStartDate()) ? habit.getStartDate() : today;
+            
+            // Get unique completion days
+            Set<LocalDate> uniqueCompletionDays = habitLogList.stream()
+                    .map(HabitLog::getLogDate)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            int expectedDays = calculateExpectedDays(habit, habit.getStartDate(), effectiveEndDate);
+            int missedDays = Math.max(0, expectedDays - uniqueCompletionDays.size());
+            
+            Double expectedValue = calculateExpectedValue(habit, habit.getStartDate(), effectiveEndDate);
+            Double completionCount = calculateCompletionCount(habit, habitLogList);
+
+            summary.setTotalMissedDays(missedDays);
+            
+            double overallRate = expectedValue > 0 ? 
+                Math.round((completionCount / expectedValue) * 10000) / 100.0 : 0.0;
+            summary.setCompletionRate(Math.min(overallRate, 100.0));
+
+            summary.setCurrentStreak(habit.getCurrentStreak() != null ? habit.getCurrentStreak() : 0);
+            summary.setLongestStreak(habit.getLongestStreak() != null ? habit.getLongestStreak() : 0);
+
+            log.debug("Summary calculated for habit {}: completion rate {}%, missed days {}",
+                    habit.getId(), summary.getCompletionRate(), summary.getTotalMissedDays());
+
+            List<LocalDateTime> dateAndTime = habitLogList.stream()
+                    .map(HabitLog::getCreatedAt)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.toList());
+            List<BigDecimal> completionValue = habitLogList.stream()
+                    .map(HabitLog::getActualValue)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            CompletionData completionData = new CompletionData(dateAndTime, completionValue);
+            summary.setHabitCompletionsData(completionData);
+            
+            return summary;
+        } catch (Exception e) {
+            log.error("Error calculating summary for habit {}: {}", habit.getId(), e.getMessage(), e);
+            return createEmptySummary();
         }
+    }
 
-        double overallRate = expectedValue > 0 ? Math.round((completionCount / (double) expectedValue) * 10000) / 100.0 : 0.0;
-        summary.setCompletionRate(Math.min(overallRate, 100));
+    private HabitSummary createEmptySummary() {
+        return new HabitSummary(0, 0.0, 0, 0, new CompletionData(Collections.emptyList(), Collections.emptyList()));
+    }
 
+    private int calculateExpectedDays(Habit habit, LocalDate startDate, LocalDate endDate) {
+        if (startDate.isAfter(endDate)) {
+            return 0;
+        }
+        
+        long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        
+        switch (habit.getCadence()) {
+            case DAILY:
+                return (int) totalDays;
+            case WEEKLY:
+                long weeks = (totalDays + 6) / 7;
+                return (int) (weeks * (habit.getSessionCount() != null ? habit.getSessionCount() : 1));
+            case MONTHLY:
+                long months = (totalDays + 29) / 30;
+                return (int) (months * (habit.getSessionCount() != null ? habit.getSessionCount() : 1));
+            default:
+                return 0;
+        }
+    }
 
-        summary.setCurrentStreak(habit.getCurrentStreak());
-        summary.setLongestStreak(habit.getLongestStreak());
+    private Double calculateExpectedValue(Habit habit, LocalDate startDate, LocalDate endDate) {
+        if (habit.getGoalType() == GoalType.OFF) {
+            return (double) calculateExpectedDays(habit, startDate, endDate);
+        }
+        
+        if (habit.getTargetValue() == null) {
+            return 0.0;
+        }
+        
+        int expectedDays = calculateExpectedDays(habit, startDate, endDate);
+        return habit.getTargetValue().multiply(BigDecimal.valueOf(expectedDays)).doubleValue();
+    }
 
-        log.debug("Summary calculated for habit {}: completion rate {}%, streak {}",
-                habit.getId(), summary.getCompletionRate(), summary.getCurrentStreak());
-
-        List<LocalDateTime> dateAndTime = habitLogList.stream()
-                .map(HabitLog::getCreatedAt)
-                .distinct()
-                .collect(Collectors.toList());
-        List<BigDecimal> completionValue = habitLogList.stream()
+    private Double calculateCompletionCount(Habit habit, List<HabitLog> habitLogList) {
+        if (habit.getGoalType() == GoalType.OFF) {
+            return (double) habitLogList.size();
+        }
+        
+        return habitLogList.stream()
                 .map(HabitLog::getActualValue)
-                .toList();
-        CompletionData completionData = new CompletionData(dateAndTime, completionValue);
-        summary.setHabitCompletionsData(completionData);
-        return summary;
+                .filter(Objects::nonNull)
+                .mapToDouble(BigDecimal::doubleValue)
+                .sum();
     }
 
     private HabitReportData calculateHabitStats(
@@ -175,17 +201,73 @@ public class ReportService {
         log.debug("Calculating habit stats for habit: {} between {} and {}",
                 habit.getId(), startDate, endDate);
 
-        List<HabitLog> thisWeekCompletions = habitLogDao.findByHabitIdAndLogDateBetweenOrderByLogDate(habit.getId(), startDate, endDate);
-        log.info("Found {} completions for habit: {}", thisWeekCompletions.size(), habit.getId());
-        LocalDate prevStart = startDate.minusWeeks(1);
-        LocalDate prevEnd = endDate.minusWeeks(1);
-        List<HabitLog> prevWeekCompletions = habitLogDao.findByHabitIdAndLogDateBetweenOrderByLogDate(habit.getId(), prevStart, prevEnd);
+        try {
+            List<HabitLog> thisWeekCompletions = habitLogDao.findByHabitIdAndLogDateBetweenOrderByLogDate(
+                    habit.getId(), startDate, endDate);
+            if (thisWeekCompletions == null) thisWeekCompletions = Collections.emptyList();
+            
+            LocalDate prevStart = startDate.minusWeeks(1);
+            LocalDate prevEnd = endDate.minusWeeks(1);
+            List<HabitLog> prevWeekCompletions = habitLogDao.findByHabitIdAndLogDateBetweenOrderByLogDate(
+                    habit.getId(), prevStart, prevEnd);
+            if (prevWeekCompletions == null) prevWeekCompletions = Collections.emptyList();
 
-        log.debug("Found {} completions this week, {} completions previous week for habit: {}",
-                thisWeekCompletions.size(), prevWeekCompletions.size(), habit.getId());
+            log.debug("Found {} completions this week, {} completions previous week for habit: {}",
+                    thisWeekCompletions.size(), prevWeekCompletions.size(), habit.getId());
 
-        HabitReportData data = new HabitReportData();
+            HabitReportData data = new HabitReportData();
+            populateHabitBasicData(data, habit);
 
+            // Get unique completion days for accurate missed days calculation
+            Set<LocalDate> thisWeekUniqueDays = thisWeekCompletions.stream()
+                    .map(HabitLog::getLogDate)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            
+            Set<LocalDate> prevWeekUniqueDays = prevWeekCompletions.stream()
+                    .map(HabitLog::getLogDate)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            // Calculate expected days for each week considering habit start date
+            int thisWeekExpectedDays = calculateExpectedDaysForPeriod(habit, startDate, endDate);
+            int prevWeekExpectedDays = calculateExpectedDaysForPeriod(habit, prevStart, prevEnd);
+            
+            Double expectedValue = calculateExpectedValueForPeriod(habit, startDate, endDate);
+            Double thisWeekCompletionValue = calculateCompletionValueForPeriod(habit, thisWeekCompletions);
+            Double prevWeekCompletionValue = calculateCompletionValueForPeriod(habit, prevWeekCompletions);
+
+            WeekStats thisWeekStats = createWeekStats(
+                    thisWeekUniqueDays.size(), 
+                    Math.max(0, thisWeekExpectedDays - thisWeekUniqueDays.size()),
+                    thisWeekCompletionValue,
+                    expectedValue
+            );
+            
+            WeekStats prevWeekStats = createWeekStats(
+                    prevWeekUniqueDays.size(),
+                    Math.max(0, prevWeekExpectedDays - prevWeekUniqueDays.size()),
+                    prevWeekCompletionValue,
+                    calculateExpectedValueForPeriod(habit, prevStart, prevEnd)
+            );
+
+            data.setExpectedValue(expectedValue);
+            data.setExpectedDays(thisWeekExpectedDays);
+            data.setThisWeek(thisWeekStats);
+            data.setPreviousWeek(prevWeekStats);
+
+            WeekComparison comparison = createWeekComparison(thisWeekStats, prevWeekStats, 
+                    thisWeekUniqueDays.size(), prevWeekUniqueDays.size());
+            data.setWeekOverWeekChange(comparison);
+
+            return data;
+        } catch (Exception e) {
+            log.error("Error calculating habit stats for habit {}: {}", habit.getId(), e.getMessage(), e);
+            throw new RuntimeException("Failed to calculate habit statistics", e);
+        }
+    }
+
+    private void populateHabitBasicData(HabitReportData data, Habit habit) {
         data.setHabitId(habit.getId());
         data.setHabitName(habit.getTitle());
         data.setCategory(habit.getCategory());
@@ -196,287 +278,416 @@ public class ReportService {
         data.setStartDate(habit.getStartDate());
         data.setTargetValue(habit.getTargetValue());
         data.setStatus(habit.getStatus());
+    }
 
-        Double expectedValue;
-        Double thisWeekCompletionValue = 0d;
-        Double prevWeekCompletionValue = 0d;
-
-        WeekStats thisWeekStats = new WeekStats();
-        WeekStats prevWeekStats = new WeekStats();
-
-        if (habit.getCadence() != Cadence.DAILY) {
-            if (habit.getGoalType() != GoalType.OFF) {
-                expectedValue = habit.getTargetValue().multiply(BigDecimal.valueOf(habit.getSessionCount())).doubleValue();
-
-                for (int i = 0; i < thisWeekCompletions.size(); i++) {
-                    thisWeekCompletionValue += thisWeekCompletions.get(i).getActualValue().doubleValue();
-                }
-
-                for (int i = 0; i < prevWeekCompletions.size(); i++) {
-                    prevWeekCompletionValue += prevWeekCompletions.get(i).getActualValue().doubleValue();
-                }
-            } else {
-                expectedValue = habit.getSessionCount().doubleValue();
-                thisWeekCompletionValue = (double) thisWeekCompletions.size();
-                prevWeekCompletionValue = (double) prevWeekCompletions.size();
-            }
-
-            data.setExpectedValue(expectedValue);
-            data.setExpectedDays(habit.getSessionCount());
-            thisWeekStats.setCompletedDays(thisWeekCompletions.size());
-            thisWeekStats.setMissedDays(habit.getSessionCount() - thisWeekCompletions.size());
-            prevWeekStats.setMissedDays(habit.getSessionCount() - prevWeekCompletions.size());
-            prevWeekStats.setCompletedDays(prevWeekCompletions.size());
-        } else {
-            if (habit.getGoalType() != GoalType.OFF) {
-                expectedValue = habit.getTargetValue().multiply(BigDecimal.valueOf(7)).doubleValue();
-
-                for (int i = 0; i < thisWeekCompletions.size(); i++) {
-                    thisWeekCompletionValue += thisWeekCompletions.get(i).getActualValue().doubleValue();
-                }
-
-                for (int i = 0; i < prevWeekCompletions.size(); i++) {
-                    prevWeekCompletionValue += prevWeekCompletions.get(i).getActualValue().doubleValue();
-                }
-            } else {
-                expectedValue = 7d;
-                thisWeekCompletionValue = (double) thisWeekCompletions.size();
-                prevWeekCompletionValue = (double) prevWeekCompletions.size();
-
-            }
-            data.setExpectedValue(expectedValue);
-            data.setExpectedDays(7);
-            thisWeekStats.setMissedDays(7 - thisWeekCompletions.size());
-            prevWeekStats.setMissedDays(7 - prevWeekCompletions.size());
-            thisWeekStats.setCompletedDays(thisWeekCompletions.size());
-            prevWeekStats.setCompletedDays(prevWeekCompletions.size());
+    private int calculateExpectedDaysForPeriod(Habit habit, LocalDate startDate, LocalDate endDate) {
+        // Adjust start date if habit started after period start
+        LocalDate effectiveStart = habit.getStartDate() != null && habit.getStartDate().isAfter(startDate) 
+                ? habit.getStartDate() : startDate;
+        
+        if (effectiveStart.isAfter(endDate)) {
+            return 0;
         }
+        
+        return calculateExpectedDays(habit, effectiveStart, endDate);
+    }
 
-        double thisWeekRate = Math.round((thisWeekCompletionValue / (double) expectedValue) * 10000) / 100.0;
-        double prevWeekRate = Math.round((prevWeekCompletionValue / (double) expectedValue) * 10000) / 100.0;
+    private Double calculateExpectedValueForPeriod(Habit habit, LocalDate startDate, LocalDate endDate) {
+        int expectedDays = calculateExpectedDaysForPeriod(habit, startDate, endDate);
+        
+        if (habit.getGoalType() == GoalType.OFF) {
+            return (double) expectedDays;
+        }
+        
+        if (habit.getTargetValue() == null) {
+            return 0.0;
+        }
+        
+        return habit.getTargetValue().multiply(BigDecimal.valueOf(expectedDays)).doubleValue();
+    }
 
-        thisWeekStats.setCompletionsValue(thisWeekCompletionValue);
-        prevWeekStats.setCompletionsValue(prevWeekCompletionValue);
+    private Double calculateCompletionValueForPeriod(Habit habit, List<HabitLog> completions) {
+        if (habit.getGoalType() == GoalType.OFF) {
+            return (double) completions.size();
+        }
+        
+        return completions.stream()
+                .map(HabitLog::getActualValue)
+                .filter(Objects::nonNull)
+                .mapToDouble(BigDecimal::doubleValue)
+                .sum();
+    }
 
-        thisWeekStats.setCompletionPercentage(Math.min(thisWeekRate, 100));
-        prevWeekStats.setCompletionPercentage(Math.min(prevWeekRate, 100));
+    private WeekStats createWeekStats(int completedDays, int missedDays, 
+                                     Double completionValue, Double expectedValue) {
+        WeekStats stats = new WeekStats();
+        stats.setCompletedDays(completedDays);
+        stats.setMissedDays(missedDays);
+        stats.setCompletionsValue(completionValue);
+        
+        double rate = expectedValue > 0 ? 
+                Math.round((completionValue / expectedValue) * 10000) / 100.0 : 0.0;
+        stats.setCompletionPercentage(Math.min(rate, 100.0));
+        
+        return stats;
+    }
 
-        data.setThisWeek(thisWeekStats);
-        data.setPreviousWeek(prevWeekStats);
-
+    private WeekComparison createWeekComparison(WeekStats thisWeek, WeekStats prevWeek, 
+                                              int thisWeekUniqueDays, int prevWeekUniqueDays) {
         WeekComparison comparison = new WeekComparison();
-        comparison.setMissedDaysDiff(thisWeekStats.getMissedDays() - prevWeekStats.getMissedDays());
-        comparison.setCompletionsDiff(thisWeekCompletionValue - prevWeekCompletionValue);
-        comparison.setPercentageDiff(Math.round((thisWeekRate - prevWeekRate) * 100) / 100.0);
-        comparison.setCompletedDaysDiff(thisWeekCompletions.size() - prevWeekCompletions.size());
-        data.setWeekOverWeekChange(comparison);
-
-        return data;
+        comparison.setMissedDaysDiff(thisWeek.getMissedDays() - prevWeek.getMissedDays());
+        comparison.setCompletionsDiff(thisWeek.getCompletionsValue() - prevWeek.getCompletionsValue());
+        comparison.setPercentageDiff(
+                Math.round((thisWeek.getCompletionPercentage() - prevWeek.getCompletionPercentage()) * 100) / 100.0);
+        comparison.setCompletedDaysDiff(thisWeekUniqueDays - prevWeekUniqueDays);
+        return comparison;
     }
 
     public ResponseEntity<HttpStatusCode> calculateStreak(long habitId, long userId) {
-        Optional<Habit> habitOpt = habitDAO.findByIdAndUserId(habitId, userId);
-        if (habitOpt.isEmpty()) {
-            throw new IllegalArgumentException("Habit not found for userId: " + userId + " and habitId: " + habitId);
-        }
+        try {
+            Optional<Habit> habitOpt = habitDAO.findByIdAndUserId(habitId, userId);
+            if (habitOpt.isEmpty()) {
+                throw new IllegalArgumentException("Habit not found for userId: " + userId + " and habitId: " + habitId);
+            }
 
-        Habit habit = habitOpt.get();
-        List<HabitLog> completions = habitLogDao.findByHabitId(habit.getId());
+            Habit habit = habitOpt.get();
+            List<HabitLog> completions = habitLogDao.findByHabitId(habit.getId());
 
-        // For first completion, streak = 1
-        if (completions == null || completions.size() <= 1) {
-            habit.setCurrentStreak(1);
-            updateLongestStreak(habit, 1);
+            if (completions == null) {
+                completions = Collections.emptyList();
+            }
+
+            int calculatedStreak = calculateStreakFromLogs(habit, completions);
+            
+            habit.setCurrentStreak(calculatedStreak);
+            updateLongestStreak(habit, calculatedStreak);
             habitDAO.save(habit);
+
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error calculating streak for habit {} and user {}: {}", habitId, userId, e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private int calculateStreakFromLogs(Habit habit, List<HabitLog> completions) {
+        if (completions.isEmpty()) {
+            return 0;
         }
 
         // Get distinct dates and sort descending (newest first)
         List<LocalDate> dates = completions.stream()
                 .map(HabitLog::getLogDate)
+                .filter(Objects::nonNull)
                 .distinct()
                 .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());
 
-        LocalDate today = LocalDate.now();
-        int streak = 1; // Start with today's completion
+        if (dates.isEmpty()) {
+            return 0;
+        }
 
-        // Calculate consecutive streak from today backwards
+        // For single completion
+        if (dates.size() == 1) {
+            return 1;
+        }
+
+        int streak = 1; // Start with most recent completion
+
+        // Calculate consecutive streak from newest backwards
         for (int i = 1; i < dates.size(); i++) {
-            LocalDate currentDate = dates.get(i);
-            LocalDate previousDate = dates.get(i - 1);
+            LocalDate newerDate = dates.get(i - 1);
+            LocalDate olderDate = dates.get(i);
 
-            if (isConsecutive(previousDate, currentDate, habit)) {
+            if (isConsecutiveForCadence(newerDate, olderDate, habit)) {
                 streak++;
             } else {
                 break; // Streak broken
             }
         }
 
-        habit.setCurrentStreak(streak);
-        updateLongestStreak(habit, streak);
-        habitDAO.save(habit);
-
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-    private boolean isConsecutive(LocalDate newer, LocalDate older, Habit habit) {
-        long daysBetween = ChronoUnit.DAYS.between(older, newer);
-
-        switch (habit.getCadence()) {
-            case DAILY:
-                return daysBetween == 1;
-            case WEEKLY:
-                int sessionsPerWeek = habit.getSessionCount() != null ? habit.getSessionCount() : 1;
-                long expectedGap = 7 / sessionsPerWeek;
-                return daysBetween <= expectedGap;
-            case MONTHLY:
-                int sessionsPerMonth = habit.getSessionCount() != null ? habit.getSessionCount() : 1;
-                long expectedMonthlyGap = 30 / sessionsPerMonth;
-                return daysBetween <= expectedMonthlyGap;
-            default:
-                return false;
-        }
+        return streak;
     }
     private void updateLongestStreak(Habit habit, int currentStreak) {
-        Integer longestStreak = habit.getLongestStreak();
-        if (longestStreak == null || currentStreak > longestStreak) {
-            habit.setLongestStreak(currentStreak);
+        try {
+            Integer longestStreak = habit.getLongestStreak();
+            if (longestStreak == null || currentStreak > longestStreak) {
+                habit.setLongestStreak(currentStreak);
+                log.debug("Updated longest streak for habit {} to {}", habit.getId(), currentStreak);
+            }
+        } catch (Exception e) {
+            log.error("Error updating longest streak for habit {}: {}", habit.getId(), e.getMessage());
         }
     }
 
     public FullReportResponse getDashboardReport(Long userId, int year, int month, Integer week) {
-        if (userId == null) throw new BadRequestException("UserId required");
+        try {
+            if (userId == null) {
+                throw new BadRequestException("UserId required");
+            }
 
-        LocalDate[] range = resolveDateRange(year, month, week);
-        LocalDate start = range[0];
-        LocalDate end = range[1];
-        LocalDate today = LocalDate.now();
+            LocalDate[] range = resolveDateRange(year, month, week);
+            LocalDate start = range[0];
+            LocalDate end = range[1];
+            LocalDate today = LocalDate.now();
 
-        log.info("Generating Dashboard Report. user={} start={} end={}", userId, start, end);
+            log.info("Generating Dashboard Report. user={} start={} end={}", userId, start, end);
 
-        // Fetch active habits only
-        List<Habit> habits = habitDAO.findByUserId(userId).stream()
-                .filter(h -> h.getStartDate() != null && !h.getStartDate().isAfter(end))
-                .filter(h -> h.getStatus() == HabitStatus.ACTIVE)
-                .collect(Collectors.toList());
+            // Fetch active habits only
+            List<Habit> allHabits = habitDAO.findByUserId(userId);
+            if (allHabits == null) {
+                allHabits = Collections.emptyList();
+            }
+            
+            List<Habit> habits = allHabits.stream()
+                    .filter(Objects::nonNull)
+                    .filter(h -> h.getStartDate() != null && !h.getStartDate().isAfter(end))
+                    .filter(h -> h.getStatus() == HabitStatus.ACTIVE)
+                    .collect(Collectors.toList());
 
-        if (habits.isEmpty()) {
-            return createEmptyDashboard(start, end, week);
+            if (habits.isEmpty()) {
+                log.info("No active habits found for user {}", userId);
+                return createEmptyDashboard(start, end, week);
+            }
+
+            // Fetch logs for the range
+            List<HabitLog> allLogs = habitLogRepository.findByHabit_User_UserIdAndLogDateBetweenOrderByLogDate(userId, start, end);
+            if (allLogs == null) {
+                allLogs = Collections.emptyList();
+            }
+            
+            Map<Long, List<HabitLog>> logsByHabit = allLogs.stream()
+                    .filter(Objects::nonNull)
+                    .filter(log -> log.getHabit() != null)
+                    .collect(Collectors.groupingBy(log -> log.getHabit().getId()));
+
+            // Calculate professional metrics
+            DashboardMetrics metrics = calculateDashboardMetrics(habits, logsByHabit, start, end, today);
+            
+            // Create habit rows
+            List<HabitRowDto> habitRows = habits.stream()
+                    .filter(Objects::nonNull)
+                    .map(habit -> {
+                        try {
+                            return createHabitRow(habit, logsByHabit.getOrDefault(habit.getId(), Collections.emptyList()), start, end);
+                        } catch (Exception e) {
+                            log.error("Error creating habit row for habit {}: {}", habit.getId(), e.getMessage());
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            ReportCardDto cardDto = reportMapper.mapToReportCard(
+                    metrics.totalCompleted,
+                    metrics.totalTarget,
+                    metrics.currentStreak,
+                    metrics.perfectDays,
+                    metrics.bestCategory != null ? metrics.bestCategory : "General",
+                    metrics.weeklyTrend != null ? metrics.weeklyTrend : Arrays.asList(false, false, false, false, false, false, false),
+                    metrics.consistencyScore,
+                    metrics.momentum != null ? metrics.momentum : "",
+                    metrics.totalTimeInvested,
+                    metrics.activeDaysCount,
+                    metrics.longestStreak
+            );
+
+            String title = (week != null) ? "Weekly Dashboard (Week " + week + ")" : "Monthly Dashboard (" + start.getMonth() + ")";
+            String motivation = generatePersonalizedMotivation(metrics);
+
+            log.info("Dashboard report generated successfully for user {}", userId);
+            return reportMapper.mapToFullReport(start, end, title, cardDto, habitRows, motivation);
+            
+        } catch (BadRequestException e) {
+            log.error("Bad request for dashboard report: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error generating dashboard report for user {}: {}", userId, e.getMessage(), e);
+            throw new RuntimeException("Failed to generate dashboard report", e);
         }
-
-        // Fetch logs for the range
-        List<HabitLog> allLogs = habitLogRepository.findByHabit_User_UserIdAndLogDateBetweenOrderByLogDate(userId, start, end);
-        Map<Long, List<HabitLog>> logsByHabit = allLogs.stream()
-                .collect(Collectors.groupingBy(log -> log.getHabit().getId()));
-
-        // Calculate professional metrics
-        DashboardMetrics metrics = calculateDashboardMetrics(habits, logsByHabit, start, end, today);
-        
-        // Create habit rows
-        List<HabitRowDto> habitRows = habits.stream()
-                .map(habit -> createHabitRow(habit, logsByHabit.getOrDefault(habit.getId(), Collections.emptyList()), start, end))
-                .collect(Collectors.toList());
-
-        ReportCardDto cardDto = reportMapper.mapToReportCard(
-                metrics.totalCompleted,
-                metrics.totalTarget,
-                metrics.currentStreak,
-                metrics.perfectDays,
-                metrics.bestCategory,
-                metrics.weeklyTrend,
-                metrics.consistencyScore,
-                metrics.momentum,
-                metrics.totalTimeInvested,
-                metrics.activeDaysCount,
-                metrics.longestStreak
-        );
-
-        String title = (week != null) ? "Weekly Dashboard (Week " + week + ")" : "Monthly Dashboard (" + start.getMonth() + ")";
-        String motivation = generatePersonalizedMotivation(metrics);
-
-        return reportMapper.mapToFullReport(start, end, title, cardDto, habitRows, motivation);
     }
 
     // --- HELPER METHODS ---
 
     private int calculateTarget(Habit habit, LocalDate reportStart, LocalDate reportEnd) {
-        LocalDate effectiveStart = reportStart;
+        try {
+            if (habit == null || habit.getCadence() == null || reportStart == null || reportEnd == null) {
+                return 0;
+            }
+            
+            LocalDate effectiveStart = reportStart;
 
-        // If habit started mid-period, calculate target from start date
-        if (habit.getStartDate() != null && habit.getStartDate().isAfter(reportStart)) {
-            effectiveStart = habit.getStartDate();
+            // If habit started mid-period, calculate target from start date
+            if (habit.getStartDate() != null && habit.getStartDate().isAfter(reportStart)) {
+                effectiveStart = habit.getStartDate();
+            }
+
+            if (effectiveStart.isAfter(reportEnd)) return 0;
+
+            return calculateExpectedDays(habit, effectiveStart, reportEnd);
+        } catch (Exception e) {
+            log.error("Error calculating target for habit {}: {}", habit != null ? habit.getId() : "null", e.getMessage());
+            return 0;
         }
-
-        if (effectiveStart.isAfter(reportEnd)) return 0;
-
-        long daysAvailable = ChronoUnit.DAYS.between(effectiveStart, reportEnd) + 1;
-
-        if (habit.getCadence() == Cadence.DAILY) {
-            return (int) daysAvailable;
-        } else if (habit.getCadence() == Cadence.WEEKLY) {
-            int weeks = (int) Math.ceil(daysAvailable / 7.0);
-            return weeks * (habit.getSessionCount() != null ? habit.getSessionCount() : 1);
-        } else if (habit.getCadence() == Cadence.MONTHLY) {
-            int months = (int) Math.ceil(daysAvailable / 30.0);
-            return months * (habit.getSessionCount() != null ? habit.getSessionCount() : 1);
-        }
-        return 0;
     }
 
     private DashboardMetrics calculateDashboardMetrics(List<Habit> habits, Map<Long, List<HabitLog>> logsByHabit, 
                                                       LocalDate start, LocalDate end, LocalDate today) {
         DashboardMetrics metrics = new DashboardMetrics();
         
-        int totalCompleted = 0;
-        int totalTarget = 0;
-        int longestCurrentStreak = 0;
-        Map<String, CategoryStats> categoryStats = new HashMap<>();
+        try {
+            if (habits == null || habits.isEmpty()) {
+                return createEmptyMetrics();
+            }
+            
+            int totalCompleted = 0;
+            int totalTarget = 0;
+            int longestCurrentStreak = 0;
+            int totalLongestStreak = 0;
+            Map<String, CategoryStats> categoryStats = new HashMap<>();
+            
+            for (Habit habit : habits) {
+                if (habit == null) continue;
+                
+                List<HabitLog> habitLogs = logsByHabit.getOrDefault(habit.getId(), Collections.emptyList());
+                
+                // Count unique completion days instead of total logs
+                Set<LocalDate> uniqueCompletionDays = habitLogs.stream()
+                        .map(HabitLog::getLogDate)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+                
+                int completed = uniqueCompletionDays.size();
+                int target = calculateTarget(habit, start, end);
+                
+                totalCompleted += completed;
+                totalTarget += target;
+                
+                // Calculate current streak
+                int currentStreak = calculateCurrentStreak(habit, today);
+                longestCurrentStreak = Math.max(longestCurrentStreak, currentStreak);
+                
+                // Track longest streak across all habits
+                Integer habitLongestStreak = habit.getLongestStreak();
+                if (habitLongestStreak != null) {
+                    totalLongestStreak = Math.max(totalLongestStreak, habitLongestStreak);
+                }
+                
+                // Category performance tracking
+                String category = habit.getCategory() != null ? habit.getCategory().name() : "General";
+                categoryStats.computeIfAbsent(category, k -> new CategoryStats())
+                        .addHabit(completed, target);
+            }
+            
+            metrics.totalCompleted = totalCompleted;
+            metrics.totalTarget = totalTarget;
+            metrics.currentStreak = longestCurrentStreak;
+            metrics.longestStreak = totalLongestStreak;
+            metrics.bestCategory = findBestCategory(categoryStats);
+            metrics.perfectDays = calculatePerfectDays(habits, logsByHabit, start, end);
+            metrics.weeklyTrend = calculateWeeklyTrend(habits, logsByHabit, end);
+            metrics.activeDaysCount = calculateActiveDays(logsByHabit, start, end);
+            
+            return metrics;
+        } catch (Exception e) {
+            log.error("Error calculating dashboard metrics: {}", e.getMessage(), e);
+            return createEmptyMetrics();
+        }
+    }
+
+    private DashboardMetrics createEmptyMetrics() {
+        DashboardMetrics metrics = new DashboardMetrics();
+        metrics.totalCompleted = 0;
+        metrics.totalTarget = 0;
+        metrics.currentStreak = 0;
+        metrics.longestStreak = 0;
+        metrics.perfectDays = 0;
+        metrics.bestCategory = "General";
+        metrics.weeklyTrend = Arrays.asList(false, false, false, false, false, false, false);
+        metrics.activeDaysCount = 0;
+        return metrics;
+    }
+
+    private int calculateActiveDays(Map<Long, List<HabitLog>> logsByHabit, LocalDate start, LocalDate end) {
+        Set<LocalDate> allActiveDays = new HashSet<>();
         
-        for (Habit habit : habits) {
-            List<HabitLog> habitLogs = logsByHabit.getOrDefault(habit.getId(), Collections.emptyList());
-            int completed = habitLogs.size();
-            int target = calculateTarget(habit, start, end);
-            
-            totalCompleted += completed;
-            totalTarget += target;
-            
-            // Calculate current streak
-            int currentStreak = calculateCurrentStreak(habit, today);
-            longestCurrentStreak = Math.max(longestCurrentStreak, currentStreak);
-            
-            // Category performance tracking
-            String category = habit.getCategory() != null ? habit.getCategory().name() : "General";
-            categoryStats.computeIfAbsent(category, k -> new CategoryStats())
-                    .addHabit(completed, target);
+        for (List<HabitLog> logs : logsByHabit.values()) {
+            logs.stream()
+                    .map(HabitLog::getLogDate)
+                    .filter(Objects::nonNull)
+                    .filter(date -> !date.isBefore(start) && !date.isAfter(end))
+                    .forEach(allActiveDays::add);
         }
         
-        metrics.totalCompleted = totalCompleted;
-        metrics.totalTarget = totalTarget;
-        metrics.currentStreak = longestCurrentStreak;
-        metrics.bestCategory = findBestCategory(categoryStats);
-        metrics.perfectDays = calculatePerfectDays(habits, logsByHabit, start, end);
-        metrics.weeklyTrend = calculateWeeklyTrend(habits, logsByHabit, end);
-        
-        return metrics;
+        return allActiveDays.size();
     }
     
     private int calculateCurrentStreak(Habit habit, LocalDate today) {
-        List<HabitLog> logs = habitLogDao.findByHabitId(habit.getId());
-        if (logs.isEmpty()) return 0;
+        try {
+            List<HabitLog> logs = habitLogDao.findByHabitId(habit.getId());
+            if (logs == null || logs.isEmpty()) return 0;
+            
+            Set<LocalDate> completedDates = logs.stream()
+                    .map(HabitLog::getLogDate)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            
+            if (completedDates.isEmpty()) return 0;
+            
+            int streak = 0;
+            LocalDate checkDate = today;
+            
+            // For daily habits, check consecutive days
+            if (habit.getCadence() == Cadence.DAILY) {
+                while (completedDates.contains(checkDate) && !checkDate.isBefore(habit.getStartDate())) {
+                    streak++;
+                    checkDate = checkDate.minusDays(1);
+                }
+            } else {
+                // For weekly/monthly habits, use different logic
+                streak = calculateNonDailyStreak(habit, completedDates, today);
+            }
+            
+            return streak;
+        } catch (Exception e) {
+            log.error("Error calculating current streak for habit {}: {}", habit.getId(), e.getMessage());
+            return 0;
+        }
+    }
+
+    private int calculateNonDailyStreak(Habit habit, Set<LocalDate> completedDates, LocalDate today) {
+        List<LocalDate> sortedDates = completedDates.stream()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
         
-        Set<LocalDate> completedDates = logs.stream()
-                .map(HabitLog::getLogDate)
-                .collect(Collectors.toSet());
+        if (sortedDates.isEmpty()) return 0;
         
-        int streak = 0;
-        LocalDate checkDate = today;
-        
-        while (completedDates.contains(checkDate)) {
-            streak++;
-            checkDate = checkDate.minusDays(1);
+        int streak = 1;
+        for (int i = 1; i < sortedDates.size(); i++) {
+            if (isConsecutiveForCadence(sortedDates.get(i-1), sortedDates.get(i), habit)) {
+                streak++;
+            } else {
+                break;
+            }
         }
         
         return streak;
+    }
+
+    private boolean isConsecutiveForCadence(LocalDate newer, LocalDate older, Habit habit) {
+        long daysBetween = ChronoUnit.DAYS.between(older, newer);
+        int sessionCount = habit.getSessionCount() != null ? habit.getSessionCount() : 1;
+        
+        switch (habit.getCadence()) {
+            case DAILY:
+                return daysBetween == 1;
+            case WEEKLY:
+                return daysBetween <= (7 / sessionCount) + 1; // Allow some flexibility
+            case MONTHLY:
+                return daysBetween <= (30 / sessionCount) + 2; // Allow some flexibility
+            default:
+                return false;
+        }
     }
     
     private String findBestCategory(Map<String, CategoryStats> categoryStats) {
@@ -487,20 +698,36 @@ public class ReportService {
     }
     
     private int calculatePerfectDays(List<Habit> habits, Map<Long, List<HabitLog>> logsByHabit, LocalDate start, LocalDate end) {
-        if (habits.isEmpty()) return 0;
-        
-        int perfectDays = 0;
-        for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-            final LocalDate currentDate = date;
+        try {
+            if (habits == null || habits.isEmpty()) return 0;
             
-            boolean isPerfectDay = habits.stream()
-                    .filter(habit -> !habit.getStartDate().isAfter(currentDate))
-                    .allMatch(habit -> logsByHabit.getOrDefault(habit.getId(), Collections.emptyList())
-                            .stream().anyMatch(log -> log.getLogDate().equals(currentDate)));
-            
-            if (isPerfectDay) perfectDays++;
+            int perfectDays = 0;
+            for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                final LocalDate currentDate = date;
+                
+                // Get habits that should be active on this date
+                List<Habit> activeHabits = habits.stream()
+                        .filter(habit -> habit.getStartDate() != null && !habit.getStartDate().isAfter(currentDate))
+                        .collect(Collectors.toList());
+                
+                if (activeHabits.isEmpty()) {
+                    continue; // No habits active on this day
+                }
+                
+                boolean isPerfectDay = activeHabits.stream()
+                        .allMatch(habit -> {
+                            List<HabitLog> habitLogs = logsByHabit.getOrDefault(habit.getId(), Collections.emptyList());
+                            return habitLogs.stream()
+                                    .anyMatch(log -> log.getLogDate() != null && log.getLogDate().equals(currentDate));
+                        });
+                
+                if (isPerfectDay) perfectDays++;
+            }
+            return perfectDays;
+        } catch (Exception e) {
+            log.error("Error calculating perfect days: {}", e.getMessage());
+            return 0;
         }
-        return perfectDays;
     }
     
     private HabitRowDto createHabitRow(Habit habit, List<HabitLog> logs, LocalDate start, LocalDate end) {
@@ -566,24 +793,40 @@ public class ReportService {
     private List<Boolean> calculateWeeklyTrend(List<Habit> habits, Map<Long, List<HabitLog>> logsByHabit, LocalDate endDate) {
         List<Boolean> trend = new ArrayList<>();
         
-        for (int i = 6; i >= 0; i--) {
-            LocalDate checkDate = endDate.minusDays(i);
+        try {
+            if (habits == null || habits.isEmpty() || endDate == null) {
+                return Arrays.asList(false, false, false, false, false, false, false);
+            }
             
-            long activeHabitsForDay = habits.stream()
-                    .filter(habit -> !habit.getStartDate().isAfter(checkDate))
-                    .count();
-            
-            long completedHabitsForDay = habits.stream()
-                    .filter(habit -> !habit.getStartDate().isAfter(checkDate))
-                    .filter(habit -> logsByHabit.getOrDefault(habit.getId(), Collections.emptyList())
-                            .stream().anyMatch(log -> log.getLogDate().equals(checkDate)))
-                    .count();
-            
-            boolean goodDay = activeHabitsForDay > 0 && 
-                    (double) completedHabitsForDay / activeHabitsForDay >= 0.5;
-            trend.add(goodDay);
+            for (int i = 6; i >= 0; i--) {
+                LocalDate checkDate = endDate.minusDays(i);
+                
+                long activeHabitsForDay = habits.stream()
+                        .filter(habit -> habit.getStartDate() != null && !habit.getStartDate().isAfter(checkDate))
+                        .count();
+                
+                if (activeHabitsForDay == 0) {
+                    trend.add(false);
+                    continue;
+                }
+                
+                long completedHabitsForDay = habits.stream()
+                        .filter(habit -> habit.getStartDate() != null && !habit.getStartDate().isAfter(checkDate))
+                        .filter(habit -> {
+                            List<HabitLog> habitLogs = logsByHabit.getOrDefault(habit.getId(), Collections.emptyList());
+                            return habitLogs.stream()
+                                    .anyMatch(log -> log.getLogDate() != null && log.getLogDate().equals(checkDate));
+                        })
+                        .count();
+                
+                boolean goodDay = (double) completedHabitsForDay / activeHabitsForDay >= 0.5;
+                trend.add(goodDay);
+            }
+            return trend;
+        } catch (Exception e) {
+            log.error("Error calculating weekly trend: {}", e.getMessage());
+            return Arrays.asList(false, false, false, false, false, false, false);
         }
-        return trend;
     }
 
     private String generateMotivation(int score) {

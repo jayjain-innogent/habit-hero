@@ -7,6 +7,7 @@ import HabitsTable from '../../components/Dashboard/HabitsTable';
 import StatsOverview from '../../components/Dashboard/StatsOverview';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { ChartColumn, TrendingUp, Gauge, FileText } from 'lucide-react';
+import '../../styles/theme.css';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -64,7 +65,7 @@ const Dashboard = () => {
     <div className="dashboard">
       <div className="dashboard-header">
         <div className="header-content">
-          <h1><Gauge size={24} style={{ marginRight: '8px', color: '#667eea' }} /> Analytics Dashboard</h1>
+          <h1><Gauge size={24} style={{ marginRight: '8px', color: 'var(--color-primary)' }} /> Analytics Dashboard</h1>
           <p className="date-range">
             {formatDateRange(dashboardData.startDate, dashboardData.endDate)}
           </p>
@@ -82,7 +83,7 @@ const Dashboard = () => {
       />
       
       <div className="habits-section">
-         <h2><TrendingUp size={20} style={{ marginRight: '8px', color: '#667eea' }} /> Habit Performance</h2>
+         <h2><TrendingUp size={20} style={{ marginRight: '8px', color: 'var(--color-primary)' }} /> Habit Performance</h2>
         <HabitsTable tableData={dashboardData.tableData} />
       </div>
 

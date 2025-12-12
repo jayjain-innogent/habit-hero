@@ -55,14 +55,14 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfile
             <ul className="comments-list">
               {comments.map((comment) => (
                 <li key={comment.commentId} className="comment-item">
-                <div 
+                <div
                   onClick={() => onProfileClick?.(comment.author?.userId)}
                   style={{ cursor: 'pointer' }}
                 >
                   <Avatar src={comment.author?.profileImage} alt={comment.author?.username} />
                 </div>
                 <div className="comment-content">
-                  <span 
+                  <span
                     className="comment-author"
                     onClick={() => onProfileClick?.(comment.author?.userId)}
                     style={{ cursor: 'pointer' }}

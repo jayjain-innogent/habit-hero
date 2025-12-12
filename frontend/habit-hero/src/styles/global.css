@@ -7,91 +7,95 @@ body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  color: #1f2937;
+  background: var(--gradient-surface);
+  color: var(--color-text-primary);
   line-height: 1.6;
 }
 
 /* Professional button styles */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: var(--gradient-primary) !important;
   border: none !important;
-  border-radius: 12px !important;
-  padding: 12px 24px !important;
-  font-weight: 600 !important;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3) !important;
+  border-radius: var(--radius-md) !important;
+  padding: var(--space-3) var(--space-6) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  box-shadow: var(--shadow-md) !important;
   transition: all 0.3s ease !important;
+  color: var(--color-text-on-primary) !important;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+  box-shadow: var(--shadow-lg) !important;
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-secondary-hover) 100%) !important;
 }
 
 /* Card styles */
 .card {
-  border: 1px solid #f0f0f0 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid var(--color-border-light) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-md) !important;
   transition: all 0.3s ease !important;
+  background: var(--color-white) !important;
 }
 
 .card:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: var(--shadow-xl) !important;
 }
 
 /* Form controls */
 .form-control {
-  border: 2px solid #e5e7eb !important;
-  border-radius: 12px !important;
-  padding: 12px 16px !important;
-  font-size: 15px !important;
+  border: 2px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: var(--space-3) var(--space-4) !important;
+  font-size: var(--font-size-base) !important;
   transition: all 0.3s ease !important;
+  background: var(--color-background) !important;
 }
 
 .form-control:focus {
-  border-color: #667eea !important;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+  border-color: var(--color-border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(111, 45, 189, 0.1) !important;
 }
 
 /* Badge styles */
 .badge {
-  border-radius: 8px !important;
-  padding: 6px 12px !important;
-  font-weight: 600 !important;
-  font-size: 12px !important;
+  border-radius: var(--radius-sm) !important;
+  padding: var(--space-2) var(--space-3) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  font-size: var(--font-size-xs) !important;
 }
 
 /* Alert styles */
 .alert {
   border: none !important;
-  border-radius: 12px !important;
-  padding: 16px 20px !important;
+  border-radius: var(--radius-md) !important;
+  padding: var(--space-4) var(--space-5) !important;
 }
 
 .alert-danger {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
-  color: #dc2626 !important;
+  color: var(--color-error) !important;
 }
 
 .alert-success {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
-  color: #059669 !important;
+  background: var(--gradient-success) !important;
+  color: var(--color-success-accent) !important;
 }
 
 /* Loading spinner */
 .spinner-border {
-  color: #667eea !important;
+  color: var(--color-primary) !important;
 }
 
 /* Text colors */
 .text-primary {
-  color: #667eea !important;
+  color: var(--color-primary) !important;
 }
 
 .text-muted {
-  color: #6b7280 !important;
+  color: var(--color-text-muted) !important;
 }
 
 /* Scrollbar styling */
@@ -100,14 +104,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--color-gray-100);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-secondary-hover) 100%);
 }

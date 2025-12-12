@@ -26,7 +26,7 @@ const SideBar = ({ items = [], onItemClick = () => { }, isOpen = true, onClose }
 
   return (
     <div className="sidebar-container" style={{ transform: isOpen ? 'translateX(0)' : 'translateX(-100%)', transition: 'transform 0.3s ease' }}>
-      <div className="d-flex justify-content-between align-items-center px-3 py-3 border-bottom" style={{ borderColor: 'rgba(255,255,255,0.3)' }}>
+      <div className="d-flex justify-content-between align-items-center px-3 py-3 border-bottom" style={{ borderColor: 'rgba(255,255,255,0.3)'}}>
         <h1 className="sidebar-title mb-0 p-0 border-0">Habit Hero</h1>
         <button onClick={onClose} className="btn btn-link p-0 border-0" style={{ color: '#fff' }}>
           <FaArrowLeft size={20} />

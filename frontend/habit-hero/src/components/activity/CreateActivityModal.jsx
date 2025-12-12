@@ -85,38 +85,39 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label className="form-label">Activity Type</label>
-            <select
-              value={activityType}
-              onChange={(e) => setActivityType(e.target.value)}
-              className="form-input"
-            >
-              <option value="COMPLETION">Completion</option>
-              <option value="STREAK">Streak</option>
-              <option value="MILESTONE">Milestone</option>
-              <option value="SUMMARY">Summary</option>
-            </select>
+            <div className="button-group">
+              {[
+                { value: "COMPLETION", label: "Completion" },
+                { value: "STREAK", label: "Streak" },
+                { value: "MILESTONE", label: "Milestone" },
+                { value: "SUMMARY", label: "Summary" }
+              ].map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  className={`option-btn ${activityType === type.value ? 'active' : ''}`}
+                  onClick={() => setActivityType(type.value)}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="form-group">
             <label className="form-label">Select Habit</label>
-            <select
-              value={selectedHabit?.id || ""}
-              onChange={(e) =>
-                setSelectedHabit(
-                  habits.find((habit) => habit.id === parseInt(e.target.value))
-                )
-              }
-              className="form-input"
-            >
-              <option value="" disabled>
-                Select a habit...
-              </option>
+            <div className="habit-grid">
               {habits.map((habit) => (
-                <option key={habit.id} value={habit.id}>
+                <button
+                  key={habit.id}
+                  type="button"
+                  className={`habit-btn ${selectedHabit?.id === habit.id ? 'active' : ''}`}
+                  onClick={() => setSelectedHabit(habit)}
+                >
                   {habit.title}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           <div className="form-group">

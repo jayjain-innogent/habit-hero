@@ -1,20 +1,20 @@
 .progress-summary-card {
-    background: linear-gradient(135deg, #0d6efd 0%, #4895ef 50%, #4cc9f0 100%);
-    padding: 32px;
-    border-radius: 20px;
-    color: white;
+    background: var(--gradient-primary);
+    padding: var(--space-8);
+    border-radius: var(--radius-xl);
+    color: var(--color-text-on-primary);
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 32px;
-    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.2);
+    gap: var(--space-8);
+    box-shadow: var(--shadow-lg);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .progress-summary-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(13, 110, 253, 0.3);
+    box-shadow: var(--shadow-xl);
 }
 
 .progress-summary-left {
@@ -49,8 +49,8 @@
 .progress-summary-pill {
     background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(10px);
-    padding: 14px 20px;
-    border-radius: 12px;
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-md);
     text-align: center;
     min-width: 100px;
     border: 1px solid rgba(255, 255, 255, 0.3);

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { Trophy, Users, Activity as ActivityIcon, User, Settings } from "lucide-react";
+import { Trophy, Users, Activity, ChartColumn as ActivityIcon, User, Settings ,ChartColumn} from "lucide-react";
 
 import HabitCreate from "../pages/Habits/HabitCreate";
 import HabitEdit from "../pages/Habits/HabitEdit";
@@ -33,12 +33,11 @@ export default function AppRoutes() {
   }, [currentUserId]);
 
   const menuItems = [
-    { id: "/dashboard", label: "Dashboard", icon: <Trophy size={20} /> },
-    { id: "/habits", label: "Habits", icon: <Trophy size={20} /> },
+    { id: "/habits", label: "Habits", icon: <ChartColumn size={20} /> },
+     { id: "/dashboard", label: "Dashboard", icon: <Trophy size={20} /> },
     { id: "/friends", label: "Friends", icon: <Users size={20} /> },
     { id: "/activity", label: "Activity", icon: <ActivityIcon size={20} /> },
-    { id: "/profile", label: "Profile", icon: <User size={20} /> },
-    { id: "/settings", label: "Settings", icon: <Settings size={20} /> },
+    { id: "/profile", label: "Profile", icon: <User size={20} /> }
   ];
 
   const handleClick = (path) => {
@@ -68,7 +67,6 @@ export default function AppRoutes() {
           <Route path="/habits/:habitId/report" element={<HabitStats />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/activity" element={<ActivityFeed />} />
-          <Route path="/settings" element={<div style={{padding:'20px'}}><h2>Settings</h2><p>Coming soon...</p></div>} />
           <Route path="/profile" element={<ProfilePage currentUserId={currentUserId} />} />
           <Route path="/profile/:userId" element={<ProfilePage currentUserId={currentUserId} />} />
           <Route path="/profile/:userId/friends" element={<FriendListPage currentUserId={currentUserId} />} />
