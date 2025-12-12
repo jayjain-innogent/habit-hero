@@ -14,7 +14,7 @@ import java.util.List;
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
     // specific user profile activities
-    List<Activity> findByUserOrderByCreatedAtDesc(User user);
+    List<Activity> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 
     // friends’ activities
     List<Activity> findByUserInOrderByCreatedAtDesc(List<User> users);

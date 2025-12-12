@@ -1,5 +1,6 @@
 package com.habit.hero.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.habit.hero.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -74,7 +75,8 @@ public class Habit {
     private Timestamp updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @OneToMany(mappedBy = "habit", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)

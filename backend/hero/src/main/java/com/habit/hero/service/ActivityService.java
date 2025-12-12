@@ -22,4 +22,10 @@ public interface ActivityService {
 
     @Transactional(readOnly = true)
     List<CommentResponse> getCommentsByActivity(Long activityId);
+
+    @Transactional(readOnly = true)
+    List<ActivityResponse> getUserActivities(Long userId, int page, int size);
+
+    void deleteActivity(Long activityId, Long userId);
+
 }

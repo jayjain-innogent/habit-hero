@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import { getPendingApi, acceptRequestApi, rejectRequestApi, sendRequestApi, getFriendsListApi, getSentRequestsApi } from "../../api/social";
-import { searchUsersApi } from "../../api/userApi";
+import { searchUsersApi, getAllUsersApi } from "../../api/userApi";
 import FriendRequestCard from "../../components/friends/FriendRequestCard";
 import { useNavigate } from "react-router-dom";
 import ImageWithFallback from "../../components/ImageWithFallback";
@@ -8,7 +9,8 @@ import { FaUserFriends, FaBell, FaUserPlus } from "react-icons/fa";
 import "./FriendsPage.css";
 
 function FriendsPage() {
-  const userId = 1;
+  const { user } = useAuth();
+  const userId = user?.userId;
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
@@ -20,20 +22,30 @@ function FriendsPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
   const [buttonLoading, setButtonLoading] = useState({});
-  const [activeTab, setActiveTab] = useState("requests");
+  const [activeTab, setActiveTab] = useState("search");
 
   useEffect(() => {
     fetchAllData();
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
-      searchUsers();
-    } else {
-      setSearchResults([]);
+    if (!loading) {
       fetchSuggestedUsers();
     }
-  }, [searchQuery, friends, requests, sentRequests]);
+  }, [loading, friends, requests, sentRequests]);
+
+  // Add debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        searchUsers();
+      } else {
+        setSearchResults([]);
+      }
+    }, 500); // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   async function fetchAllData() {
     try {
@@ -57,15 +69,14 @@ function FriendsPage() {
 
   async function fetchSuggestedUsers() {
     try {
-      const res = await searchUsersApi({ query: "" });
-      let allUsers = [];
-      if (Array.isArray(res.data)) {
-        allUsers = res.data;
-      } else if (res.data && Array.isArray(res.data.content)) {
-        allUsers = res.data.content;
-      } else if (res.data && Array.isArray(res.data.users)) {
-        allUsers = res.data.users;
-      }
+      const res = await getAllUsersApi();
+      const allUsers = Array.isArray(res.data) ? res.data : [];
+
+      console.log("All users:", allUsers.length);
+      console.log("Friends:", friends);
+      console.log("Requests:", requests);
+      console.log("Sent requests:", sentRequests);
+      console.log("Current userId:", userId);
 
       const suggested = allUsers.filter(user => {
         const isFriend = friends.some(f => f.friendId === user.userId);
@@ -73,14 +84,25 @@ function FriendsPage() {
         const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
         const isCurrentUser = user.userId === userId;
 
+        console.log(`User ${user.username}:`, {
+          isFriend,
+          hasIncomingRequest,
+          hasSentRequest,
+          isCurrentUser,
+          shouldInclude: !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser
+        });
+
         return !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser;
       });
 
+      console.log("Suggested users:", suggested);
       setSuggestedUsers(suggested.slice(0, 5));
     } catch (err) {
       console.error("Failed to fetch suggested users:", err);
     }
   }
+
+
 
   async function searchUsers() {
     try {
@@ -99,7 +121,10 @@ function FriendsPage() {
     try {
       setButtonLoading({ [`accept_${requestId}`]: true });
       await acceptRequestApi({ requestId });
-      await fetchAllData();
+
+      // Update state locally instead of refetching
+      setRequests(prev => prev.filter(req => req.requestId !== requestId));
+
     } catch (err) {
       console.error("Failed to accept request:", err);
     } finally {
@@ -111,7 +136,10 @@ function FriendsPage() {
     try {
       setButtonLoading({ [`reject_${requestId}`]: true });
       await rejectRequestApi({ requestId });
-      await fetchAllData();
+
+      // Update state locally instead of refetching
+      setRequests(prev => prev.filter(req => req.requestId !== requestId));
+
     } catch (err) {
       console.error("Failed to reject request:", err);
     } finally {
@@ -119,11 +147,14 @@ function FriendsPage() {
     }
   }
 
+
   async function handleAddFriend(receiverId) {
     try {
       setButtonLoading({ [`add_${receiverId}`]: true });
       await sendRequestApi({ senderId: userId, receiverId });
-      await fetchAllData();
+
+      setSuggestedUsers(prev => prev.filter(user => user.userId !== receiverId));
+
     } catch (err) {
       console.error("Failed to send friend request:", err);
     } finally {
@@ -135,12 +166,13 @@ function FriendsPage() {
     const isFriend = friends.some(f => f.friendId === user.userId);
     const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
     const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
-
     if (isFriend) return "friends";
     if (hasIncomingRequest) return "incoming";
     if (hasSentRequest) return "sent";
     return "none";
   };
+
+  console.log("Render - activeTab:", activeTab, "suggestedUsers:", suggestedUsers.length, "searchQuery:", searchQuery);
 
   if (loading) return <div className="loading">Loading requests…</div>;
   if (error) return <div className="error">{error}</div>;
@@ -205,114 +237,120 @@ function FriendsPage() {
             />
           </div>
 
-          {!searchQuery && suggestedUsers.length > 0 && (
+          {!searchQuery && (
             <div className="suggested-section">
-              <h3>Suggested for you</h3>
-              <div className="users-list">
-                {suggestedUsers.map(user => (
-                  <div key={user.userId} className="user-card">
-                    <div
-                      className="user-info"
-                      onClick={() => navigate(`/profile/${user.userId}`)}
-                    >
-                      <ImageWithFallback
-                        src={user.profileImageUrl}
-                        fallbackSrc="../../public/avator.jpeg"
-                        alt={`${user.username} avatar`}
-                        className="user-avatar"
-                      />
-                      <div className="user-details">
-                        <h4 className="username">{user.username}</h4>
-                        <p className="user-bio">{user.userBio || "No bio available"}</p>
+              <h3>Suggested for you ({suggestedUsers.length})</h3>
+              {suggestedUsers.length === 0 && <p>No suggestions available</p>}
+              {suggestedUsers.length > 0 && (
+                <div className="users-list">
+                  {suggestedUsers.map(user => (
+                    <div key={user.userId} className="user-card">
+                      <div
+                        className="user-info"
+                        onClick={() => navigate(`/profile/${user.userId}`)}
+                      >
+                        <ImageWithFallback
+                          src={user.profileImageUrl}
+                          fallbackSrc="../../public/avator.jpeg"
+                          alt={`${user.username} avatar`}
+                          className="user-avatar"
+                        />
+                        <div className="user-details">
+                          <h4 className="username">{user.username}</h4>
+                          <p className="user-bio">{user.userBio || "No bio available"}</p>
+                        </div>
+                      </div>
+                      <div className="user-actions">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => handleAddFriend(user.userId)}
+                          disabled={buttonLoading[`add_${user.userId}`]}
+                        >
+                          <FaUserPlus size={16} />
+                          {buttonLoading[`add_${user.userId}`] ? "Sending..." : "Add Friend"}
+                        </button>
                       </div>
                     </div>
-                    <div className="user-actions">
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => handleAddFriend(user.userId)}
-                        disabled={buttonLoading[`add_${user.userId}`]}
-                      >
-                        <FaUserPlus size={16} />
-                        {buttonLoading[`add_${user.userId}`] ? "Sending..." : "Add Friend"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  ))}
+                </div>
+              )}
+            </div >
+          )
+          }
 
           {searchLoading && <div className="loading">Searching...</div>}
 
-          {searchQuery && !searchLoading && Array.isArray(searchResults) && (
-            <div className="search-results">
-              {searchResults.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">🔍</div>
-                  <h3>No users found</h3>
-                  <p>Try a different search term</p>
-                </div>
-              ) : (
-                <div className="users-list">
-                  {searchResults.map(user => {
-                    const status = getRelationshipStatus(user);
+          {
+            searchQuery && !searchLoading && Array.isArray(searchResults) && (
+              <div className="search-results">
+                {searchResults.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">🔍</div>
+                    <h3>No users found</h3>
+                    <p>Try a different search term</p>
+                  </div>
+                ) : (
+                  <div className="users-list">
+                    {searchResults.map(user => {
+                      const status = getRelationshipStatus(user);
 
-                    return (
-                      <div key={user.userId} className="user-card">
-                        <div
-                          className="user-info"
-                          onClick={() => navigate(`/profile/${user.userId}`)}
-                        >
-                          <ImageWithFallback
-                            src={user.profileImageUrl}
-                            fallbackSrc="../../public/avator.jpeg"
-                            alt={`${user.username} avatar`}
-                            className="user-avatar"
-                          />
-                          <div className="user-details">
-                            <h4 className="username">{user.username}</h4>
-                            <p className="user-bio">{user.userBio || "No bio available"}</p>
+                      return (
+                        <div key={user.userId} className="user-card">
+                          <div
+                            className="user-info"
+                            onClick={() => navigate(`/profile/${user.userId}`)}
+                          >
+                            <ImageWithFallback
+                              src={user.profileImageUrl}
+                              fallbackSrc="../../public/avator.jpeg"
+                              alt={`${user.username} avatar`}
+                              className="user-avatar"
+                            />
+                            <div className="user-details">
+                              <h4 className="username">{user.username}</h4>
+                              <p className="user-bio">{user.userBio || "No bio available"}</p>
+                            </div>
+                          </div>
+                          <div className="user-actions">
+                            {status === "friends" && (
+                              <button className="btn btn-secondary" disabled>
+                                Friends
+                              </button>
+                            )}
+                            {status === "incoming" && (
+                              <button className="btn btn-success" disabled>
+                                Request Received
+                              </button>
+                            )}
+                            {status === "sent" && (
+                              <button className="btn btn-warning" disabled>
+                                Request Sent
+                              </button>
+                            )}
+                            {status === "none" && (
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() => handleAddFriend(user.userId)}
+                                disabled={buttonLoading[`add_${user.userId}`]}
+                              >
+                                <FaUserPlus size={16} />
+                                {buttonLoading[`add_${user.userId}`] ? "Sending..." : "Add Friend"}
+                              </button>
+                            )}
                           </div>
                         </div>
-                        <div className="user-actions">
-                          {status === "friends" && (
-                            <button className="btn btn-secondary" disabled>
-                              Friends
-                            </button>
-                          )}
-                          {status === "incoming" && (
-                            <button className="btn btn-success" disabled>
-                              Request Received
-                            </button>
-                          )}
-                          {status === "sent" && (
-                            <button className="btn btn-warning" disabled>
-                              Request Sent
-                            </button>
-                          )}
-                          {status === "none" && (
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              onClick={() => handleAddFriend(user.userId)}
-                              disabled={buttonLoading[`add_${user.userId}`]}
-                            >
-                              <UserPlus size={16} />
-                              {buttonLoading[`add_${user.userId}`] ? "Sending..." : "Add Friend"}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          }
+        </div >
       )}
-    </div>
+    </div >
   );
 }
 

@@ -14,6 +14,8 @@ import { getUserApi, getMyProfileApi } from "../../api/userApi";
 import { useAuth } from "../../context/AuthContext";
 import ImageWithFallback from "../../components/ImageWithFallback";
 import EditProfileModal from "../../components/modals/EditProfileModals";
+import { getUserActivitiesApi, deleteActivityApi } from "../../api/activity";
+import ActivityCard from "../../components/activity/ActivityCard";
 import "./ProfilePage.css";
 
 export default function ProfilePage() {
@@ -37,6 +39,9 @@ export default function ProfilePage() {
   const [justSentRequest, setJustSentRequest] = useState(null);
 
   const [status, setStatus] = useState("none");
+  const [activities, setActivities] = useState([]);
+
+
 
   const fetchUser = useCallback(async () => {
     try {
@@ -56,6 +61,16 @@ export default function ProfilePage() {
     }
   }, [viewedUserId, isOwn]);
 
+  const fetchActivities = useCallback(async () => {
+  try {
+    const res = await getUserActivitiesApi({ userId: viewedUserId });
+    setActivities(res.data || []);
+  } catch (err) {
+    console.error("fetchActivities:", err);
+  }
+}, [viewedUserId]);
+
+  
   const fetchFriendsOfViewed = useCallback(async () => {
     try {
       const res = await getFriendsListApi({ userId: viewedUserId });
@@ -90,10 +105,21 @@ export default function ProfilePage() {
       fetchUser(),
       fetchFriendsOfViewed(),
       fetchPendingToMe(),
-      fetchSentByMe()
+      fetchSentByMe(),
+      fetchActivities()
     ]);
     setLoading(false);
-  }, [fetchUser, fetchFriendsOfViewed, fetchPendingToMe, fetchSentByMe]);
+  }, [fetchUser, fetchFriendsOfViewed, fetchPendingToMe, fetchSentByMe, fetchActivities]);
+
+  const handleDeleteActivity = async (activityId) => {
+  try {
+    await deleteActivityApi({ activityId, userId: currentUserId });
+    setActivities(prev => prev.filter(activity => activity.id !== activityId));
+  } catch (err) {
+    console.error("Delete activity error:", err);
+  }
+};
+
 
   const computeStatus = useCallback(() => {
     if (isOwn) {
@@ -295,6 +321,56 @@ export default function ProfilePage() {
           }}
         />
       )}
+
+
+      {/* Activities Section */}
+      <div className="profile-activities">
+        <h3>Activities</h3>
+        {isOwn ? (
+          // Current user sees all their activities
+          activities.length === 0 ? (
+            <p>No activities yet.</p>
+          ) : (
+            <div className="activities-list">
+              {activities.map((activity) => (
+                <ActivityCard
+                  key={activity.id}
+                  activity={activity}
+                  onLikeToggle={() => {}}
+                  onCommentClick={() => {}}
+                  onProfileClick={(userId) => navigate(`/profile/${userId}`)}
+                  onDelete={handleDeleteActivity}
+                />
+              ))}
+            </div>
+          )
+        ) : (
+          // Other users - filter by visibility
+          (() => {
+            const visibleActivities = activities.filter(activity => {
+              if (activity.visibility === 'PUBLIC') return true;
+              if (activity.visibility === 'FRIENDS' && status === 'friends') return true;
+              return false;
+            });
+
+            return visibleActivities.length === 0 ? (
+              <p>{status === 'friends' ? 'No activities to show.' : 'This account is private.'}</p>
+            ) : (
+              <div className="activities-list">
+                {visibleActivities.map((activity) => (
+                  <ActivityCard
+                    key={activity.id}
+                    activity={activity}
+                    onLikeToggle={() => {}}
+                    onCommentClick={() => {}}
+                    onProfileClick={(userId) => navigate(`/profile/${userId}`)}
+                  />
+                ))}
+              </div>
+            );
+          })()
+        )}
+      </div>
     </div>
   );
 }

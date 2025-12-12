@@ -27,7 +27,6 @@ public class ActivityController {
                 "Activity created successfully",
                 true
         );
-
         return ResponseEntity.ok(response);
     }
 
@@ -59,6 +58,24 @@ public class ActivityController {
     @GetMapping("/comments/{activityId}")
     public List<CommentResponse> getCommentsByActivity(@PathVariable Long activityId) {
         return activityService.getCommentsByActivity(activityId);
+    }
+
+    @GetMapping("/user/{userId}")
+    public List<ActivityResponse> getUserActivities(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return activityService.getUserActivities(userId, page, size);
+    }
+
+    @DeleteMapping("/{activityId}")
+    public ResponseEntity<ApiResponse> deleteActivity(
+            @PathVariable Long activityId,
+            @RequestParam Long userId
+    ) {
+        activityService.deleteActivity(activityId, userId);
+        return ResponseEntity.ok(new ApiResponse("Activity deleted successfully", true));
     }
 
 }

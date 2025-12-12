@@ -1,5 +1,6 @@
 package com.habit.hero.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.habit.hero.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,6 +48,7 @@ public class Notification {
     // Jisko notification milegi (Receiver)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)

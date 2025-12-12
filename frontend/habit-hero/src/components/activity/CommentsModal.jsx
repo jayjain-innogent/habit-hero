@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { getCommentsApi, addCommentApi } from "../../api/activity";
 import Avatar from "../common/Avatar";
+import { X, Send } from "lucide-react";
 import "./CommentsModal.css";
 
-const CommentsModal = ({ isOpen, onClose, activityId }) => {
+const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfileClick}) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
@@ -26,9 +27,10 @@ const CommentsModal = ({ isOpen, onClose, activityId }) => {
     if (!newComment.trim()) return;
 
     try {
-      await addCommentApi({ activityId, text: newComment });
+      await addCommentApi({ activityId, userId: 1, text: newComment });
       setNewComment("");
       fetchComments();
+      onCommentAdded?.(); 
     } catch (error) {
       console.error("Failed to add comment:", error);
     }
@@ -41,7 +43,9 @@ const CommentsModal = ({ isOpen, onClose, activityId }) => {
       <div className="modal-content">
         <div className="modal-header">
           <h2 className="modal-title">Comments</h2>
-          <button onClick={onClose} className="modal-close">✕</button>
+          <button onClick={onClose} className="modal-close">
+            <X size={18} />
+          </button>
         </div>
 
         <div className="modal-body">
@@ -50,13 +54,24 @@ const CommentsModal = ({ isOpen, onClose, activityId }) => {
           ) : (
             <ul className="comments-list">
               {comments.map((comment) => (
-                <li key={comment.id} className="comment-item">
+                <li key={comment.commentId} className="comment-item">
+                <div 
+                  onClick={() => onProfileClick?.(comment.author?.userId)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <Avatar src={comment.author?.profileImage} alt={comment.author?.username} />
-                  <div className="comment-content">
-                    <span className="comment-author">{comment.author?.username}</span>
-                    <p className="comment-text">{comment.text}</p>
-                  </div>
-                </li>
+                </div>
+                <div className="comment-content">
+                  <span 
+                    className="comment-author"
+                    onClick={() => onProfileClick?.(comment.author?.userId)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {comment.author?.username}
+                  </span>
+                  <p className="comment-text">{comment.text}</p>
+                </div>
+              </li>
               ))}
             </ul>
           )}
@@ -70,7 +85,10 @@ const CommentsModal = ({ isOpen, onClose, activityId }) => {
             placeholder="Write a comment..."
             className="comment-input"
           />
-          <button onClick={handleAddComment} className="btn-primary">Post</button>
+          <button onClick={handleAddComment} className="btn-primary">
+            <Send size={16} style={{ marginRight: '6px' }} />
+            Post
+          </button>
         </div>
       </div>
     </div>

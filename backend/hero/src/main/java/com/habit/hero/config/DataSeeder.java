@@ -28,6 +28,7 @@ public class DataSeeder implements CommandLineRunner {
     private void seedUsers() {
 
         List<User> users = List.of(
+                // Existing 10 users
                 User.builder()
                         .name("Alex Brown")
                         .email("alex@example.com")
@@ -136,12 +137,69 @@ public class DataSeeder implements CommandLineRunner {
                         .profileImageUrl("https://img.favpng.com/22/12/17/3d-male-avatar-animated-3d-boy-character-with-big-eyes-AvQdnr82_t.jpg")
                         .createdAt(LocalDateTime.now())
                         .verified(true)
+                        .build(),
+
+                // ⭐ NEW USERS ONLY FOR SUGGESTIONS ⭐
+                User.builder()
+                        .name("Olivia Martinez")
+                        .email("olivia@example.com")
+                        .username("olivia_m")
+                        .passwordHash("$2a$10$dummy")
+                        .userBio("Digital marketer and content creator")
+                        .profileImageUrl("https://img.favpng.com/3/11/24/3d-woman-avatar-stylized-cartoon-woman-avatar-with-glasses-g0FutwYY_t.jpg")
+                        .createdAt(LocalDateTime.now())
+                        .verified(true)
+                        .build(),
+
+                User.builder()
+                        .name("Chris Evans")
+                        .email("chris@example.com")
+                        .username("chris_evans")
+                        .passwordHash("$2a$10$dummy")
+                        .userBio("Actor and fitness enthusiast")
+                        .profileImageUrl("https://img.favpng.com/12/7/2/3d-male-avatar-cartoon-man-with-beard-and-glasses-jC7ZTh8k_t.jpg")
+                        .createdAt(LocalDateTime.now())
+                        .verified(true)
+                        .build(),
+
+                User.builder()
+                        .name("Sophia Turner")
+                        .email("sophia@example.com")
+                        .username("sophia_turner")
+                        .passwordHash("$2a$10$dummy")
+                        .userBio("Fashion designer & illustrator")
+                        .profileImageUrl("https://thumbnail.imgbin.com/10/9/12/3d-girl-avatar-animated-girl-kg9C2FUv_t.jpg")
+                        .createdAt(LocalDateTime.now())
+                        .verified(true)
+                        .build(),
+
+                User.builder()
+                        .name("Daniel King")
+                        .email("daniel@example.com")
+                        .username("daniel_king")
+                        .passwordHash("$2a$10$dummy")
+                        .userBio("Entrepreneur, building cool stuff")
+                        .profileImageUrl("https://img.favpng.com/18/18/13/3d-man-avatar-cartoon-man-with-beard-and-glasses-Sdhcwhih_t.jpg")
+                        .createdAt(LocalDateTime.now())
+                        .verified(true)
+                        .build(),
+
+                User.builder()
+                        .name("Ava Thompson")
+                        .email("ava@example.com")
+                        .username("ava_thompson")
+                        .passwordHash("$2a$10$dummy")
+                        .userBio("Writer & poet")
+                        .profileImageUrl("https://img.favpng.com/3/11/24/3d-woman-avatar-stylized-cartoon-woman-avatar-with-glasses-g0FutwYY_t.jpg")
+                        .createdAt(LocalDateTime.now())
+                        .verified(true)
                         .build()
         );
 
         userRepository.saveAll(users);
-        System.out.println("✅ Seeded " + users.size() + " users");
+        System.out.println("✅ Seeded " + users.size() + " users (including new suggestion-only users)");
     }
+
 
     private void seedFriendRequests() {
         try {

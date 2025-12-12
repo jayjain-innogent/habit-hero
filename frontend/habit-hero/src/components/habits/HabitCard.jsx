@@ -151,8 +151,7 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
     }, [isDragging]);
 
     const progressPercent = hasGoal ? (currentValue / habit.targetValue) * 100 : 0;
-
-    const catColor = getCategoryColor(habit.category);
+    const categoryColor = getCategoryColor(habit.category);
 
     return (
         <>
@@ -180,9 +179,7 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
                 className={`card border-0 shadow-sm h-100 bg-white`}
                 style={{
                     transition: "all 0.3s ease",
-                    transition: "all 0.3s ease",
-                    opacity: isCompleted ? 0.6 : (isPaused || isFuture) ? 0.7 : 1,
-                    borderTop: `6px solid ${CATEGORY_HEX_COLORS[catColor] || "#6c757d"}`
+                    borderTop: `6px solid ${CATEGORY_HEX_COLORS[categoryColor] || "#6c757d"}`
                 }}
             >
                 <div className="card-body d-flex flex-column p-3">
@@ -209,8 +206,8 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
                             : "No description"}
                     </p>
 
-                    <div className="mb-3 d-flex flex-wrap gap-2">
-                        <span className={`badge bg-${catColor}-subtle text-${catColor}-emphasis border border-${catColor}-subtle`}>
+                    <div className="mb-4 d-flex flex-wrap gap-2">
+                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
                             {habit.category}
                         </span>
                         <span className="badge bg-light text-secondary border">
@@ -226,7 +223,7 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
                     <div className="mt-auto">
 
                         {!isCompleted && hasGoal && !isPaused && !isFuture && (
-                            <div className="mb-3">
+                            <div className="mb-4">
                                 <div className="d-flex justify-content-between align-items-end mb-2">
                                     <label className="form-label small fw-bold text-secondary mb-0">LOG PROGRESS</label>
                                     <div className="text-primary fw-bold">
@@ -319,10 +316,10 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
                             </>
                         )}
 
-                        <div className="d-flex justify-content-between border-top pt-2 mt-2">
+                        <div className="d-flex justify-content-between border-top pt-3">
                             <button
                                 className="btn btn-link text-decoration-none text-secondary p-0 btn-sm"
-                                onClick={() => navigate(`/habits`)}
+                                onClick={() => navigate(`/habits/${habit.id}/report`)}
                             >
                                 View Stats
                             </button>

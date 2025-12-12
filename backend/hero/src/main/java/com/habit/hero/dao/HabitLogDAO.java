@@ -9,19 +9,20 @@ import java.util.Optional;
 
 public interface HabitLogDAO {
 
-    // Save or update a habit log
+    // Save or update a log
     HabitLog save(HabitLog log);
 
-    // Find today's log for a specific habit
+    //find today's log for a habit
     Optional<HabitLog> findTodayLog(Long habitId, LocalDate logDate);
 
-    // Get all logs for a specific habit
+    // All logs of a specific habit
     List<HabitLog> findByHabitId(Long habitId);
+    List<HabitLog> findByHabitIdAndLogDateBetweenOrderByLogDate(Long habitId, LocalDate startDate, LocalDate endDate);
 
-    // Find a log by logId and userId (ensures user owns the habit)
+    // Find log ensuring habit belongs to user
     Optional<HabitLog> findByIdAndUserId(Long logId, Long userId);
 
-    // Delete a specific habit log
+    // Delete specific log
     void delete(HabitLog log);
 
     // Find all active habits not logged since a specific date
@@ -30,6 +31,6 @@ public interface HabitLogDAO {
     // Get logs for a habit within a date range
     List<HabitLog> findByHabitIdAndDateRange(Long habitId, LocalDate startDate, LocalDate endDate);
 
-    // Get all logs for a user within a date range
+    //Fetch all logs belonging to user
     List<HabitLog> findLogsForUserInDateRange(Long userId, LocalDate startDate, LocalDate endDate);
 }

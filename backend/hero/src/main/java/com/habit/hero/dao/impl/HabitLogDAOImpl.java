@@ -22,42 +22,46 @@ public class HabitLogDAOImpl implements HabitLogDAO {
     private final HabitLogRepository habitLogRepository;
     private final HabitRepository habitRepository;
 
-    // Save a habit log to the database
+    //save
     @Override
     public HabitLog save(HabitLog logData) {
         log.info("Saving habit log for habit {}", logData.getHabit().getId());
         return habitLogRepository.save(logData);
     }
 
-    // Find a habit log by habitId and date
+    //find habit log with habitId and date
     @Override
     public Optional<HabitLog> findTodayLog(Long habitId, LocalDate logDate) {
         log.info("Finding habit log by habitId {} and date {}", habitId, logDate);
         return habitLogRepository.findByHabit_IdAndLogDate(habitId, logDate);
     }
 
-    // Get all logs for a habit, ordered by date (latest first)
+    //find logs using habitId
     @Override
     public List<HabitLog> findByHabitId(Long habitId) {
         log.info("Finding habit log by habitId {}", habitId);
         return habitLogRepository.findByHabit_IdOrderByLogDateDesc(habitId);
     }
 
-    // Find a habit log by logId and userId
+    @Override
+    public List<HabitLog> findByHabitIdAndLogDateBetweenOrderByLogDate(Long habitId, LocalDate startDate, LocalDate endDate) {
+        return habitLogRepository.findByHabit_IdAndLogDateBetweenOrderByLogDate(habitId, startDate, endDate);
+    }
+
+    //finds logs using logId and UserId
     @Override
     public Optional<HabitLog> findByIdAndUserId(Long logId, Long userId) {
         log.info("Finding habit log by logId {} and userId {}", logId, userId);
         return habitLogRepository.findByLogIdAndHabit_User_UserId(logId, userId);
     }
 
-    // Delete a habit log from the database
+    //delete log
     @Override
     public void delete(HabitLog logData) {
         log.info("Delete the log");
         habitLogRepository.delete(logData);
     }
 
-    // Get logs for a habit within a specific date range
     @Override
     public List<HabitLog> findByHabitIdAndDateRange(Long habitId, LocalDate startDate, LocalDate endDate) {
         log.info("Finding habit log by HabitId {} and DateRange starDate {} endDate {}", habitId, startDate, endDate);
@@ -67,7 +71,6 @@ public class HabitLogDAOImpl implements HabitLogDAO {
                 endDate);
     }
 
-    // Get all habit logs for a user within a date range
     @Override
     public List<HabitLog> findLogsForUserInDateRange(Long userId, LocalDate startDate, LocalDate endDate) {
         log.info("Finding all habit logs for user {} between {} and {}", userId, startDate, endDate);

@@ -1,5 +1,6 @@
 package com.habit.hero.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
@@ -35,6 +36,7 @@ public class User {
     private String passwordHash;
 
     @Column(name = "verified", nullable = false)
+    @Builder.Default
     private Boolean verified = false;
 
     @Builder.Default
@@ -54,11 +56,14 @@ public class User {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Habit> habits;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Notification> notifications;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Activity> feedPosts;
 }

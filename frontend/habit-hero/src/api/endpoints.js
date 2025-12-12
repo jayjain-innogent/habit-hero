@@ -12,8 +12,9 @@ export const CREATE_ACTIVITY = "activity/create";
 export const GET_FEED = "activity/feed";
 export const LIKE_ACTIVITY = "activity";    // used as /activity/{id}/like
 export const UNLIKE_ACTIVITY = "activity";  // used as /activity/{id}/unlike
-export const ADD_COMMENT = "activity/comment";
+export const ADD_COMMENT = "activity/comments/add";
 export const GET_COMMENTS = "activity";     // used as /activity/{id}/comments
+export const GET_USER_ACTIVITIES = "activity/user"; // used as /activity/user/{userId}
 
 //user endpoints
 export const GET_USER = "users";

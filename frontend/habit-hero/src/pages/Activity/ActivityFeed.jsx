@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../routes/AppRoutes";
+import { useNavigate } from "react-router-dom";
 import {
   getFeedApi,
   likeActivityApi,
@@ -9,13 +10,16 @@ import CreateActivityModal from "../../components/activity/CreateActivityModal";
 import CommentsModal from "../../components/activity/CommentsModal";
 import SegmentedButton from "../../components/common/SegmentedButton";
 import "./ActivityFeed.css";
+import { generateReportApi } from "../../utils/use-gemini";
 
 export default function ActivityFeed() {
+  const navigate = useNavigate();
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false); 
   const [selectedActivityId, setSelectedActivityId] = useState(null);
+  const [summaryRes, setSummaryRes] = useState(null);
   const [filter, setFilter] = useState("ALL");
   const { currentUserId } = useAppContext();
 
@@ -27,6 +31,8 @@ export default function ActivityFeed() {
     setLoading(true);
     try {
       const response = await getFeedApi({ userId: currentUserId, filter, page: 0, size: 20 });
+      const summary = generateReportApi(response.data);
+      setSummaryRes(summary)
       setFeed(response.data || []);
     } catch (error) {
       console.error("Failed to load feed:", error);
@@ -71,6 +77,10 @@ export default function ActivityFeed() {
     setShowCommentsModal(true);
   };
 
+  const handleProfileClick = (userId) => {
+  navigate(`/profile/${userId}`);
+};
+
   return (
     <div className="activity-feed">
       <div className="activity-content">
@@ -94,10 +104,11 @@ export default function ActivityFeed() {
           <div className="activity-list">
             {feed.map((activity) => (
               <ActivityCard
-                key={activity.activityId}
+                key={activity.id}
                 activity={activity}
                 onLikeToggle={handleLikeToggle}
                 onCommentClick={() => handleCommentClick(activity.id)}
+                onProfileClick={handleProfileClick}
               />
             ))}
           </div>
@@ -112,12 +123,15 @@ export default function ActivityFeed() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSubmit={loadFeed}
+        summary={summaryRes}
       />
 
       <CommentsModal
         isOpen={showCommentsModal}
         onClose={() => setShowCommentsModal(false)}
         activityId={selectedActivityId}
+        onCommentAdded={loadFeed}
+        onProfileClick={handleProfileClick} // Add this line
       />
     </div>
   );

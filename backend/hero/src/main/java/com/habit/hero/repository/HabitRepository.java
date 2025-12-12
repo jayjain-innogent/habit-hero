@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface HabitRepository extends JpaRepository<Habit, Long> {
 
-    // Get all habits for a specific user
+    // Get all habits for user
     List<Habit> findByUser_UserId(Long userId);
 
     // Get all active habits for a user, sorted by creation date

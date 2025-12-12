@@ -3,6 +3,7 @@ import {
   GET_FEED,
   ADD_COMMENT,
   GET_COMMENTS,
+  GET_USER_ACTIVITIES,
 } from "./endpoints";
 
 // BASE_URL is handled in axiosConfig (http://localhost:8080)
@@ -17,6 +18,8 @@ export function createActivityApi({ userId, habitId, activityType, title, visibi
     activityType,
     title,
     visibility,
+    description,
+    caption,
   });
 }
 
@@ -53,4 +56,16 @@ export function addCommentApi({ activityId, userId, text }) {
 // GET COMMENTS 
 export function getCommentsApi({ activityId }) {
   return axiosInstance.get(`/activity/comments/${activityId}`);
+}
+
+// GET USER ACTIVITIES
+export function getUserActivitiesApi({ userId }) {
+  return axiosInstance.get(`/${GET_USER_ACTIVITIES}/${userId}`);
+}
+
+// DELETE ACTIVITY
+export function deleteActivityApi({ activityId, userId }) {
+  return axiosInstance.delete(`/activity/${activityId}`, {
+    params: { userId }
+  });
 }

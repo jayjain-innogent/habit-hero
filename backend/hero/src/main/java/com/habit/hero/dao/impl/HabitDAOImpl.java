@@ -19,9 +19,9 @@ public class HabitDAOImpl implements HabitDAO {
 
     private final HabitRepository habitRepository;
 
-    // Save or update a habit in the database
     @Override
     public Habit save(Habit habit) {
+        // Save or update habit
         log.info("Saving habit for user {}", habit.getUser());
         return habitRepository.save(habit);
     }
@@ -29,6 +29,7 @@ public class HabitDAOImpl implements HabitDAO {
     // Find a habit by its ID and user ID
     @Override
     public Optional<Habit> findByIdAndUserId(Long habitId, Long userId) {
+        // Ensure user owns this habit
         log.info("Finding habit {} for user {}", habitId, userId);
         return habitRepository.findByIdAndUser_UserId(habitId, userId);
     }
@@ -36,6 +37,7 @@ public class HabitDAOImpl implements HabitDAO {
     // Get all habits for a specific user
     @Override
     public List<Habit> findByUserId(Long userId) {
+        // Return all habits for given user
         log.info("Fetching all habits for user {}", userId);
         return habitRepository.findByUser_UserId(userId);
     }
@@ -50,6 +52,7 @@ public class HabitDAOImpl implements HabitDAO {
     // Delete a habit from the database
     @Override
     public void delete(Habit habit) {
+        // Delete a habit
         log.info("Deleting habit {} for user {}", habit.getId(), habit.getUser());
         habitRepository.delete(habit);
     }

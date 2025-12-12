@@ -1,0 +1,377 @@
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.card.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.card.primary h3,
+.card.primary .card-detail {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.card.primary .card-value {
+  color: white;
+}
+
+.card h3 {
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.card-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.card-value.score {
+  font-size: 42px;
+  background: linear-gradient(45deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card-value.category {
+  font-size: 20px;
+  color: #667eea;
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.card-detail {
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.weekly-trend-graph {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  margin: 32px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.weekly-trend-graph::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.weekly-trend-graph h3 {
+  color: #1e293b;
+  margin-bottom: 24px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Option 1: Circular Progress Rings */
+.progress-rings {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.progress-ring-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-ring {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.progress-ring.completed {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+}
+
+.progress-ring.missed {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  box-shadow: 0 8px 20px rgba(248, 113, 113, 0.3);
+}
+
+.progress-ring:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.ring-content i {
+  font-size: 24px;
+  color: white;
+}
+
+/* Option 2: Streak Timeline */
+.streak-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 32px 0;
+  padding: 20px 0;
+}
+
+.timeline-line {
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  right: 5%;
+  height: 3px;
+  background: linear-gradient(90deg, #e2e8f0, #cbd5e1, #e2e8f0);
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.timeline-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.timeline-dot.completed {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+.timeline-dot.missed {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.2);
+}
+
+.timeline-dot:hover {
+  transform: scale(1.2);
+}
+
+.dot-inner {
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+}
+
+.timeline-label {
+  position: absolute;
+  top: 50px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+/* Option 3: Card Grid */
+.progress-cards {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.progress-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.progress-card.completed {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  border-color: #22c55e;
+}
+
+.progress-card.missed {
+  background: linear-gradient(135deg, #fef2f2, #fecaca);
+  border-color: #ef4444;
+}
+
+.progress-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon i {
+  font-size: 24px;
+}
+
+.progress-card.completed .card-icon i {
+  color: #16a34a;
+}
+
+.progress-card.missed .card-icon i {
+  color: #dc2626;
+}
+
+.card-day {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.day-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  background: rgba(100, 116, 139, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .dashboard-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  
+  .card {
+    padding: 20px;
+  }
+  
+  .card-value {
+    font-size: 28px;
+  }
+  
+  .card-value.score {
+    font-size: 32px;
+  }
+  
+  .weekly-trend-graph {
+    padding: 24px;
+  }
+  
+  .progress-rings {
+    gap: 12px;
+  }
+  
+  .progress-ring {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .ring-content i {
+    font-size: 20px;
+  }
+  
+  .timeline-dot {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .progress-cards {
+    gap: 8px;
+  }
+  
+  .progress-card {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .weekly-trend-graph {
+    padding: 20px;
+  }
+  
+  .progress-rings {
+    gap: 8px;
+  }
+  
+  .progress-ring {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .ring-content i {
+    font-size: 18px;
+  }
+  
+  .timeline-dot {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .progress-cards {
+    gap: 6px;
+  }
+  
+  .progress-card {
+    padding: 10px;
+  }
+  
+  .card-icon i {
+    font-size: 20px;
+  }
+  
+  .day-label, .card-day, .timeline-label {
+    font-size: 9px;
+  }
+}

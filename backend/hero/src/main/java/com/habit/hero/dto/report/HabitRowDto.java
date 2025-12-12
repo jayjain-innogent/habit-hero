@@ -10,9 +10,9 @@ public class HabitRowDto {
 
     private String category;
 
-    private int completed;
+    private int taskCompletedCount;
 
-    private int target;
+    private int totalTargetTask;
 
     private int efficiency;
 

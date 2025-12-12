@@ -7,6 +7,7 @@ import {
     VISIBILITY,
     STATUS
 } from "../../data/enums";
+import { Trash2 } from "lucide-react";
 import ConfirmationModal from "../common/ConfirmationModal";
 
 export default function HabitForm({ mode = "create", initialData = {}, onSubmit, onDelete }) {
@@ -111,17 +112,39 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
 
         const payload = { ...form };
 
+        // CLEANUP: backend DTO does not accept startDate for updates
+        delete payload.startDate;
+
         if (payload.cadence === "DAILY") {
             payload.sessionCount = null;
+        } else {
+            // Ensure sessionCount is an Integer or null (not empty string)
+            if (payload.sessionCount === "" || payload.sessionCount === undefined) {
+                payload.sessionCount = null;
+            } else {
+                payload.sessionCount = parseInt(payload.sessionCount, 10);
+            }
         }
 
         if (payload.goalType === "OFF") {
-            delete payload.targetValue;
-            delete payload.unit;
+            // Backend expects nulls if we want to clear them, or we can delete them if backend ignores missing fields.
+            // DTO has them as fields. Better to send null explicitly or delete?
+            // "private String targetValue;"
+            // If we delete, it might not overwrite existing value if PATCH logic is "skip nulls".
+            // But usually we want to clear it. Let's send null.
+            payload.targetValue = null;
+            payload.unit = null;
         }
 
         if (mode === "create") {
             delete payload.status;
+            // For create, we MIGHT need startDate. Re-add it if mode is create.
+            // But wait, the form has it. We just deleted it above.
+            // Let's fix the logic: only delete startDate if mode is EDIT.
+            payload.startDate = form.startDate; // Restore for create
+        } else {
+            // mode === 'edit', delete startDate as it's not in HabitUpdateRequest
+            delete payload.startDate;
         }
 
         // Convert all enum values to uppercase for backend compatibility
@@ -141,6 +164,11 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
             }
         }
 
+        // Ensure targetValue is String as per DTO
+        if (payload.targetValue !== null && payload.targetValue !== undefined) {
+            payload.targetValue = String(payload.targetValue);
+        }
+
         onSubmit(payload);
     };
 
@@ -155,10 +183,7 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
         setShowDeleteModal(false);
     };
 
-    const isStartDateEditable = () => {
-        // ALWAYS allow editing start date
-        return true;
-    };
+
 
     return (
         <>
@@ -180,7 +205,7 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
                             className="btn btn-outline-danger btn-sm"
                             onClick={handleDeleteClick}
                         >
-                            <i className="bi bi-trash me-1"></i> Delete Habit
+                            <Trash2 size={16} style={{ marginRight: '4px' }} /> Delete Habit
                         </button>
                     </div>
                 )}
@@ -239,19 +264,7 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
                         </select>
                     </div>
 
-                    <div className="col-md-6">
-                        <label className="form-label fw-semibold text-secondary small">START DATE</label>
-                        <input
-                            type="date"
-                            name="startDate"
-                            className={`form-control ${errors.startDate ? "is-invalid" : ""}`}
-                            value={form.startDate}
-                            onChange={handleChange}
-                            disabled={!isStartDateEditable()}
-                        />
-                        {errors.startDate && <div className="invalid-feedback">{errors.startDate}</div>}
-                        {!isStartDateEditable() && <div className="form-text text-muted">Start date cannot be changed after the habit has started.</div>}
-                    </div>
+
 
                     {form.cadence !== "DAILY" && (
                         <div className="col-md-6">

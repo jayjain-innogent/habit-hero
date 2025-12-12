@@ -44,7 +44,10 @@
   color: #525252;
   font-weight: normal;
   margin-left: 4px;
+  white-space: pre-line;
+  line-height: 2;
 }
+
 
 .activity-time {
   color: #737373;

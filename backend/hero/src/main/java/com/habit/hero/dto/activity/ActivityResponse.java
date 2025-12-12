@@ -19,9 +19,11 @@ public class ActivityResponse {
     private Visibility visibility;
     private Long userId;
     private String username;
+    private String profileImageUrl;
     private Long habitId;
     private int likesCount;
     private int commentsCount;
     private LocalDateTime createdAt;
-
+    private String description;
+    private String caption;
 }

@@ -117,93 +117,92 @@ const NotificationDropdown = () => {
 
     return (
         <>
-        {isOpen && <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999998, background: 'rgba(0,0,0,0.2)' }} onClick={() => setIsOpen(false)} />}
-        <div className="dropdown" style={{ position: 'relative', zIndex: 999999 }}>
-            <button
-                className="btn btn-link position-relative text-decoration-none"
-                type="button"
-                id="notificationDropdown"
-                aria-expanded={isOpen}
-                onClick={toggleDropdown}
-                style={{ color: '#8CA9FF' }}
-            >
-                <FaBell size={24} />
-                {unreadCount > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill" style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)' }}>
-                        {unreadCount}
-                        <span className="visually-hidden">unread messages</span>
-                    </span>
-                )}
-            </button>
-
-            <div
-                className={`dropdown-menu dropdown-menu-end p-0 ${isOpen ? 'show' : ''}`}
-                aria-labelledby="notificationDropdown"
-                style={{
-                    width: '380px',
-                    maxHeight: '550px',
-                    overflowY: 'hidden',
-                    display: isOpen ? 'flex' : 'none',
-                    flexDirection: 'column',
-                    position: 'fixed',
-                    top: '60px',
-                    right: '20px',
-                    zIndex: 999999,
-                    border: '3px solid #FFE5A0',
-                    borderRadius: '16px',
-                    background: 'white',
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
-                }}
-            >
-
-                {/* Header */}
-                <div className="p-3 border-bottom d-flex justify-content-between align-items-center" style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)', borderTopLeftRadius: '13px', borderTopRightRadius: '13px' }}>
-                    <h6 className="m-0 fw-bold" style={{ color: '#fff' }}>Notifications</h6>
-                </div>
-
-                {/* Tabs */}
-                {notifications.length > 0 && (
-                    <div className="d-flex text-center border-bottom" style={{ background: '#FFFBF0' }}>
-                        {Object.keys(groupedNotifications).map((tab) => {
-                            const hasUnread = groupedNotifications[tab].some(n => !n.isRead);
-                            return (
-                                <div
-                                    key={tab}
-                                    className={`flex-fill py-3 cursor-pointer position-relative ${activeTab === tab ? 'border-bottom border-3' : ''}`}
-                                    onClick={(e) => { e.stopPropagation(); setActiveTab(tab); }}
-                                    style={{ cursor: 'pointer', color: activeTab === tab ? '#6B8EFF' : '#64748b', borderColor: '#6B8EFF', fontWeight: activeTab === tab ? '600' : '400' }}
-                                    title={tab}
-                                >
-                                    {tab === 'Friends' && <FaUserFriends size={20} />}
-                                    {tab === 'Streak Related' && <FaFire size={20} />}
-
-                                    {hasUnread && (
-                                        <span
-                                            className="position-absolute rounded-circle"
-                                            style={{ width: '8px', height: '8px', top: '10px', right: '35%', background: 'linear-gradient(135deg, #6B8EFF, #8CA9FF)' }}
-                                        ></span>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-
-                {/* Content */}
-                <ul className="list-unstyled m-0" style={{ overflowY: 'auto', maxHeight: '400px' }}>
-                    {notifications.length === 0 ? (
-                        <li className="p-4 text-center text-muted">No notifications</li>
-                    ) : (
-                        groupedNotifications[activeTab].length === 0 ? (
-                            <li className="p-4 text-center text-muted">No notifications in this section</li>
-                        ) : (
-                            groupedNotifications[activeTab].map(renderNotificationItem)
-                        )
+            {isOpen && <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999998, background: 'rgba(0,0,0,0.2)' }} onClick={() => setIsOpen(false)} />}
+            <div className="dropdown" style={{ position: 'relative', zIndex: 999999 }}>
+                <button
+                    className="btn btn-link position-relative text-decoration-none"
+                    type="button"
+                    id="notificationDropdown"
+                    aria-expanded={isOpen}
+                    onClick={toggleDropdown}
+                    style={{ color: '#8CA9FF' }}
+                >
+                    <FaBell size={24} />
+                    {unreadCount > 0 && (
+                        <span className="position-absolute top-0 start-100 translate-middle rounded-circle d-block" style={{ width: '10px', height: '10px', background: '#FF4D4D', border: '2px solid white' }}>
+                            <span className="visually-hidden">unread messages</span>
+                        </span>
                     )}
-                </ul>
+                </button>
 
+                <div
+                    className={`dropdown-menu dropdown-menu-end p-0 ${isOpen ? 'show' : ''}`}
+                    aria-labelledby="notificationDropdown"
+                    style={{
+                        width: '380px',
+                        maxHeight: '550px',
+                        overflowY: 'hidden',
+                        display: isOpen ? 'flex' : 'none',
+                        flexDirection: 'column',
+                        position: 'fixed',
+                        top: '60px',
+                        right: '20px',
+                        zIndex: 999999,
+                        border: '3px solid #FFE5A0',
+                        borderRadius: '16px',
+                        background: 'white',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
+                    }}
+                >
+
+                    {/* Header */}
+                    <div className="p-3 border-bottom d-flex justify-content-between align-items-center" style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)', borderTopLeftRadius: '13px', borderTopRightRadius: '13px' }}>
+                        <h6 className="m-0 fw-bold" style={{ color: '#fff' }}>Notifications</h6>
+                    </div>
+
+                    {/* Tabs */}
+                    {notifications.length > 0 && (
+                        <div className="d-flex text-center border-bottom" style={{ background: '#FFFBF0' }}>
+                            {Object.keys(groupedNotifications).map((tab) => {
+                                const hasUnread = groupedNotifications[tab].some(n => !n.isRead);
+                                return (
+                                    <div
+                                        key={tab}
+                                        className={`flex-fill py-3 cursor-pointer position-relative ${activeTab === tab ? 'border-bottom border-3' : ''}`}
+                                        onClick={(e) => { e.stopPropagation(); setActiveTab(tab); }}
+                                        style={{ cursor: 'pointer', color: activeTab === tab ? '#6B8EFF' : '#64748b', borderColor: '#6B8EFF', fontWeight: activeTab === tab ? '600' : '400' }}
+                                        title={tab}
+                                    >
+                                        {tab === 'Friends' && <FaUserFriends size={20} />}
+                                        {tab === 'Streak Related' && <FaFire size={20} />}
+
+                                        {hasUnread && (
+                                            <span
+                                                className="position-absolute rounded-circle"
+                                                style={{ width: '8px', height: '8px', top: '10px', right: '35%', background: 'linear-gradient(135deg, #6B8EFF, #8CA9FF)' }}
+                                            ></span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Content */}
+                    <ul className="list-unstyled m-0" style={{ overflowY: 'auto', maxHeight: '400px' }}>
+                        {notifications.length === 0 ? (
+                            <li className="p-4 text-center text-muted">No notifications</li>
+                        ) : (
+                            groupedNotifications[activeTab].length === 0 ? (
+                                <li className="p-4 text-center text-muted">No notifications in this section</li>
+                            ) : (
+                                groupedNotifications[activeTab].map(renderNotificationItem)
+                            )
+                        )}
+                    </ul>
+
+                </div>
             </div>
-        </div>
         </>
     );
 };

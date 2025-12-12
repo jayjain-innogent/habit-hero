@@ -4,6 +4,7 @@ import com.habit.hero.dto.user.UserResponse;
 import com.habit.hero.dto.user.UserUpdateRequest;
 import com.habit.hero.entity.User;
 import com.habit.hero.repository.UserRepository;
+import com.habit.hero.service.CloudinaryService;
 import com.habit.hero.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final CloudinaryService cloudinaryService;
 
     @Override
     public UserResponse getUserById(Long userId) {
@@ -43,7 +45,6 @@ public class UserServiceImpl implements UserService {
         // Update username if provided
         if (request.getUsername() != null && !request.getUsername().isBlank()) {
             // Check if new username is already taken by someone else
-            // logic to check duplicate username can be added here
             user.setUsername(request.getUsername());
         }
 
@@ -55,9 +56,8 @@ public class UserServiceImpl implements UserService {
         // Handle profile image upload
         MultipartFile imageFile = request.getProfileImage();
         if (imageFile != null && !imageFile.isEmpty()) {
-            // Cloudinary upload logic will be added here later
-            // String imageUrl = cloudinaryService.upload(imageFile);
-            // user.setProfileImageUrl(imageUrl);
+            String imageUrl = cloudinaryService.uploadImage(imageFile);
+            user.setProfileImageUrl(imageUrl);
         }
 
         // Save updated user to database

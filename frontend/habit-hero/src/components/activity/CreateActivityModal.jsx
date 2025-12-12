@@ -4,15 +4,28 @@ import { createActivityApi } from "../../api/activity";
 import { getAllHabits } from "../../api/habits";
 import Avatar from "../common/Avatar";
 import SegmentedButton from "../common/SegmentedButton";
+import { getTodayStatus } from "../../api/habitLogs";
 import "./CreateActivityModal.css";
 
-const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
+const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }) => {
   const [activityType, setActivityType] = useState("COMPLETION");
   const [selectedHabit, setSelectedHabit] = useState(null);
-  const [note, setNote] = useState("");
-  const [visibility, setVisibility] = useState("FRIENDS"); // New state for visibility
+  const [summary, setSummary] = useState("");
+  const [caption, setCaption] = useState("");
+  const [visibility, setVisibility] = useState("FRIENDS"); 
   const [habits, setHabits] = useState([]);
   const { currentUserId } = useAppContext();
+
+    // Filter habits based on activity type and completion status
+    const filteredHabits = activityType === "COMPLETION" 
+      ? habits.filter(habit => habit.completedToday === true)
+      : habits;
+
+    console.log('All habits:', habits);
+    console.log('Filtered habits:', filteredHabits);
+
+
+
 
   useEffect(() => {
     if (isOpen) {
@@ -20,25 +33,56 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
     }
   }, [isOpen]);
 
+    // Reset selected habit when activity type changes
+    useEffect(() => {
+      setSelectedHabit(null);
+    }, [activityType]);
+
+
   const fetchHabits = async () => {
     try {
-      const data = await getAllHabits(currentUserId);
-      setHabits(data);
+      const habitList = await getAllHabits(currentUserId);
+      const todayStatus = await getTodayStatus(currentUserId);
+      
+      const habitsWithStatus = habitList.map(h => ({
+        ...h,
+        completedToday: todayStatus?.status?.[h.id]?.completedToday || false,
+      }));
+      
+      setHabits(habitsWithStatus);
     } catch (error) {
       console.error("Failed to fetch habits:", error);
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedHabit) return;
+
+    const getActivityTitle = (type, habitTitle) => {
+      switch (type) {
+        case 'COMPLETION':
+          return `completed ${habitTitle}`;
+        case 'STREAK':
+          return `achieved streak for ${habitTitle}`;
+        case 'MILESTONE':
+          return `reached milestone for ${habitTitle}`;
+        case 'SUMMARY':
+          return `summary for ${habitTitle}`;
+        default:
+          return `completed ${habitTitle}`;
+      }
+    };
 
     try {
       const payload = {
         userId: currentUserId,
         habitId: selectedHabit.id,
         activityType,
-        title: `completed ${selectedHabit.title}`,
+        title: getActivityTitle(activityType, selectedHabit.title),
+        description : summary,
+        caption,
         visibility,
       };
 
@@ -46,7 +90,8 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
       onSubmit();
       onClose();
       setSelectedHabit(null);
-      setNote("");
+      setCaption("");
+      setSummary("");
       setActivityType("COMPLETION");
       setVisibility("FRIENDS");
     } catch (error) {
@@ -67,7 +112,6 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
-
           <div className="form-group">
             <label className="form-label">Activity Type</label>
             <select
@@ -88,15 +132,16 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
               value={selectedHabit?.id || ""}
               onChange={(e) =>
                 setSelectedHabit(
-                  habits.find((habit) => habit.id === parseInt(e.target.value))
+                  filteredHabits.find((habit) => habit.id === parseInt(e.target.value))
                 )
               }
+
               className="form-input"
             >
               <option value="" disabled>
                 Select a habit...
               </option>
-              {habits.map((habit) => (
+              {filteredHabits.map((habit) => (
                 <option key={habit.id} value={habit.id}>
                   {habit.title}
                 </option>
@@ -117,16 +162,28 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Add a note (optional)</label>
+          {activityType != "SUMMARY" && <div className="form-group">
+            <label className="form-label">Add a caption</label>
             <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
               rows={3}
               className="form-textarea"
-              placeholder="Share your thoughts..."
+              placeholder="Caption."
             />
-          </div>
+          </div>}
+
+          {activityType === "SUMMARY" && <div className="form-group">
+            <label className="form-label">Add a summary</label>
+            <textarea
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              rows={3}
+              className="form-textarea"
+              placeholder="Share summary."
+            />
+          </div>}
+
 
           <div className="modal-footer">
             <button type="button" onClick={onClose} className="btn-secondary">
