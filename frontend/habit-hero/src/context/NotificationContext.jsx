@@ -2,19 +2,25 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { notificationService } from '../services/notificationService';
+import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
 
 export const useNotification = () => useContext(NotificationContext);
 
 export const NotificationProvider = ({ children }) => {
+    const { user } = useAuth(); // Get user from Auth Context
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const stompClientRef = useRef(null);
     const processedIds = useRef(new Set());
-    const userId = 1; // Hardcoded as per requirements
+
+    // Use user.id if available, otherwise don't connect
+    const userId = user?.id;
 
     useEffect(() => {
+        if (!userId) return; // Don't fetch if not logged in
+
         fetchInitialData();
         connectWebSocket();
 
@@ -23,7 +29,7 @@ export const NotificationProvider = ({ children }) => {
                 stompClientRef.current.disconnect();
             }
         };
-    }, []);
+    }, [userId]); // Re-run when userId changes
 
     const fetchInitialData = async () => {
         try {

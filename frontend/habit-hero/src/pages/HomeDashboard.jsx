@@ -3,7 +3,6 @@ import { getAllHabits } from "../api/habits";
 import { createLog, deleteLog, getTodayStatus } from "../api/habitLogs";
 import HabitRow from "../components/habits/HabitRow";
 import QuoteWidget from "../components/common/QuoteWidget";
-import { getCacheKey, updateTodayStatusCache } from "../utils/cache";
 import { useNavigate } from "react-router-dom";
 
 export default function HomeDashboard() {
@@ -19,20 +18,8 @@ export default function HomeDashboard() {
     const loadHabits = async () => {
         try {
             setLoading(true);
-            const today = new Date().toISOString().split("T")[0];
-            const habitsCacheKey = `habits_list_${userId}`;
 
-            let habitList = null;
-            try {
-                const cached = localStorage.getItem(habitsCacheKey);
-                if (cached) habitList = JSON.parse(cached);
-            } catch (e) { console.error("Cache error", e); }
-
-            if (!habitList) {
-                habitList = await getAllHabits(userId);
-                localStorage.setItem(habitsCacheKey, JSON.stringify(habitList));
-            }
-
+            const habitList = await getAllHabits(userId);
             const todayStatus = await getTodayStatus(userId);
 
             let list = Array.isArray(habitList) ? habitList : [];
@@ -64,9 +51,6 @@ export default function HomeDashboard() {
             setHabits(prev => prev.map(h =>
                 h.id === habitId ? { ...h, logId: resp.logId } : h
             ));
-
-            updateTodayStatusCache(userId, habitId, actualValue);
-
         } catch (error) {
             console.error("Completion failed", error);
             // Revert

@@ -34,11 +34,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
@@ -60,6 +56,11 @@
         </dependency>
 
         <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+
+        <dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
@@ -74,7 +75,7 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-        <!-- JJWT (JSON Web Token) -->
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -93,15 +94,14 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Spring Boot Starter Mail -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
         <dependency>
@@ -109,19 +109,6 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
-        <!-- SLF4J Logger -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
     </dependencies>
 
 	<build>

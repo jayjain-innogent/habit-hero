@@ -8,16 +8,19 @@ import {
   acceptRequestApi,
   rejectRequestApi,
   cancelRequestApi,
-  getSentRequestsApi 
+  getSentRequestsApi
 } from "../../api/social";
-import { getUserApi } from "../../api/userApi";
+import { getUserApi, getMyProfileApi } from "../../api/userApi";
+import { useAuth } from "../../context/AuthContext";
 import ImageWithFallback from "../../components/ImageWithFallback";
 import EditProfileModal from "../../components/modals/EditProfileModals";
 import { getUserActivitiesApi, deleteActivityApi } from "../../api/activity";
 import ActivityCard from "../../components/activity/ActivityCard";
 import "./ProfilePage.css";
 
-export default function ProfilePage({ currentUserId }) {
+export default function ProfilePage() {
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.userId;
   const { userId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,13 +45,21 @@ export default function ProfilePage({ currentUserId }) {
 
   const fetchUser = useCallback(async () => {
     try {
-      const res = await getUserApi({ userId: viewedUserId });
+      let res;
+      // If no viewedUserId yet (e.g. auth not loaded), skip
+      if (!viewedUserId) return;
+
+      if (isOwn) {
+        res = await getMyProfileApi();
+      } else {
+        res = await getUserApi({ userId: viewedUserId });
+      }
       setUser(res.data);
     } catch (err) {
       console.error("fetchUser:", err);
       setError("Cannot load user profile");
     }
-  }, [viewedUserId]);
+  }, [viewedUserId, isOwn]);
 
   const fetchActivities = useCallback(async () => {
   try {
@@ -79,13 +90,13 @@ export default function ProfilePage({ currentUserId }) {
   }, [currentUserId]);
 
   const fetchSentByMe = useCallback(async () => {
-  try {
-    const res = await getSentRequestsApi({ userId: currentUserId });
-    setSentByMe(res.data || []);
-  } catch (err) {
-    console.error("fetchSentByMe:", err);
-  }
-}, [currentUserId]);
+    try {
+      const res = await getSentRequestsApi({ userId: currentUserId });
+      setSentByMe(res.data || []);
+    } catch (err) {
+      console.error("fetchSentByMe:", err);
+    }
+  }, [currentUserId]);
 
 
   const refreshAll = useCallback(async () => {
@@ -111,20 +122,20 @@ export default function ProfilePage({ currentUserId }) {
 
 
   const computeStatus = useCallback(() => {
-  if (isOwn) {
-    setStatus("self");
-    return;
-  }
+    if (isOwn) {
+      setStatus("self");
+      return;
+    }
 
-  const isFriend = friendsOfViewed.some(f => f.friendId === currentUserId);
-  const incoming = pendingToMe.find(r => r.senderId === viewedUserId);
-  const outgoing = sentByMe.find(r => r.senderId === viewedUserId) || (justSentRequest && justSentRequest.receiverId === viewedUserId);
+    const isFriend = friendsOfViewed.some(f => f.friendId === currentUserId);
+    const incoming = pendingToMe.find(r => r.senderId === viewedUserId);
+    const outgoing = sentByMe.find(r => r.senderId === viewedUserId) || (justSentRequest && justSentRequest.receiverId === viewedUserId);
 
-  if (isFriend) setStatus("friends");
-  else if (incoming) setStatus("pending_incoming");
-  else if (outgoing) setStatus("pending_outgoing");
-  else setStatus("none");
-}, [friendsOfViewed, pendingToMe, sentByMe, viewedUserId, currentUserId, isOwn, justSentRequest]);
+    if (isFriend) setStatus("friends");
+    else if (incoming) setStatus("pending_incoming");
+    else if (outgoing) setStatus("pending_outgoing");
+    else setStatus("none");
+  }, [friendsOfViewed, pendingToMe, sentByMe, viewedUserId, currentUserId, isOwn, justSentRequest]);
 
 
   useEffect(() => {
@@ -143,14 +154,14 @@ export default function ProfilePage({ currentUserId }) {
       if (status === "pending_outgoing") {
         return;
       }
-      
+
       await sendRequestApi({ senderId: currentUserId, receiverId: viewedUserId });
-      
-      setJustSentRequest({ 
+
+      setJustSentRequest({
         requestId: Date.now(),
-        receiverId: viewedUserId 
+        receiverId: viewedUserId
       });
-      
+
       await Promise.all([fetchSentByMe(), fetchPendingToMe(), fetchFriendsOfViewed()]);
       computeStatus();
     } catch (err) {
@@ -162,19 +173,19 @@ export default function ProfilePage({ currentUserId }) {
   };
 
   const handleRemoveFriend = async (e, friendId) => {
-  if (e) { e.preventDefault(); e.stopPropagation(); }
-  try {
-    await removeFriendApi({ userId: currentUserId, friendId });
-    setJustSentRequest(null); 
-    await Promise.all([fetchFriendsOfViewed(), fetchSentByMe(), fetchPendingToMe()]);
-    computeStatus();
-  } catch (err) {
-    console.error("Failed to remove friend:", err);
-    setJustSentRequest(null); 
-    await Promise.all([fetchFriendsOfViewed(), fetchSentByMe(), fetchPendingToMe()]);
-    computeStatus();
-  }
-};
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    try {
+      await removeFriendApi({ userId: currentUserId, friendId });
+      setJustSentRequest(null);
+      await Promise.all([fetchFriendsOfViewed(), fetchSentByMe(), fetchPendingToMe()]);
+      computeStatus();
+    } catch (err) {
+      console.error("Failed to remove friend:", err);
+      setJustSentRequest(null);
+      await Promise.all([fetchFriendsOfViewed(), fetchSentByMe(), fetchPendingToMe()]);
+      computeStatus();
+    }
+  };
 
   const handleAccept = async (requestId) => {
     try {
@@ -189,18 +200,18 @@ export default function ProfilePage({ currentUserId }) {
   };
 
   const handleReject = async (requestId) => {
-  try {
-    await rejectRequestApi({ requestId });
-    setJustSentRequest(null); 
-    await Promise.all([fetchPendingToMe(), fetchSentByMe(), fetchFriendsOfViewed()]);
-    computeStatus();
-  } catch (err) {
-    console.error("Failed to reject request:", err);
-    setJustSentRequest(null); 
-    await Promise.all([fetchPendingToMe(), fetchSentByMe(), fetchFriendsOfViewed()]);
-    computeStatus();
-  }
-};
+    try {
+      await rejectRequestApi({ requestId });
+      setJustSentRequest(null);
+      await Promise.all([fetchPendingToMe(), fetchSentByMe(), fetchFriendsOfViewed()]);
+      computeStatus();
+    } catch (err) {
+      console.error("Failed to reject request:", err);
+      setJustSentRequest(null);
+      await Promise.all([fetchPendingToMe(), fetchSentByMe(), fetchFriendsOfViewed()]);
+      computeStatus();
+    }
+  };
 
   const handleCancelRequest = async (requestId) => {
     try {
@@ -209,7 +220,7 @@ export default function ProfilePage({ currentUserId }) {
         computeStatus();
         return;
       }
-      
+
       await cancelRequestApi({ requestId });
       setJustSentRequest(null);
       await Promise.all([fetchSentByMe(), fetchPendingToMe(), fetchFriendsOfViewed()]);

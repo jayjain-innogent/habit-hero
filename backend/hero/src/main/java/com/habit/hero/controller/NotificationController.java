@@ -2,6 +2,7 @@ package com.habit.hero.controller;
 
 import com.habit.hero.dto.notification.NotificationResponseDto;
 import com.habit.hero.service.NotificationService;
+import com.habit.hero.util.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,42 +10,48 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final CurrentUserUtil currentUserUtil;
 
-    // Get all notifications for the current logged-in user
+    // get all notifications
     @GetMapping
     public ResponseEntity<List<NotificationResponseDto>> getUserNotifications() {
-        return ResponseEntity.ok(notificationService.getUserNotifications());
+        Long userId = currentUserUtil.getCurrentUserId();
+        return ResponseEntity.ok(notificationService.getUserNotifications(userId));
     }
 
-    // Get count of unread notifications for the current user
+    // get count of unread notifications
     @GetMapping("/unread-count")
     public ResponseEntity<Long> getUnreadCount() {
-        return ResponseEntity.ok(notificationService.getUnreadCount());
+        Long userId = currentUserUtil.getCurrentUserId();
+        return ResponseEntity.ok(notificationService.getUnreadCount(userId));
     }
 
-    // Mark a specific notification as read by ID
+    // mark a specific notification as read
     @PutMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
-        notificationService.markAsRead(id);
+        Long userId = currentUserUtil.getCurrentUserId();
+        notificationService.markAsRead(userId, id);
         return ResponseEntity.ok().build();
     }
 
-    // Mark all notifications as read for the current user
+    // mark all notifications as read
     @PutMapping("/read-all")
     public ResponseEntity<Void> markAllAsRead() {
-        notificationService.markAllAsRead();
+        Long userId = currentUserUtil.getCurrentUserId();
+        notificationService.markAllAsRead(userId);
         return ResponseEntity.ok().build();
     }
 
-    // Delete a specific notification by ID
+    // delete a specific notification
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
-        notificationService.deleteNotification(id);
+        Long userId = currentUserUtil.getCurrentUserId();
+        notificationService.deleteNotification(userId, id);
         return ResponseEntity.ok().build();
     }
 }

@@ -13,28 +13,28 @@ public class MailServiceImpl implements MailService {
     private final JavaMailSender mailSender;
 
     @Override
-    public void sendVerificationEmail(String to, String verificationLink) {
+    public void sendVerificationEmail(String to, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Verify your Habit Hero account");
         message.setText(
                 "Welcome to Habit Hero!\n\n" +
-                        "Click the link below to verify your account and continue:\n" +
-                        verificationLink + "\n\n" +
+                        "Your verification OTP is: " + otp + "\n\n" +
+                        "This code is valid for 15 minutes.\n" +
                         "If you didn’t request this, you can ignore this email."
         );
         mailSender.send(message);
     }
 
     @Override
-    public void sendPasswordResetEmail(String to, String resetLink) {
+    public void sendPasswordResetEmail(String to, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Reset your Habit Hero password");
         message.setText(
                 "You requested a password reset.\n\n" +
-                        "Use the link below to set a new password:\n" +
-                        resetLink + "\n\n" +
+                        "Your OTP for resetting the password is: " + otp + "\n\n" +
+                        "This code is valid for 30 minutes.\n" +
                         "If you didn’t request this, you can ignore this email."
         );
         mailSender.send(message);

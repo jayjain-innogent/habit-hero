@@ -9,7 +9,5 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
 
     boolean existsByActivityAndReactor(Activity activity, User reactor);
 
-    int countByActivity(Activity activity);
-
     void deleteByActivityAndReactor(Activity activity, User reactor);
 }

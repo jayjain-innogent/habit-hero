@@ -10,11 +10,9 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
+        <module name="hero" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="hero" target="17" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

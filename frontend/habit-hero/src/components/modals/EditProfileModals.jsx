@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { updateUserApi } from "../../api/userApi";
+import { updateUserProfileApi } from "../../api/userApi";
 import "./EditProfileModals.css";
 
 export default function EditProfileModal({ user, onClose, onUpdate }) {
@@ -38,10 +38,10 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
         formDataWithFile.append('userBio', formData.userBio);
         formDataWithFile.append('profileImage', selectedFile);
         
-        const response = await updateUserApi(user.userId, formDataWithFile);
+        const response = await updateUserProfileApi(user.userId, formDataWithFile);
         onUpdate(response.data);
       } else {
-        const response = await updateUserApi(user.userId, formData);
+        const response = await updateUserProfileApi(user.userId, formData);
         onUpdate(response.data);
       }
     } catch (err) {
