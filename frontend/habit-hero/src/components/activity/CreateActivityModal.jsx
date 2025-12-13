@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAppContext } from "../../routes/AppRoutes";
 import { createActivityApi } from "../../api/activity";
 import { getAllHabits } from "../../api/habits";
+import { Target, Flame, Medal, BarChart3 } from "lucide-react";
 import Avatar from "../common/Avatar";
 import SegmentedButton from "../common/SegmentedButton";
 import { getTodayStatus } from "../../api/habitLogs";
@@ -17,15 +18,12 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
   const { currentUserId } = useAppContext();
 
     // Filter habits based on activity type and completion status
-    const filteredHabits = activityType === "COMPLETION" 
+    const filteredHabits = activityType === "COMPLETION"
       ? habits.filter(habit => habit.completedToday === true)
       : habits;
 
     console.log('All habits:', habits);
     console.log('Filtered habits:', filteredHabits);
-
-
-
 
   useEffect(() => {
     if (isOpen) {
@@ -38,23 +36,21 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
       setSelectedHabit(null);
     }, [activityType]);
 
-
   const fetchHabits = async () => {
     try {
       const habitList = await getAllHabits(currentUserId);
       const todayStatus = await getTodayStatus(currentUserId);
-      
+
       const habitsWithStatus = habitList.map(h => ({
         ...h,
         completedToday: todayStatus?.status?.[h.id]?.completedToday || false,
       }));
-      
+
       setHabits(habitsWithStatus);
     } catch (error) {
       console.error("Failed to fetch habits:", error);
     }
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,32 +98,39 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2 className="modal-title">Share Activity</h2>
-          <button onClick={onClose} className="modal-close">
+    <div className="create-activity-overlay">
+      <div className="create-activity-content">
+        <div className="create-activity-header">
+          <h2 className="create-activity-title">Share Activity</h2>
+          <button onClick={onClose} className="create-activity-close">
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-group">
-            <label className="form-label">Activity Type</label>
-            <select
-              value={activityType}
-              onChange={(e) => setActivityType(e.target.value)}
-              className="form-input"
-            >
-              <option value="COMPLETION">Completion</option>
-              <option value="STREAK">Streak</option>
-              <option value="MILESTONE">Milestone</option>
-              <option value="SUMMARY">Summary</option>
-            </select>
+        <form onSubmit={handleSubmit} className="create-activity-form">
+          <div className="create-form-group">
+            <label className="create-form-label">Activity Type</label>
+            <div className="create-button-group">
+              {[
+                { value: "COMPLETION", label: "Completion" },
+                { value: "STREAK", label: "Streak" },
+                { value: "MILESTONE", label: "Milestone" },
+                { value: "SUMMARY", label: "Summary" }
+              ].map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  className={`create-option-btn ${activityType === type.value ? 'active' : ''}`}
+                  onClick={() => setActivityType(type.value)}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Select Habit</label>
+          <div className="create-form-group">
+            <label className="create-form-label">Select Habit</label>
             <select
               value={selectedHabit?.id || ""}
               onChange={(e) =>
@@ -135,8 +138,7 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
                   filteredHabits.find((habit) => habit.id === parseInt(e.target.value))
                 )
               }
-
-              className="form-input"
+              className="create-form-input"
             >
               <option value="" disabled>
                 Select a habit...
@@ -149,8 +151,8 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
             </select>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Visibility</label>
+          <div className="create-form-group">
+            <label className="create-form-label">Visibility</label>
             <SegmentedButton
               options={[
                 { label: "Public", value: "PUBLIC" },
@@ -162,37 +164,36 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
             />
           </div>
 
-          {activityType != "SUMMARY" && <div className="form-group">
-            <label className="form-label">Add a caption</label>
+          {activityType != "SUMMARY" && <div className="create-form-group">
+            <label className="create-form-label">Add a caption</label>
             <textarea
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               rows={3}
-              className="form-textarea"
+              className="create-form-textarea"
               placeholder="Caption."
             />
           </div>}
 
-          {activityType === "SUMMARY" && <div className="form-group">
-            <label className="form-label">Add a summary</label>
+          {activityType === "SUMMARY" && <div className="create-form-group">
+            <label className="create-form-label">Add a summary</label>
             <textarea
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               rows={3}
-              className="form-textarea"
+              className="create-form-textarea"
               placeholder="Share summary."
             />
           </div>}
 
-
-          <div className="modal-footer">
-            <button type="button" onClick={onClose} className="btn-secondary">
+          <div className="create-activity-footer">
+            <button type="button" onClick={onClose} className="create-btn-secondary">
               Cancel
             </button>
             <button
               type="submit"
               disabled={!selectedHabit}
-              className="btn-primary"
+              className="create-btn-primary"
             >
               Share Activity
             </button>

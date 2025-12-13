@@ -1,9 +1,13 @@
-import React, { useState, useEffect, createContext, useContext } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Trophy, Users, Activity as ActivityIcon, User, Settings, ChartColumn } from "lucide-react";
+
 
 import HabitCreate from "../pages/Habits/HabitCreate";
 import HabitEdit from "../pages/Habits/HabitEdit";
 import HabitsList from "../pages/Habits/HabitsList";
+import HabitStats from "../pages/HabitStats";
+import Dashboard from "../pages/Dashboard/Dashboard";
 import ActivityFeed from "../pages/Activity/ActivityFeed";
 import FriendsPage from "../pages/Friends/FriendsPage";
 import ProfilePage from "../pages/Profile/ProfilePage";
@@ -37,11 +41,11 @@ export default function AppRoutes() {
 
   // Defined menu items for the dashboard
   const menuItems = [
-    { id: "/habits", label: "Home" },
-    { id: "/friends", label: "Friends" },
-    { id: "/activity", label: "Activity" },
-    { id: "/profile", label: "Profile" },
-    { id: "/settings", label: "Settings" },
+    { id: "/habits", label: "Habits", icon: <ChartColumn size={20} /> },
+     { id: "/dashboard", label: "Dashboard", icon: <Trophy size={20} /> },
+    { id: "/friends", label: "Friends", icon: <Users size={20} /> },
+    { id: "/activity", label: "Activity", icon: <ActivityIcon size={20} /> },
+    { id: "/profile", label: "Profile", icon: <User size={20} /> }
   ];
 
   const handleClick = (path) => {
@@ -51,27 +55,25 @@ export default function AppRoutes() {
   return (
     <AppContext.Provider value={contextValue}>
       <Routes>
-        {/* Public Routes */}
+        {/* Public routes without sidebar */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify-otp" element={<OtpVerificationPage />} />
-
-        {/* Protected Dashboard Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<DashboardLayout menuItems={menuItems} onItemClick={handleClick} />}>
-            <Route path="/habits" element={<HabitsList />} />
-            <Route path="/habits/create" element={<HabitCreate />} />
-            <Route path="/habits/:habitId/edit" element={<HabitEdit />} />
-            <Route path="/friends" element={<FriendsPage />} />
-            <Route path="/activity" element={<ActivityFeed />} />
-            <Route path="/settings" element={<div style={{ padding: '20px' }}><h2>Settings</h2><p>Coming soon...</p></div>} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/profile/:userId" element={<ProfilePage />} />
-            <Route path="/profile/:userId/friends" element={<FriendListPage />} />
-          </Route>
+        
+        {/* Protected routes with sidebar */}
+        <Route element={<DashboardLayout menuItems={menuItems} onItemClick={handleClick} />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/habits" element={<HabitsList />} />
+          <Route path="/habits/create" element={<HabitCreate />} />
+          <Route path="/habits/:habitId/edit" element={<HabitEdit />} />
+          <Route path="/habits/:habitId/report" element={<HabitStats />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/activity" element={<ActivityFeed />} />
+          <Route path="/profile" element={<ProfilePage currentUserId={currentUserId} />} />
+          <Route path="/profile/:userId" element={<ProfilePage currentUserId={currentUserId} />} />
+          <Route path="/profile/:userId/friends" element={<FriendListPage currentUserId={currentUserId} />} />
         </Route>
       </Routes>
     </AppContext.Provider>

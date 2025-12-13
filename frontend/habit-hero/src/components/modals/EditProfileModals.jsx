@@ -52,32 +52,25 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Edit Profile</h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+    <div className="edit-profile-overlay" onClick={onClose}>
+      <div className="edit-profile-content" onClick={(e) => e.stopPropagation()}>
+        <div className="edit-profile-header">
+          <h3 className="edit-profile-title">Edit Profile</h3>
+          <button className="edit-profile-close" onClick={onClose}>×</button>
         </div>
         
-        <form onSubmit={handleSubmit} className="edit-form">
-          <div className="form-group profile-image-section">
+        <form onSubmit={handleSubmit} className="edit-profile-form">
+          <div className="edit-form-group profile-image-section">
             <div className="image-preview">
               <img 
                 src={previewUrl || "../../public/avator.jpeg"} 
                 alt="Profile" 
-                style={{ 
-                  width: '120px', 
-                  height: '120px', 
-                  objectFit: 'cover', 
-                  borderRadius: '50%',
-                  margin: '0 auto',
-                  display: 'block'
-                }} 
+                className="profile-preview-image"
               />
             </div>
             
             <div className="upload-section">
-              <label htmlFor="imageFile" className="upload-btn">
+              <label htmlFor="imageFile" className="edit-upload-btn">
                 Change Photo
               </label>
               <input
@@ -90,35 +83,37 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
+          <div className="edit-form-group">
+            <label htmlFor="username" className="edit-form-label">Username</label>
             <input
               type="text"
               id="username"
               name="username"
               value={formData.username}
               onChange={handleChange}
+              className="edit-form-input"
               required
             />
           </div>
           
-          <div className="form-group">
-            <label htmlFor="userBio">Bio</label>
+          <div className="edit-form-group">
+            <label htmlFor="userBio" className="edit-form-label">Bio</label>
             <textarea
               id="userBio"
               name="userBio"
               value={formData.userBio}
               onChange={handleChange}
               rows="3"
+              className="edit-form-textarea"
               placeholder="Tell us about yourself..."
             />
           </div>
           
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <div className="edit-form-actions">
+            <button type="button" className="edit-btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <button type="submit" className="edit-btn-primary" disabled={loading}>
               {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
@@ -127,4 +122,3 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
     </div>
   );
 }
-

@@ -298,7 +298,7 @@ useEffect(() => {
 
           {searchQuery && !searchLoading && Array.isArray(searchResults) && (
             <div className="search-results">
-              {searchResults.length === 0 ? (
+              {searchResults.filter(user => user.userId !== userId).length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-icon">🔍</div>
                   <h3>No users found</h3>
@@ -306,7 +306,7 @@ useEffect(() => {
                 </div>
               ) : (
                 <div className="users-list">
-                  {searchResults.map(user => {
+                  {searchResults.filter(user => user.userId !== userId).map(user => {
                     const status = getRelationshipStatus(user);
                     
                     return (

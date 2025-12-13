@@ -1,20 +1,20 @@
 .friends-page {
-  background: #FAFAFA;
+  background: var(--color-background);
   min-height: 100vh;
-  padding: 32px 24px;
+  padding: var(--space-8) var(--space-6);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .page-header h2 {
-  color: #171717;
-  margin: 0 0 8px 0;
-  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2) 0;
+  font-weight: var(--font-weight-bold);
 }
 
 .page-header .subtitle {
-  color: #737373;
-  margin: 0 0 32px 0;
-  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-8) 0;
+  font-weight: var(--font-weight-normal);
 }
 
 .tab-navigation {
@@ -24,28 +24,29 @@
 }
 
 .tab {
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   background: transparent;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: #525252;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   font-family: inherit;
 }
 
 .tab.active {
-  background: #171717;
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--color-text-on-primary);
 }
 
 .tab:hover:not(.active) {
-  background: #F5F5F5;
+  background: var(--color-surface-light);
+  color: var(--color-primary);
 }
 
 .search-container {
@@ -69,19 +70,19 @@
 
 .search-input {
   width: 100%;
-  padding: 12px 16px 12px 48px;
-  border: 1px solid #E5E5E5;
-  border-radius: 12px;
-  font-size: 16px;
-  background: #FAFAFA;
+  padding: var(--space-3) var(--space-4) var(--space-3) 48px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background: var(--color-white);
   font-family: inherit;
   transition: border-color 0.3s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #171717;
-  box-shadow: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .suggested-section {
@@ -108,15 +109,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px;
-  border: 2px solid #E5E5E5;
-  border-radius: 16px;
-  background: white;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
   transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .user-card:hover {
-  border-color: #D4D4D8;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .user-info {
@@ -187,27 +191,29 @@
 
 
 .btn-primary {
-  background: #171717;
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--color-text-on-primary);
 }
 
 .btn-primary:hover {
-  background: #262626;
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-secondary-hover) 100%);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: #F5F5F5;
-  color: #404040;
+  background: var(--color-surface-light);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .btn-success {
-  background: #22C55E;
-  color: white;
+  background: var(--gradient-success);
+  color: var(--color-white);
 }
 
 .btn-warning {
-  background: #EAB308;
-  color: white;
+  background: var(--color-warning);
+  color: var(--color-white);
 }
 
 .btn:disabled {
@@ -260,27 +266,28 @@
 
 /* More specific selectors to override any conflicting styles */
 .friends-page .btn.btn-primary {
-  background: #171717 !important;
-  color: white !important;
+  background: var(--gradient-primary) !important;
+  color: var(--color-text-on-primary) !important;
   border: none !important;
 }
 
 .friends-page .btn.btn-primary:hover {
-  background: #262626 !important;
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-secondary-hover) 100%) !important;
 }
 
 .friends-page .btn.btn-primary:disabled {
-  background: #171717 !important;
+  background: var(--color-surface-light) !important;
+  color: var(--color-text-muted) !important;
   opacity: 0.5 !important;
 }
 
 .search-input:focus {
   outline: none !important;
-  border-color: #171717 !important;
-  box-shadow: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
 }
 
 .search-input:focus-visible {
   outline: none !important;
-  box-shadow: none !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
 }

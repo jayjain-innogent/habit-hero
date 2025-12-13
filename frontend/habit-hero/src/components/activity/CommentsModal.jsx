@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { getCommentsApi, addCommentApi } from "../../api/activity";
+import { useAppContext } from "../../routes/AppRoutes";
 import Avatar from "../common/Avatar";
 import { X, Send } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import "./CommentsModal.css";
 
-const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfileClick}) => {
+const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded, onProfileClick }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const { currentUserId } = useAppContext();
+  const { user: currentUser } = useAuth(); // Add this line
 
   useEffect(() => {
     if (isOpen && activityId) {
@@ -17,7 +21,11 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfile
   const fetchComments = async () => {
     try {
       const response = await getCommentsApi({ activityId });
-      setComments(response.data || []);
+      // Sort comments by createdAt descending (newest first)
+      const sortedComments = (response.data || []).sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setComments(sortedComments);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
     }
@@ -27,7 +35,7 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfile
     if (!newComment.trim()) return;
 
     try {
-      await addCommentApi({ activityId, userId: 1, text: newComment });
+      await addCommentApi({ activityId, userId: currentUserId, text: newComment });
       setNewComment("");
       fetchComments();
       onCommentAdded?.(); 
@@ -39,30 +47,30 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfile
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2 className="modal-title">Comments</h2>
-          <button onClick={onClose} className="modal-close">
+    <div className="comments-modal-overlay">
+      <div className="comments-modal-content">
+        <div className="comments-modal-header">
+          <h2 className="comments-modal-title">Comments</h2>
+          <button onClick={onClose} className="comments-modal-close">
             <X size={18} />
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="comments-modal-body">
           {comments.length === 0 ? (
-            <p className="empty-state">No comments yet. Be the first to comment!</p>
+            <p className="comments-empty-state">No comments yet. Be the first to comment!</p>
           ) : (
             <ul className="comments-list">
               {comments.map((comment) => (
                 <li key={comment.commentId} className="comment-item">
-                <div 
+                <div
                   onClick={() => onProfileClick?.(comment.author?.userId)}
                   style={{ cursor: 'pointer' }}
                 >
                   <Avatar src={comment.author?.profileImage} alt={comment.author?.username} />
                 </div>
                 <div className="comment-content">
-                  <span 
+                  <span
                     className="comment-author"
                     onClick={() => onProfileClick?.(comment.author?.userId)}
                     style={{ cursor: 'pointer' }}
@@ -77,15 +85,15 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded , onProfile
           )}
         </div>
 
-        <div className="modal-footer">
+        <div className="comments-modal-footer">
           <input
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Write a comment..."
-            className="comment-input"
+            className="comments-input"
           />
-          <button onClick={handleAddComment} className="btn-primary">
+          <button onClick={handleAddComment} className="comments-submit-btn">
             <Send size={16} style={{ marginRight: '6px' }} />
             Post
           </button>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   getFriendsListApi,
@@ -16,6 +16,9 @@ import ImageWithFallback from "../../components/ImageWithFallback";
 import EditProfileModal from "../../components/modals/EditProfileModals";
 import { getUserActivitiesApi, deleteActivityApi } from "../../api/activity";
 import ActivityCard from "../../components/activity/ActivityCard";
+import { fetchDashboardData } from "../../services/api";
+import { Edit3, Calendar, Flame, Target, TrendingUp, Users, Activity } from "lucide-react";
+import FriendListPage from './FriendListPage';
 import "./ProfilePage.css";
 
 export default function ProfilePage() {
@@ -25,6 +28,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const sourcePage = location.state?.from || null;
+  const friendListRef = useRef();
 
   const viewedUserId = userId ? parseInt(userId, 10) : currentUserId;
   const isOwn = currentUserId === viewedUserId;
@@ -40,13 +44,12 @@ export default function ProfilePage() {
 
   const [status, setStatus] = useState("none");
   const [activities, setActivities] = useState([]);
-
-
+  const [dashboardData, setDashboardData] = useState(null);
+  const [activeTab, setActiveTab] = useState('activity');
 
   const fetchUser = useCallback(async () => {
     try {
       let res;
-      // If no viewedUserId yet (e.g. auth not loaded), skip
       if (!viewedUserId) return;
 
       if (isOwn) {
@@ -62,15 +65,23 @@ export default function ProfilePage() {
   }, [viewedUserId, isOwn]);
 
   const fetchActivities = useCallback(async () => {
-  try {
-    const res = await getUserActivitiesApi({ userId: viewedUserId });
-    setActivities(res.data || []);
-  } catch (err) {
-    console.error("fetchActivities:", err);
-  }
-}, [viewedUserId]);
+    try {
+      const res = await getUserActivitiesApi({ userId: viewedUserId });
+      setActivities(res.data || []);
+    } catch (err) {
+      console.error("fetchActivities:", err);
+    }
+  }, [viewedUserId]);
 
-  
+  const fetchDashboard = useCallback(async () => {
+    try {
+      const data = await fetchDashboardData();
+      setDashboardData(data);
+    } catch (err) {
+      console.error("fetchDashboard:", err);
+    }
+  }, []);
+
   const fetchFriendsOfViewed = useCallback(async () => {
     try {
       const res = await getFriendsListApi({ userId: viewedUserId });
@@ -98,7 +109,6 @@ export default function ProfilePage() {
     }
   }, [currentUserId]);
 
-
   const refreshAll = useCallback(async () => {
     setLoading(true);
     await Promise.all([
@@ -106,20 +116,20 @@ export default function ProfilePage() {
       fetchFriendsOfViewed(),
       fetchPendingToMe(),
       fetchSentByMe(),
-      fetchActivities()
+      fetchActivities(),
+      fetchDashboard()
     ]);
     setLoading(false);
   }, [fetchUser, fetchFriendsOfViewed, fetchPendingToMe, fetchSentByMe, fetchActivities]);
 
   const handleDeleteActivity = async (activityId) => {
-  try {
-    await deleteActivityApi({ activityId, userId: currentUserId });
-    setActivities(prev => prev.filter(activity => activity.id !== activityId));
-  } catch (err) {
-    console.error("Delete activity error:", err);
-  }
-};
-
+    try {
+      await deleteActivityApi({ activityId, userId: currentUserId });
+      setActivities(prev => prev.filter(activity => activity.id !== activityId));
+    } catch (err) {
+      console.error("Delete activity error:", err);
+    }
+  };
 
   const computeStatus = useCallback(() => {
     if (isOwn) {
@@ -137,7 +147,6 @@ export default function ProfilePage() {
     else setStatus("none");
   }, [friendsOfViewed, pendingToMe, sentByMe, viewedUserId, currentUserId, isOwn, justSentRequest]);
 
-
   useEffect(() => {
     refreshAll();
   }, [viewedUserId, refreshAll]);
@@ -148,12 +157,8 @@ export default function ProfilePage() {
 
   const handleAddFriend = async () => {
     try {
-      if (status === "friends") {
-        return;
-      }
-      if (status === "pending_outgoing") {
-        return;
-      }
+      if (status === "friends") return;
+      if (status === "pending_outgoing") return;
 
       await sendRequestApi({ senderId: currentUserId, receiverId: viewedUserId });
 
@@ -178,6 +183,12 @@ export default function ProfilePage() {
       await removeFriendApi({ userId: currentUserId, friendId });
       setJustSentRequest(null);
       await Promise.all([fetchFriendsOfViewed(), fetchSentByMe(), fetchPendingToMe()]);
+      
+      // Refresh FriendListPage if it's currently active
+      if (activeTab === 'friends' && friendListRef.current?.refreshFriends) {
+        friendListRef.current.refreshFriends();
+      }
+      
       computeStatus();
     } catch (err) {
       console.error("Failed to remove friend:", err);
@@ -186,6 +197,7 @@ export default function ProfilePage() {
       computeStatus();
     }
   };
+
 
   const handleAccept = async (requestId) => {
     try {
@@ -240,75 +252,160 @@ export default function ProfilePage() {
   if (error) return <div className="profile-page"><p className="error-message">{error}</p></div>;
 
   return (
-    <div className="profile-page">
-      <div className="profile-nav">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-      </div>
+    <div className="modern-profile-page">
+      <div className="profile-container">
+        {/* Profile Header */}
+        <div className="profile-header-card">
+          <div className="profile-main-info">
+            <div className="profile-avatar-section">
+              <ImageWithFallback
+                src={user?.profileImageUrl}
+                fallbackSrc="../../public/avator.jpeg"
+                alt={`${user?.username} avatar`}
+                className="modern-avatar"
+              />
+            </div>
 
-      <div className="profile-header">
-        <div className="profile-avatar">
-          <ImageWithFallback
-            src={user?.profileImageUrl}
-            fallbackSrc="../../public/avator.jpeg"
-            alt={`${user?.username} avatar`}
-            className="avatar-large"
-          />
-        </div>
-        <h2 className="profile-username">{user?.username}</h2>
-        <p className="profile-bio">{user?.userBio || "No bio available"}</p>
+            <div className="profile-details">
+              <div className="profile-name-section">
+                <h1 className="profile-name">{user?.username || 'User'}</h1>
+                {isOwn && (
+                  <button className="edit-profile-btn" onClick={() => setShowEditModal(true)}>
+                    <Edit3 size={16} />
+                    Edit Profile
+                  </button>
+                )}
+              </div>
 
-        <div className="profile-stats">
-          <div className="stat">
-            <span className="stat-number">{friendsOfViewed.length}</span>
-            <span className="stat-label">Friends</span>
+              <p className="profile-handle">@{user?.username?.toLowerCase() || 'user'}</p>
+              <p className="profile-bio">{user?.userBio || 'Building better habits, one day at a time 🚀'}</p>
+
+              <div className="profile-meta">
+                <Calendar size={16} />
+                  <span>Joined {user?.createdAt ? (() => {
+                    const date = new Date(user.createdAt);
+                    return isNaN(date.getTime()) ? 'Recently' : date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                  })() : 'Recently'}</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="profile-actions">
-        {isOwn ? (
-          <>
-            <button className="btn btn-primary" onClick={() => navigate(`/profile/${viewedUserId}/friends`)}>
-              Friend List ({friendsOfViewed.length})
-            </button>
-            <button className="btn btn-secondary" onClick={() => setShowEditModal(true)}>
-              Edit Profile
-            </button>
-          </>
-        ) : (
-          <>
-            {status === "none" && (
-              <button type="button" className="btn btn-primary" onClick={handleAddFriend}>
-                Add Friend
-              </button>
-            )}
-
-            {status === "pending_incoming" && incomingRequest && (
-              <>
-                <button type="button" className="btn btn-success" onClick={() => handleAccept(incomingRequest.requestId)}>
-                  Accept
+        <div className="profile-actions">
+          {!isOwn && (
+            <>
+              {status === "none" && (
+                <button type="button" className="btn btn-primary" onClick={handleAddFriend}>
+                  Add Friend
                 </button>
-                <button type="button" className="btn btn-danger" onClick={() => handleReject(incomingRequest.requestId)}>
-                  Reject
+              )}
+
+              {status === "pending_incoming" && incomingRequest && (
+                <>
+                  <button type="button" className="btn btn-success" onClick={() => handleAccept(incomingRequest.requestId)}>
+                    Accept
+                  </button>
+                  <button type="button" className="btn btn-danger" onClick={() => handleReject(incomingRequest.requestId)}>
+                    Reject
+                  </button>
+                </>
+              )}
+
+              {status === "pending_outgoing" && outgoingRequest && (
+                <button type="button" className="btn btn-warning" onClick={() => handleCancelRequest(outgoingRequest.requestId)}>
+                  Cancel Request
                 </button>
-              </>
-            )}
+              )}
 
-            {status === "pending_outgoing" && outgoingRequest && (
-              <button type="button" className="btn btn-warning" onClick={() => handleCancelRequest(outgoingRequest.requestId)}>
-                Cancel Request
-              </button>
-            )}
+              {status === "friends" && (
+                <button type="button" className="btn btn-danger" onClick={(e) => handleRemoveFriend(e, viewedUserId)}>
+                  Remove Friend
+                </button>
+              )}
+            </>
+          )}
+        </div>
 
-            {status === "friends" && (
-              <button type="button" className="btn btn-danger" onClick={(e) => handleRemoveFriend(e, viewedUserId)}>
-                Remove Friend
-              </button>
-            )}
-          </>
-        )}
+        {/* Tab Navigation */}
+        <div className="tab-navigation">
+          <button
+            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+            onClick={() => setActiveTab('activity')}
+          >
+            {isOwn ? 'My Activity' : `${user?.username}'s Activity`}
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'friends' ? 'active' : ''}`}
+            onClick={() => setActiveTab('friends')}
+          >
+            Friends ({friendsOfViewed.length})
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        <div className="tab-content">
+          {activeTab === 'activity' && (
+            <div className="activities-section">
+              {isOwn ? (
+                activities.length === 0 ? (
+                  <div className="empty-state">
+                    <Activity size={48} />
+                    <p>No activities yet</p>
+                    <span>Start sharing habits today!</span>
+                  </div>
+                ) : (
+                  <div className="activities-list">
+                    {activities.map((activity) => (
+                      <ActivityCard
+                        key={activity.id}
+                        activity={activity}
+                        onLikeToggle={() => {}}
+                        onCommentClick={() => {}}
+                        onProfileClick={(userId) => navigate(`/profile/${userId}`)}
+                        onDelete={handleDeleteActivity}
+                      />
+                    ))}
+                  </div>
+                )
+              ) : (
+                (() => {
+                  const visibleActivities = activities.filter(activity => {
+                    if (activity.visibility === 'PUBLIC') return true;
+                    if (activity.visibility === 'FRIENDS' && status === 'friends') return true;
+                    return false;
+                  });
+
+                  const hasPrivateActivities = activities.some(activity => activity.visibility === 'PRIVATE');
+
+                  return visibleActivities.length === 0 ? (
+                    <div className="empty-state">
+                      <Activity size={48} />
+                      <p>{hasPrivateActivities ? 'This account is private' : 'No activities to show'}</p>
+                    </div>
+                  ) : (
+                    <div className="activities-list">
+                      {visibleActivities.map((activity) => (
+                        <ActivityCard
+                          key={activity.id}
+                          activity={activity}
+                          onLikeToggle={() => {}}
+                          onCommentClick={() => {}}
+                          onProfileClick={(userId) => navigate(`/profile/${userId}`)}
+                        />
+                      ))}
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          )}
+
+          {activeTab === 'friends' && (
+            <div className="friends-section">
+              <FriendListPage ref={friendListRef} userId={viewedUserId} />
+            </div>
+          )}
+        </div>
       </div>
 
       {showEditModal && (
@@ -321,56 +418,6 @@ export default function ProfilePage() {
           }}
         />
       )}
-
-
-      {/* Activities Section */}
-      <div className="profile-activities">
-        <h3>Activities</h3>
-        {isOwn ? (
-          // Current user sees all their activities
-          activities.length === 0 ? (
-            <p>No activities yet.</p>
-          ) : (
-            <div className="activities-list">
-              {activities.map((activity) => (
-                <ActivityCard
-                  key={activity.id}
-                  activity={activity}
-                  onLikeToggle={() => {}}
-                  onCommentClick={() => {}}
-                  onProfileClick={(userId) => navigate(`/profile/${userId}`)}
-                  onDelete={handleDeleteActivity}
-                />
-              ))}
-            </div>
-          )
-        ) : (
-          // Other users - filter by visibility
-          (() => {
-            const visibleActivities = activities.filter(activity => {
-              if (activity.visibility === 'PUBLIC') return true;
-              if (activity.visibility === 'FRIENDS' && status === 'friends') return true;
-              return false;
-            });
-
-            return visibleActivities.length === 0 ? (
-              <p>{status === 'friends' ? 'No activities to show.' : 'This account is private.'}</p>
-            ) : (
-              <div className="activities-list">
-                {visibleActivities.map((activity) => (
-                  <ActivityCard
-                    key={activity.id}
-                    activity={activity}
-                    onLikeToggle={() => {}}
-                    onCommentClick={() => {}}
-                    onProfileClick={(userId) => navigate(`/profile/${userId}`)}
-                  />
-                ))}
-              </div>
-            );
-          })()
-        )}
-      </div>
     </div>
   );
 }
