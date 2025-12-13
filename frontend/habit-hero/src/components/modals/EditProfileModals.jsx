@@ -63,7 +63,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
           <div className="edit-form-group profile-image-section">
             <div className="image-preview">
               <img 
-                src={previewUrl || "../../public/avator.jpeg"} 
+                src={previewUrl || "../../public/avator.jpg"} 
                 alt="Profile" 
                 className="profile-preview-image"
               />

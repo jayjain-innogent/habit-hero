@@ -27,7 +27,7 @@ import ImageWithFallback from "../ImageWithFallback";
       <div className="user-info" onClick={handleProfileClick}>
         <ImageWithFallback
           src={request.senderProfileImage}
-          fallbackSrc="../../public/avator.jpeg"
+          fallbackSrc="../../public/avator.jpg"
           alt={`${request.senderUsername} avatar`}
           className="user-avatar"
         />

@@ -260,7 +260,7 @@ export default function ProfilePage() {
             <div className="profile-avatar-section">
               <ImageWithFallback
                 src={user?.profileImageUrl}
-                fallbackSrc="../../public/avator.jpeg"
+                fallbackSrc="../../public/avator.jpg"
                 alt={`${user?.username} avatar`}
                 className="modern-avatar"
               />

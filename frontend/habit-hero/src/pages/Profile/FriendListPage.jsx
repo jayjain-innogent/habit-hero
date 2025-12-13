@@ -121,7 +121,7 @@ const FriendListPage = forwardRef(({ userId: propUserId }, ref) => {
               <div className="friend-info" onClick={() => handleFriendClick(friend.friendId)}>
                 <ImageWithFallback
                   src={friend.friendProfileImage}
-                  fallbackSrc="../../public/avator.jpeg"
+                  fallbackSrc="../../public/avator.jpg"
                   alt={`${friend.friendUsername} avatar`}
                   className="friend-avatar"
                 />
