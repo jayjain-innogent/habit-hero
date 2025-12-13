@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FaLeaf, FaEnvelope, FaLock } from 'react-icons/fa';
 import AuthService from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { getUserIdFromToken } from '../utils/jwtUtil';
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -22,6 +23,11 @@ const LoginPage = () => {
         try {
             const response = await AuthService.login(formData);
             if (response.accessToken) {
+                // Extract userId from token and store in localStorage
+                const userId = getUserIdFromToken(response.accessToken);
+                if (userId) {
+                    localStorage.setItem('userId', userId);
+                }
                 login(response.accessToken);
                 navigate('/habits');
             } else {

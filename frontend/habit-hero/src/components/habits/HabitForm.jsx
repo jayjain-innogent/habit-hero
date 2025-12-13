@@ -240,7 +240,7 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
                         </select>
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-6" style={{ display: 'none' }}>
                         <label className="form-label fw-semibold text-secondary small">START DATE</label>
                         <input
                             type="date"

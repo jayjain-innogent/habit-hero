@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/notifications/**").authenticated()
                         .requestMatchers("/reports/**").authenticated()
                         .requestMatchers("/users/**").authenticated()
+                        .requestMatchers("/api/reports/dashboard/**").authenticated()
 
                         // secure any other request not listed above
                         .anyRequest().authenticated()

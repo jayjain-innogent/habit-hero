@@ -37,8 +37,6 @@ const SignupPage = () => {
             navigate('/verify-otp', { state: { email: formData.email } });
         } catch (err) {
             console.error("Signup Error:", err);
-            console.error("Error response:", err.response?.data);
-            console.error("Error status:", err.response?.status);
             setError(err.response?.data?.message || 'Registration failed. Please try again.');
         } finally {
             setIsLoading(false);

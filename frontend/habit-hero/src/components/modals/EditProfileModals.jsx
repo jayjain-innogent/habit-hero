@@ -4,12 +4,13 @@ import "./EditProfileModals.css";
 
 export default function EditProfileModal({ user, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
+    name: user.name || "",
     username: user.username || "",
-    userBio: user.userBio || ""
+    userBio: user.userBio || "",
   });
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(user.profileImageUrl || "");
+  const [profileImage, setProfileImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -19,18 +20,15 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+    if (e.target.files && e.target.files[0]) {
+      setProfileImage(e.target.files[0]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       if (selectedFile) {
         const formDataWithFile = new FormData();
@@ -44,6 +42,9 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
         const response = await updateUserProfileApi(user.userId, formData);
         onUpdate(response.data);
       }
+
+      const response = await updateUserProfileApi(user.userId, data);
+      onUpdate(response.data);
     } catch (err) {
       console.error("Failed to update profile:", err);
     } finally {
@@ -60,6 +61,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
         </div>
         
         <form onSubmit={handleSubmit} className="edit-profile-form">
+
           <div className="edit-form-group profile-image-section">
             <div className="image-preview">
               <img 

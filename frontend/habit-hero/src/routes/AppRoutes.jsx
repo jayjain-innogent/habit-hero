@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Trophy, Users, Activity as ActivityIcon, User, Settings, ChartColumn } from "lucide-react";
 
-
 import HabitCreate from "../pages/Habits/HabitCreate";
 import HabitEdit from "../pages/Habits/HabitEdit";
 import HabitsList from "../pages/Habits/HabitsList";
@@ -61,7 +60,7 @@ export default function AppRoutes() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-otp" element={<OtpVerificationPage />} />
-        
+
         {/* Protected routes with sidebar */}
         <Route element={<DashboardLayout menuItems={menuItems} onItemClick={handleClick} />}>
           <Route path="/dashboard" element={<Dashboard />} />

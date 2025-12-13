@@ -17,6 +17,7 @@ import com.habit.hero.mapper.HabitLogMapper;
 import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.HabitLogService;
 import com.habit.hero.service.NotificationService;
+import com.habit.hero.service.report.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -101,9 +102,11 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Fetching logs for user {} habit {}", userId, habitId);
 
+        // Verify Habit ownership
         habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
+        // Return list of logs
         return habitLogDAO.findByHabitId(habitId)
                 .stream()
                 .map(HabitLogMapper::toResponse)
@@ -172,17 +175,16 @@ public class HabitLogServiceImpl implements HabitLogService {
         Map<Long, HabitStatusItem> responseMap = new HashMap<>();
 
         for (Habit habit : habits) {
+
             Optional<HabitLog> todayLog = habitLogDAO.findTodayLog(habit.getId(), today);
 
             HabitStatusItem item = todayLog
                     .map(HabitLogMapper::toTodayStatus)
-                    .orElse(
-                            HabitStatusItem.builder()
-                                    .completedToday(false)
-                                    .actualValue(null)
-                                    .logId(null)
-                                    .build()
-                    );
+                    .orElse(HabitStatusItem.builder()
+                            .completedToday(false)
+                            .actualValue(null)
+                            .logId(null)
+                            .build());
 
             responseMap.put(habit.getId(), item);
         }
@@ -205,7 +207,6 @@ public class HabitLogServiceImpl implements HabitLogService {
         return HabitLogMapper.toResponse(logEntity);
     }
 
-    // Update the note for a specific habit log
     @Override
     public HabitLogResponse updateNote(Long userId, Long logId, String note) {
 

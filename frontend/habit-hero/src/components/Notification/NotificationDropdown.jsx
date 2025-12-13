@@ -125,12 +125,11 @@ const NotificationDropdown = () => {
                 id="notificationDropdown"
                 aria-expanded={isOpen}
                 onClick={toggleDropdown}
-                style={{ color: '#8CA9FF' }}
+                style={{ color: '#000' }}
             >
                 <FaBell size={24} />
                 {unreadCount > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill" style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)' }}>
-                        {unreadCount}
+                    <span className="position-absolute top-0 start-100 translate-middle rounded-circle" style={{ background: '#FF4444', width: '12px', height: '12px' }}>
                         <span className="visually-hidden">unread messages</span>
                     </span>
                 )}

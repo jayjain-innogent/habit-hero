@@ -31,7 +31,7 @@ export function getFeedApi({ userId, filter = "ALL", page = 0, size = 10 }) {
   });
 }
 
-// LIKE/UNLIKE 
+// LIKE/UNLIKE
 export function likeActivityApi({ activityId, userId }) {
   return axiosInstance.post(`/activity/${activityId}/like`, null, {
     params: {
@@ -49,7 +49,7 @@ export function addCommentApi({ activityId, userId, text }) {
   });
 }
 
-// GET COMMENTS 
+// GET COMMENTS
 export function getCommentsApi({ activityId }) {
   return axiosInstance.get(`/activity/comments/${activityId}`);
 }

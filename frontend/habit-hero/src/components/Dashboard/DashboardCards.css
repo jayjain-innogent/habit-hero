@@ -222,6 +222,7 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 12px;
   margin: 24px 0;
+  min-height: 80px;
 }
 
 .progress-card {
@@ -231,10 +232,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
   transition: all 0.3s ease;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 2px solid #e2e8f0;
+  min-height: 60px;
 }
 
 .progress-card.completed {
@@ -252,16 +255,21 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.card-icon i {
-  font-size: 24px;
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
 }
 
-.progress-card.completed .card-icon i {
-  color: #16a34a;
+.progress-card.completed .card-icon {
+  background: rgba(22, 163, 74, 0.1);
 }
 
-.progress-card.missed .card-icon i {
-  color: #dc2626;
+.progress-card.missed .card-icon {
+  background: rgba(220, 38, 38, 0.1);
 }
 
 .card-day {

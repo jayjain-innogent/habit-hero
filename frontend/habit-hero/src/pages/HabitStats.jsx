@@ -22,18 +22,57 @@ const HabitStats = () => {
         setIsGeneratingPDF(true);
 
         try {
+            // Validate data exists
+            if (!reportData || !reportData.summary || !reportData.habit || !reportData.weekRange) {
+                alert('Report data is not available. Please try again.');
+                setIsGeneratingPDF(false);
+                return;
+            }
+
+            const { summary, habit, weekRange } = reportData;
+            
             const pdf = new jsPDF();
             const pageWidth = pdf.internal.pageSize.width;
             const pageHeight = pdf.internal.pageSize.height;
             let yPosition = 20;
 
-        const completionDates = summary.habitCompletionsData?.completaionDate || [];
-        const completionValues = summary.habitCompletionsData?.completionValue || [];
-        const totalDays = weekDates.length;
-        const completedDays = completionDates.length;
-        const completionRate = Math.round((completedDays / totalDays) * 100);
-        const totalRepetitions = completionValues.reduce((sum, val) => sum + val, 0);
-        const avgRepetitions = completedDays > 0 ? (totalRepetitions / completedDays).toFixed(1) : 0;
+            // Calculate week dates
+            const weekDates = [];
+            const start = new Date(weekRange.startDate);
+            const end = new Date(weekRange.endDate);
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                weekDates.push(new Date(d).toISOString().split('T')[0]);
+            }
+
+// Debug logging
+            console.log('GeneratePDF - Report Data:', { summary, habit, weekRange });
+            console.log('GeneratePDF - Habit Completions Data:', summary.habitCompletionsData);
+
+            // Handle both property name variations (typo fix)
+            const completionDates = summary.habitCompletionsData?.completionDate || 
+                                    summary.habitCompletionsData?.completaionDate || [];
+            const completionValues = summary.habitCompletionsData?.completionValue || [];
+            
+            console.log('GeneratePDF - Completion Data:', { 
+              completionDates, 
+              completionValues,
+              completionDatesCount: completionDates.length,
+              completionValuesCount: completionValues.length 
+            });
+
+            const totalDays = weekDates.length;
+            const completedDays = completionDates.length;
+            const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
+            const totalRepetitions = completionValues.reduce((sum, val) => sum + (val || 0), 0);
+            const avgRepetitions = completedDays > 0 ? (totalRepetitions / completedDays).toFixed(1) : 0;
+            
+            console.log('GeneratePDF - Calculated Metrics:', {
+              totalDays,
+              completedDays,
+              completionRate,
+              totalRepetitions,
+              avgRepetitions
+            });
 
         const addNewPageIfNeeded = (requiredSpace) => {
             if (yPosition + requiredSpace > pageHeight - 20) {
@@ -301,15 +340,15 @@ const HabitStats = () => {
         pdf.rect(chartX, chartY, chartWidth, chartHeight);
 
         // Draw bars
-//         const barWidth = chartWidth / chartData.length;
+        const chartBarWidth = chartWidth / (chartData.length > 0 ? chartData.length : 1);
         chartData.forEach((value, index) => {
             const barHeight = (value / maxChartValue) * (chartHeight - 10);
-            const barX = chartX + (index * barWidth) + 2;
+            const barX = chartX + (index * chartBarWidth) + 2;
             const barY = chartY + chartHeight - barHeight - 5;
 
             const barColor = value > 0 ? [34, 197, 94] : [239, 68, 68];
             pdf.setFillColor(barColor[0], barColor[1], barColor[2]);
-            pdf.rect(barX, barY, barWidth - 4, barHeight, 'F');
+            pdf.rect(barX, barY, chartBarWidth - 4, barHeight, 'F');
         });
 
         // Add day labels
@@ -317,7 +356,7 @@ const HabitStats = () => {
         pdf.setTextColor(100, 100, 100);
         weekDates.forEach((date, index) => {
             const dayLabel = new Date(date).toLocaleDateString('en-US', { weekday: 'short' })[0];
-            const labelX = chartX + (index * barWidth) + (barWidth / 2);
+            const labelX = chartX + (index * chartBarWidth) + (chartBarWidth / 2);
             pdf.text(dayLabel, labelX, chartY + chartHeight + 8, { align: 'center' });
         });
 
