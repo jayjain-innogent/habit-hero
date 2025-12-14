@@ -2,114 +2,114 @@
   "hash": "8db8dc2c",
   "configHash": "a71838f4",
   "lockfileHash": "c458efb3",
-  "browserHash": "d705760e",
+  "browserHash": "cdff22bc",
   "optimized": {
     "react": {
       "src": "../../node_modules/react/index.js",
       "file": "react.js",
-      "fileHash": "ec9960ef",
+      "fileHash": "4a2acf20",
       "needsInterop": true
     },
     "react-dom/client": {
       "src": "../../node_modules/react-dom/client.js",
       "file": "react-dom_client.js",
-      "fileHash": "af3d71ad",
+      "fileHash": "28563ed7",
       "needsInterop": true
     },
     "react-router-dom": {
       "src": "../../node_modules/react-router-dom/dist/index.mjs",
       "file": "react-router-dom.js",
-      "fileHash": "9a843f26",
+      "fileHash": "cd9f4163",
       "needsInterop": false
     },
     "sockjs-client": {
       "src": "../../node_modules/sockjs-client/lib/entry.js",
       "file": "sockjs-client.js",
-      "fileHash": "1a2e3a0c",
+      "fileHash": "ef367cab",
       "needsInterop": true
     },
     "stompjs": {
       "src": "../../node_modules/stompjs/index.js",
       "file": "stompjs.js",
-      "fileHash": "eb7a965f",
+      "fileHash": "7ea32610",
       "needsInterop": true
-    },
-    "lucide-react": {
-      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
-      "file": "lucide-react.js",
-      "fileHash": "c198ea7e",
-      "needsInterop": false
     },
     "react-icons/fa": {
       "src": "../../node_modules/react-icons/fa/index.mjs",
       "file": "react-icons_fa.js",
-      "fileHash": "65000788",
+      "fileHash": "4fd6d6d2",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "7d6081bd",
       "needsInterop": false
     },
     "jspdf": {
       "src": "../../node_modules/jspdf/dist/jspdf.es.min.js",
       "file": "jspdf.js",
-      "fileHash": "4bf511b4",
+      "fileHash": "3664f952",
       "needsInterop": false
     },
     "html2canvas": {
       "src": "../../node_modules/html2canvas/dist/html2canvas.esm.js",
       "file": "html2canvas.js",
-      "fileHash": "025ee71a",
+      "fileHash": "05006e26",
       "needsInterop": false
     },
     "react-icons/bi": {
       "src": "../../node_modules/react-icons/bi/index.mjs",
       "file": "react-icons_bi.js",
-      "fileHash": "879b0e71",
+      "fileHash": "d6f0b971",
       "needsInterop": false
     },
     "axios": {
       "src": "../../node_modules/axios/index.js",
       "file": "axios.js",
-      "fileHash": "fb458c77",
+      "fileHash": "8f380949",
       "needsInterop": false
     },
     "html2pdf.js": {
       "src": "../../node_modules/html2pdf.js/dist/html2pdf.js",
       "file": "html2pdf__js.js",
-      "fileHash": "aa6fb2e8",
+      "fileHash": "039e2b7d",
       "needsInterop": true
     },
     "react-icons/io5": {
       "src": "../../node_modules/react-icons/io5/index.mjs",
       "file": "react-icons_io5.js",
-      "fileHash": "a336e1fb",
+      "fileHash": "1b3f0552",
       "needsInterop": false
     },
     "bootstrap/dist/js/bootstrap.bundle.min": {
       "src": "../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
       "file": "bootstrap_dist_js_bootstrap__bundle__min.js",
-      "fileHash": "dd7bd291",
+      "fileHash": "715ab0b0",
       "needsInterop": true
     }
   },
   "chunks": {
+    "chunk-AZZLBHVG": {
+      "file": "chunk-AZZLBHVG.js"
+    },
     "purify.es-PTZXN3P5": {
       "file": "purify__es-PTZXN3P5.js"
     },
     "index.es-ZMAPEBQG": {
       "file": "index__es-ZMAPEBQG.js"
     },
-    "chunk-AZZLBHVG": {
-      "file": "chunk-AZZLBHVG.js"
+    "chunk-WPQLZFAX": {
+      "file": "chunk-WPQLZFAX.js"
+    },
+    "chunk-Z54NHHXK": {
+      "file": "chunk-Z54NHHXK.js"
     },
     "chunk-WNY4UJJC": {
       "file": "chunk-WNY4UJJC.js"
     },
     "chunk-LTZIYYLR": {
       "file": "chunk-LTZIYYLR.js"
-    },
-    "chunk-QL43ZYKV": {
-      "file": "chunk-QL43ZYKV.js"
-    },
-    "chunk-Z54NHHXK": {
-      "file": "chunk-Z54NHHXK.js"
     },
     "chunk-V4OQ3NZ2": {
       "file": "chunk-V4OQ3NZ2.js"

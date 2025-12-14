@@ -112,6 +112,26 @@
   margin-bottom: var(--space-4);
 }
 
+.stat-header svg {
+  color: #6366f1;
+}
+
+.stat-card:nth-child(1) .stat-header svg {
+  color: #3b82f6;
+}
+
+.stat-card:nth-child(2) .stat-header svg {
+  color: #f59e0b;
+}
+
+.stat-card:nth-child(3) .stat-header svg {
+  color: #10b981;
+}
+
+.stat-card:nth-child(4) .stat-header svg {
+  color: #ef4444;
+}
+
 .stat-label {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
@@ -463,11 +483,37 @@ background: gray;
   color: #1e293b;
 }
 
+.snapshot-change-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 4px 0;
+}
+
 .snapshot-change {
   font-size: 14px;
   font-weight: 600;
-  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.snapshot-change.positive {
   color: #10b981;
+}
+
+.snapshot-change.negative {
+  color: #ef4444;
+}
+
+.snapshot-change.neutral {
+  color: #6b7280;
+}
+
+.snapshot-change-row .snapshot-subtext {
+  margin: 0;
+  font-size: 12px;
 }
 
 .snapshot-subtext {
@@ -480,15 +526,15 @@ background: gray;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
+  gap: var(--space-3);
+  padding: var(--space-3);
   background: var(--color-surface-light);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-4);
 }
 
 .month-nav button {
-  background: var(--color-white);
+  background: var(--color-primary-white);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-4);
