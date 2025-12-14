@@ -1,0 +1,174 @@
+.comments-modal-overlay {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1000 !important;
+}
+
+.comments-modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  width: 90% !important;
+  max-width: 420px !important;
+  height: 450px !important;
+  max-height: 85vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e5e7eb !important;
+  overflow: hidden !important;
+}
+
+.comments-modal-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 16px 20px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  flex-shrink: 0 !important;
+  background: white !important;
+}
+
+.comments-modal-title {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  color: #1f2937 !important;
+}
+
+.comments-modal-close {
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 8px !important;
+  border-radius: 50% !important;
+  transition: background-color 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.comments-modal-close:hover {
+  background-color: #f3f4f6 !important;
+}
+
+.comments-modal-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 16px !important;
+  min-height: 0 !important;
+  background: white !important;
+}
+
+.comments-list {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.comment-item {
+  display: flex !important;
+  gap: 12px !important;
+  margin-bottom: 12px !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+  border: 1px solid transparent !important;
+}
+
+.comment-item:hover {
+  background-color: #f8f9fa !important;
+  border-color: #e5e7eb !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.comment-content {
+  flex: 1 !important;
+}
+
+.comment-author {
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease !important;
+}
+
+.comment-author:hover {
+  color: #3b82f6 !important;
+}
+
+.comment-text {
+  margin: 4px 0 0 0 !important;
+  color: #4b5563 !important;
+  line-height: 1.4 !important;
+  font-size: 14px !important;
+}
+
+.comments-modal-footer {
+  display: flex !important;
+  gap: 12px !important;
+  padding: 12px 20px !important;
+  border-top: 1px solid #e5e7eb !important;
+  flex-shrink: 0 !important;
+  background: white !important;
+  min-height: 56px !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 10 !important;
+}
+
+.comments-input {
+  flex: 1 !important;
+  padding: 10px 14px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 12px !important;
+  outline: none !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease !important;
+  height: 40px !important;
+  box-sizing: border-box !important;
+}
+
+.comments-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.comments-submit-btn {
+  display: flex !important;
+  align-items: center !important;
+  padding: 10px 16px !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+  height: 40px !important;
+  box-sizing: border-box !important;
+}
+
+.comments-submit-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+.comments-empty-state {
+  text-align: center !important;
+  color: #6b7280 !important;
+  font-style: italic !important;
+  padding: 40px 20px !important;
+}

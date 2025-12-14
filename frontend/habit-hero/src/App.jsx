@@ -1,13 +1,24 @@
-import React from "react";
-import { BrowserRouter } from "react-router-dom";
-import AppRoutes from "./routes/AppRoutes";
-import "./styles/habits.css";
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { AppProvider } from './context/AppContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { AuthProvider } from './context/AuthContext';
+import AppRoutes from './routes/AppRoutes';
+import './App.css';
 
-
-export default function App() {
+const App = () => {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <AppProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </NotificationProvider>
+      </AuthProvider>
+    </AppProvider>
   );
-}
+};
+
+
+export default App;

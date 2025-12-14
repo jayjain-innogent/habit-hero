@@ -1,9 +1,6 @@
 package com.habit.hero.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PostPersist;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,7 +23,7 @@ public abstract class BaseEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @PostPersist
+    @PreUpdate
     protected void onUpdate(){
         this.updatedAt = LocalDateTime.now();
     }

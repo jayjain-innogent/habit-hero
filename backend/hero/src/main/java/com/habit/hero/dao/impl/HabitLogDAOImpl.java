@@ -1,8 +1,11 @@
 package com.habit.hero.dao.impl;
 
 import com.habit.hero.dao.HabitLogDAO;
+import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
+import com.habit.hero.enums.HabitStatus;
 import com.habit.hero.repository.HabitLogRepository;
+import com.habit.hero.repository.HabitRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -17,6 +20,7 @@ import java.util.Optional;
 public class HabitLogDAOImpl implements HabitLogDAO {
 
     private final HabitLogRepository habitLogRepository;
+    private final HabitRepository habitRepository;
 
     //save
     @Override
@@ -37,6 +41,11 @@ public class HabitLogDAOImpl implements HabitLogDAO {
     public List<HabitLog> findByHabitId(Long habitId) {
         log.info("Finding habit log by habitId {}", habitId);
         return habitLogRepository.findByHabit_IdOrderByLogDateDesc(habitId);
+    }
+
+    @Override
+    public List<HabitLog> findByHabitIdAndLogDateBetweenOrderByLogDate(Long habitId, LocalDate startDate, LocalDate endDate) {
+        return habitLogRepository.findByHabit_IdAndLogDateBetweenOrderByLogDate(habitId, startDate, endDate);
     }
 
     //finds logs using logId and UserId
@@ -69,6 +78,15 @@ public class HabitLogDAOImpl implements HabitLogDAO {
                 userId,
                 startDate,
                 endDate
+        );
+    }
+
+    // Find all active habits not logged since a specific date
+    @Override
+    public List<Habit> findActiveHabitsNotLoggedSince(LocalDate date) {
+        return habitRepository.findByStatusEqualsAndLastActivityDateBeforeOrLastActivityDateIsNull(
+                HabitStatus.ACTIVE,
+                date
         );
     }
 }

@@ -35,7 +35,11 @@ export default function HabitEdit() {
             window.forceReloadHabits = true;
             navigate("/habits");
         } catch (err) {
-            setError(err.response?.data?.message || "Failed to update habit");
+            const errMsg = err.response?.data?.message
+                || JSON.stringify(err.response?.data)
+                || err.message
+                || "Failed to update habit";
+            setError(`Update Failed: ${errMsg}`);
         } finally {
             setLoading(false);
         }

@@ -1,8 +1,22 @@
+:root {
+    --primary: var(--color-primary, #6F2DBD);
+    --secondary: var(--color-secondary, #A663CC);
+    --accent: var(--color-success, #B9FAF8);
+    --bg: var(--color-background, #B8D0EB);
+    --card-bg: var(--color-surface, #B298DC);
+    --text: var(--color-text-primary, #0F172A);
+    --text-muted: var(--color-text-muted, #64748B);
+    --border: var(--color-border, #E2E8F0);
+}
+
 body {
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background-color: var(--color-bg);
+    background: var(--color-background);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* color: var(--text); */
+    color: var(--color-text-primary);
 }
 
 #root {
@@ -10,29 +24,25 @@ body {
     min-height: 100vh;
 }
 
-/* Remove dark theme preference override */
-@media (prefers-color-scheme: dark) {
-    :root {
-        color: var(--color-text);
-        background-color: var(--color-bg);
-    }
+* {
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Scrollbar styling for light theme */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--color-bg);
+    background: #f1f5f9;
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #cbd5e0;
-    border-radius: 4px;
+    background: var(--gradient-primary);
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #a0b0c0;
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
 }

@@ -5,6 +5,10 @@ import App from './App.jsx'
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles/progressSummary.css";
 
+// Polyfill global for sockjs-client
+if (typeof global === 'undefined') {
+  window.global = window;
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

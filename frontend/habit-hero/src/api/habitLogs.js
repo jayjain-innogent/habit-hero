@@ -1,4 +1,4 @@
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "./axiosConfig";
 
 const HABIT_LOG_BASE_URL = "/habits";
 

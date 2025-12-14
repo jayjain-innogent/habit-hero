@@ -1,8 +1,9 @@
 package com.habit.hero.entity;
 
-import com.habit.hero.enums.ReactionType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "activity_reactions",
@@ -17,19 +18,12 @@ public class Reaction extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reaction_id")
-    private Long reactionId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "reaction_type", nullable = false)
-    private ReactionType reactionType;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "activity_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Activity activity;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "completion_id")
-    private HabitLog completion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reactor_user_id")

@@ -28,10 +28,10 @@ public class HabitServiceImpl implements HabitService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Habit habit = HabitMapper.toEntity(request, user);
         if (request.getCadence() == Cadence.DAILY) {
             request.setSessionCount(null); // No sessions required
         }
+        Habit habit = HabitMapper.toEntity(request, user);
         Habit saved = habitDAO.save(habit);
 
         return HabitMapper.toResponse(saved);

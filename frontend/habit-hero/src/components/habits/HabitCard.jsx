@@ -4,6 +4,34 @@ import { useNavigate } from "react-router-dom";
 import { createLog, deleteLog } from "../../api/habitLogs";
 import NoteModal from "./NoteModal";
 import ConfirmationModal from "../common/ConfirmationModal";
+import { FaEllipsisV, FaEdit, FaChartBar, FaFire, FaUndo } from "react-icons/fa";
+
+const getCategoryColor = (category) => {
+    if (!category) return "secondary";
+    const upper = category.toUpperCase();
+
+    if (upper === "FITNESS") return "fitness";
+    if (upper === "HEALTH") return "health";
+    if (upper === "SOCIAL") return "social";
+    if (upper === "PRODUCTIVITY") return "productivity";
+    return "secondary";
+};
+
+const CATEGORY_HEX_COLORS = {
+    fitness: "#E74C3C",      // Red-Orange
+    health: "#3498DB",       // Blue
+    social: "#9b59b6",       // Purple
+    productivity: "#F39C12", // Orange
+    secondary: "#6c757d"
+};
+
+const CATEGORY_BADGE_STYLES = {
+    fitness: { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },       // Red
+    health: { bg: "#dbeafe", color: "#1d4ed8", border: "#bfdbfe" },        // Blue
+    social: { bg: "#f3e8ff", color: "#7c3aed", border: "#e9d5ff" },        // Purple
+    productivity: { bg: "#fef3c7", color: "#d97706", border: "#fde68a" },  // Orange
+    secondary: { bg: "#f3f4f6", color: "#6b7280", border: "#e5e7eb" }      // Gray
+};
 
 export default function HabitCard({ habit, onComplete, onUncomplete }) {
     const navigate = useNavigate();
@@ -13,29 +41,50 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
     const [currentValue, setCurrentValue] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const scrubberRef = useRef(null);
+    const menuRef = useRef(null);
 
     const [showNoteModal, setShowNoteModal] = useState(false);
     const [localNote, setLocalNote] = useState(habit.note || "");
-
+    const [showMenu, setShowMenu] = useState(false);
     const [showUncompleteWarning, setShowUncompleteWarning] = useState(false);
+    const [showSlider, setShowSlider] = useState(false);
 
     const isCompleted = habit.completedToday === true;
     const isPaused = habit.status === "PAUSED";
     const hasGoal = habit.goalType !== "OFF";
 
-    const today = new Date().toISOString().split('T')[0];
+    const getTodayDate = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    const today = getTodayDate();
     const startDate = habit.startDate ? new Date(habit.startDate).toISOString().split('T')[0] : null;
     const isFuture = startDate && startDate > today;
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setShowMenu(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const handleComplete = async () => {
         try {
             setCompleting(true);
             const actualValue = hasGoal ? currentValue : 1;
-
             const resp = await createLog(userId, habit.id, { actualValue });
             const newLogId = resp.logId;
-
             if (onComplete) onComplete(habit.id, actualValue, newLogId);
+            // Reset slider after successful submission
+            setShowSlider(false);
+            setCurrentValue(0);
         } catch (err) {
             alert("Failed to complete habit");
         } finally {
@@ -48,10 +97,6 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
         try {
             setCompleting(true);
             await deleteLog(userId, habit.logId);
-
-            // Update cache to remove completion status (simplified)
-            // Ideally we should refetch or have a robust cache update for deletion
-
             if (onUncomplete) onUncomplete(habit.id);
             setShowUncompleteWarning(false);
         } catch (err) {
@@ -71,14 +116,10 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
 
     const updateScrubberValue = (clientX) => {
         if (!scrubberRef.current || !hasGoal) return;
-
         const rect = scrubberRef.current.getBoundingClientRect();
         const x = clientX - rect.left;
         const width = rect.width;
-
-        let percentage = x / width;
-        percentage = Math.max(0, Math.min(1, percentage));
-
+        let percentage = Math.max(0, Math.min(1, x / width));
         const newValue = Math.round(percentage * habit.targetValue);
         setCurrentValue(newValue);
     };
@@ -112,6 +153,7 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
     }, [isDragging]);
 
     const progressPercent = hasGoal ? (currentValue / habit.targetValue) * 100 : 0;
+    const categoryColor = getCategoryColor(habit.category);
 
     return (
         <>
@@ -136,152 +178,129 @@ export default function HabitCard({ habit, onComplete, onUncomplete }) {
             />
 
             <div
-                className={`card border-0 shadow-sm h-100 bg-white`}
-                style={{
-                    transition: "all 0.3s ease",
-                    opacity: isCompleted ? 0.8 : (isPaused || isFuture) ? 0.7 : 1,
-                    borderLeft: isCompleted
-                        ? "4px solid #10b981"
-                        : isPaused
-                            ? "4px solid #f59e0b"
-                            : isFuture
-                                ? "4px solid #6c757d"
-                                : "4px solid transparent"
-                }}
+                className="habit-card-modern"
+                style={{ borderTop: `4px solid ${CATEGORY_HEX_COLORS[categoryColor] || "#6c757d"}` }}
             >
-                <div className="card-body d-flex flex-column p-4">
-
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                        <h5 className="card-title fw-bold text-dark mb-0">
-                            {habit.title}
-                        </h5>
-                        <div className="d-flex gap-2">
+                {/* Three Dot Menu */}
+                <div className="habit-card-menu" ref={menuRef}>
+                    <button
+                        className="menu-trigger"
+                        onClick={() => setShowMenu(!showMenu)}
+                    >
+                        <FaEllipsisV />
+                    </button>
+                    {showMenu && (
+                        <div className="menu-dropdown">
+                            <button onClick={() => { navigate(`/habits/${habit.id}/report`); setShowMenu(false); }}>
+                                <FaChartBar /> View Stats
+                            </button>
+                            <button onClick={() => { navigate(`/habits/${habit.id}/edit`); setShowMenu(false); }}>
+                                <FaEdit /> Edit
+                            </button>
                             {isCompleted && (
-                                <span className="badge bg-success-subtle text-success rounded-pill">Done</span>
-                            )}
-                            {isFuture && (
-                                <span className="badge bg-secondary-subtle text-secondary rounded-pill">Upcoming</span>
+                                <button onClick={() => { setShowUncompleteWarning(true); setShowMenu(false); }}>
+                                    <FaUndo /> Undo
+                                </button>
                             )}
                         </div>
-                    </div>
+                    )}
+                </div>
 
-                    <p className="card-text text-secondary small mb-3" style={{ minHeight: "40px" }}>
-                        {habit.description
-                            ? habit.description.length > 70
-                                ? habit.description.substring(0, 70) + "..."
-                                : habit.description
-                            : "No description"}
-                    </p>
+                {/* Card Content */}
+                <div className="habit-card-content">
+                    <h3 className="habit-card-title">{habit.title}</h3>
+                    <p className="habit-card-description">{habit.description || "No description"}</p>
 
-                    <div className="mb-4 d-flex flex-wrap gap-2">
-                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
+                    <div className="habit-card-badges">
+                        <span
+                            className="badge-category"
+                            style={{
+                                background: CATEGORY_BADGE_STYLES[categoryColor]?.bg || "#e0e7ff",
+                                color: CATEGORY_BADGE_STYLES[categoryColor]?.color || "#4338ca",
+                                borderColor: CATEGORY_BADGE_STYLES[categoryColor]?.border || "#c7d2fe"
+                            }}
+                        >
                             {habit.category}
                         </span>
-                        <span className="badge bg-light text-secondary border">
-                            {habit.cadence}
+                        <span className="badge-cadence">{habit.cadence}</span>
+                        <span className="habit-streak-badge">
+                            <FaFire /> {habit.currentStreak || habit.streak || 0}
                         </span>
-                        {hasGoal && (
-                            <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">
-                                Goal: {habit.targetValue} {habit.unit}
-                            </span>
-                        )}
                     </div>
 
-                    <div className="mt-auto">
-
-                        {!isCompleted && hasGoal && !isPaused && !isFuture && (
-                            <div className="mb-4">
-                                <div className="d-flex justify-content-between align-items-end mb-2">
-                                    <label className="form-label small fw-bold text-secondary mb-0">LOG PROGRESS</label>
-                                    <div className="text-primary fw-bold">
-                                        <span className="fs-5">{currentValue}</span>
-                                        <span className="small text-muted"> / {habit.targetValue} {habit.unit}</span>
-                                    </div>
-                                </div>
-
-                                <div
-                                    ref={scrubberRef}
-                                    onMouseDown={handleMouseDown}
-                                    className="position-relative rounded-pill"
-                                    style={{
-                                        height: "12px",
-                                        backgroundColor: "#e9ecef",
-                                        cursor: "pointer",
-                                        overflow: "hidden"
-                                    }}
-                                >
-                                    <div
-                                        className="h-100 bg-primary"
-                                        style={{
-                                            width: `${progressPercent}%`,
-                                            transition: isDragging ? "none" : "width 0.2s ease"
-                                        }}
-                                    />
-                                </div>
-                                <div className="text-center mt-1">
-                                    <small className="text-muted" style={{ fontSize: "0.7rem" }}>
-                                        Slide to set value
-                                    </small>
-                                </div>
+                    {/* Progress Scrubber for goals - shows when slider is expanded */}
+                    {!isCompleted && hasGoal && !isPaused && !isFuture && showSlider && (
+                        <div className="habit-progress-section">
+                            <div className="progress-header">
+                                <span className="progress-label">LOG PROGRESS</span>
+                                <span className="progress-value">
+                                    <strong>{currentValue}</strong> / {habit.targetValue} {habit.unit}
+                                </span>
                             </div>
-                        )}
-
-                        {isPaused && !isCompleted && (
-                            <div className="alert alert-warning mb-3 py-2 px-3" style={{ fontSize: "0.875rem", borderRadius: "8px" }}>
-                                <strong>Habit Paused</strong> - Completion is disabled. Edit to resume.
-                            </div>
-                        )}
-
-                        {isFuture && !isCompleted && (
-                            <div className="alert alert-secondary mb-3 py-2 px-3" style={{ fontSize: "0.875rem", borderRadius: "8px" }}>
-                                <strong>Upcoming</strong> - Starts on {new Date(habit.startDate).toLocaleDateString()}.
-                            </div>
-                        )}
-
-                        {!isPaused && !isFuture && (
-                            <div className="fire-toggle-wrapper mb-3">
-                                <div
-                                    className={`fire-switch ${isCompleted ? 'completed' : ''}`}
-                                    onClick={handleFireClick}
-                                    style={{
-                                        opacity: (hasGoal && currentValue === 0 && !isCompleted) ? 0.5 : 1,
-                                        cursor: (isCompleted || completing || (hasGoal && currentValue === 0)) ? 'pointer' : 'pointer'
-                                    }}
-                                    title={isCompleted ? "Click to Uncomplete" : "Ignite to Complete"}
-                                >
-                                    <div className="fire-knob">
-                                        <span className="fire-icon">🔥</span>
-                                    </div>
-                                </div>
-
-                                {isCompleted && (
-                                    <button
-                                        className="note-btn"
-                                        onClick={() => setShowNoteModal(true)}
-                                        title="Add/Edit Note"
-                                    >
-                                        Note
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="d-flex justify-content-between border-top pt-3">
-                            <button
-                                className="btn btn-link text-decoration-none text-secondary p-0 btn-sm"
-                                onClick={() => navigate(`/habits`)}
+                            <div
+                                ref={scrubberRef}
+                                onMouseDown={handleMouseDown}
+                                className="progress-scrubber"
                             >
-                                View Stats
-                            </button>
-
-                            <button
-                                className="btn btn-link text-decoration-none text-secondary p-0 btn-sm"
-                                onClick={() => navigate(`/habits/${habit.id}/edit`)}
-                            >
-                                Edit
-                            </button>
+                                <div
+                                    className="progress-fill"
+                                    style={{ width: `${progressPercent}%`, transition: isDragging ? "none" : "width 0.2s ease" }}
+                                />
+                            </div>
+                            <span className="progress-hint">Slide to set value</span>
+                            <div className="slider-actions">
+                                <button
+                                    className="complete-btn"
+                                    onClick={handleComplete}
+                                    disabled={completing || currentValue === 0}
+                                >
+                                    {completing ? "Submitting..." : "Submit"}
+                                </button>
+                                <button
+                                    className="cancel-btn"
+                                    onClick={() => { setShowSlider(false); setCurrentValue(0); }}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Status Messages */}
+                    {isPaused && !isCompleted && (
+                        <div className="status-message warning">
+                            <strong>Habit Paused</strong> - Edit to resume
+                        </div>
+                    )}
+                    {isFuture && !isCompleted && (
+                        <div className="status-message info">
+                            <strong>Upcoming</strong> - Starts {new Date(habit.startDate).toLocaleDateString()}
+                        </div>
+                    )}
+
+                    {/* Complete Button - for simple habits or to show slider for goal habits */}
+                    {!isPaused && !isFuture && !isCompleted && !showSlider && (
+                        <button
+                            className="complete-btn"
+                            onClick={() => {
+                                if (hasGoal) {
+                                    setShowSlider(true);
+                                } else {
+                                    handleComplete();
+                                }
+                            }}
+                            disabled={completing}
+                        >
+                            {completing ? "Completing..." : "Complete Habit"}
+                        </button>
+                    )}
+
+                    {/* Completed State */}
+                    {isCompleted && (
+                        <button className="complete-btn done" onClick={() => setShowNoteModal(true)}>
+                            Add Note
+                        </button>
+                    )}
                 </div>
             </div>
         </>

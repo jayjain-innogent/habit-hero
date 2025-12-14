@@ -1,13 +1,12 @@
 package com.habit.hero.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -23,6 +22,9 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name = "name")
+    private String name;
+
     @Email
     @Column(name = "email", nullable = false, unique = true)
     private String email;
@@ -33,29 +35,35 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "verified", nullable = false)
+    @Builder.Default
+    private Boolean verified = false;
+
+    @Builder.Default
     private String timezone = "Asia/Kolkata";
 
-    @Column(name = "notification_prefs_friend_requests")
-    private Boolean notificationPrefsFriendRequests = true;
-
-    @Column(name = "notification_prefs_message")
-    private Boolean notificationPrefsMessage = true;
-
-    @Column(name = "notification_prefs_streak_breaks")
-    private Boolean notificationPrefsStreakBreaks = true;
+    @Column(name = "notification_enabled")
+    @Builder.Default
+    private Boolean notificationEnabled = true;
 
     @Column(name = "user_bio")
     private String userBio;
+
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Habit> habits;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Notification> notifications;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Activity> feedPosts;
 }

@@ -1,0 +1,134 @@
+/* Habit Hero - Indigo Bloom Theme Palette */
+:root {
+  /* Primary Brand Colors */
+  --color-primary: #6366F1;           /* Modern Indigo - main buttons, primary links, active states */
+  --color-primary-hover: #4F46E5;     /* Darker variant for hover states */
+  --color-primary-light: #818CF8;     /* Lighter variant for subtle elements */
+  
+  /* Secondary Colors */
+  --color-secondary: #8B5CF6;         /* Modern Purple - secondary actions, hover states */
+  --color-secondary-hover: #7C3AED;   /* Darker variant for hover */
+  --color-secondary-light: #A78BFA;   /* Lighter variant */
+  
+  /* Surface & Background Colors */
+  --color-surface: #FFFFFF;           /* Clean White - cards, panels, secondary backgrounds */
+  --color-surface-light: #F8FAFC;     /* Lighter variant */
+  --color-surface-dark: #F1F5F9;      /* Darker variant */
+  
+  --color-background: #F8FAFC;        /* Light Gray - app background, input backgrounds */
+  --color-background-light: #FFFFFF; /* Lighter variant */
+  --color-background-dark: #F1F5F9;   /* Darker variant */
+  
+  /* Success & Accent Colors */
+  --color-success: #10B981;           /* Emerald Green - success highlights, progress indicators */
+  --color-success-dark: #059669;      /* Darker variant for better contrast */
+  --color-success-accent: #047857;    /* Even darker for text on light backgrounds */
+  
+  /* Neutral Colors */
+  --color-white: #FFFFFF;
+  --color-gray-50: #F8FAFC;
+  --color-gray-100: #F1F5F9;
+  --color-gray-200: #E2E8F0;
+  --color-gray-300: #CBD5E1;
+  --color-gray-400: #94A3B8;
+  --color-gray-500: #64748B;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1E293B;
+  --color-gray-900: #0F172A;
+  
+  /* Semantic Colors */
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+  --color-info: var(--color-secondary);
+  
+  /* Text Colors */
+  --color-text-primary: var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-muted: var(--color-gray-500);
+  --color-text-on-primary: var(--color-white);
+  --color-text-on-surface: var(--color-gray-800);
+  
+  /* Border Colors */
+  --color-border: var(--color-gray-200);
+  --color-border-light: var(--color-gray-100);
+  --color-border-focus: var(--color-primary);
+  
+  /* Shadow Colors */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 4px 20px rgba(99, 102, 241, 0.08);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  --gradient-surface: linear-gradient(135deg, var(--color-surface) 0%, var(--color-background) 100%);
+  --gradient-success: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
+  --gradient-card: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  
+  /* Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  
+  /* Typography */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+/* Dark Mode Variants (if needed) */
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #818CF8;
+    --color-secondary: #A78BFA;
+    --color-surface: #1E293B;
+    --color-background: #0F172A;
+    --color-text-primary: var(--color-white);
+    --color-text-secondary: var(--color-gray-300);
+    --color-border: var(--color-gray-700);
+  }
+} */
+
+/* Utility Classes */
+.theme-primary { color: var(--color-primary); }
+.theme-secondary { color: var(--color-secondary); }
+.theme-success { color: var(--color-success-accent); }
+
+.bg-primary { background-color: var(--color-primary); }
+.bg-secondary { background-color: var(--color-secondary); }
+.bg-surface { background-color: var(--color-surface); }
+.bg-background { background-color: var(--color-background); }
+.bg-success { background-color: var(--color-success); }
+
+.border-primary { border-color: var(--color-primary); }
+.border-secondary { border-color: var(--color-secondary); }
+
+.gradient-primary { background: var(--gradient-primary); }
+.gradient-surface { background: var(--gradient-surface); }
+.gradient-success { background: var(--gradient-success); }

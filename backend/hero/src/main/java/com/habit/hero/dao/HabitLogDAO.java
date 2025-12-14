@@ -1,5 +1,6 @@
 package com.habit.hero.dao;
 
+import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
 
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ public interface HabitLogDAO {
 
     // All logs of a specific habit
     List<HabitLog> findByHabitId(Long habitId);
+    List<HabitLog> findByHabitIdAndLogDateBetweenOrderByLogDate(Long habitId, LocalDate startDate, LocalDate endDate);
 
     // Find log ensuring habit belongs to user
     Optional<HabitLog> findByIdAndUserId(Long logId, Long userId);
@@ -23,7 +25,10 @@ public interface HabitLogDAO {
     // Delete specific log
     void delete(HabitLog log);
 
-    //Fetch log by HabitId and logDate range
+    // Find all active habits not logged since a specific date
+    List<Habit> findActiveHabitsNotLoggedSince(LocalDate date);
+
+    // Get logs for a habit within a date range
     List<HabitLog> findByHabitIdAndDateRange(Long habitId, LocalDate startDate, LocalDate endDate);
 
     //Fetch all logs belonging to user

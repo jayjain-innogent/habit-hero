@@ -1,13 +1,27 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
     CATEGORIES,
     CADENCE,
     GOAL_TYPE,
-    GOAL_UNIT,
     VISIBILITY,
     STATUS
 } from "../../data/enums";
+import {
+    Trash2,
+    Sparkles,
+    Target,
+    Eye,
+    Activity,
+    FileText,
+    Tag,
+    Repeat,
+    Zap,
+    Plus,
+    RefreshCw,
+    AlertCircle
+} from "lucide-react";
 import ConfirmationModal from "../common/ConfirmationModal";
+import "./HabitForm.css";
 
 export default function HabitForm({ mode = "create", initialData = {}, onSubmit, onDelete }) {
     const getTodayDate = () => {
@@ -34,6 +48,19 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
 
     const [errors, setErrors] = useState({});
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    // Get max session count based on cadence
+    const getMaxSessionCount = (cadence) => {
+        if (cadence === "WEEKLY") return 7;
+        if (cadence === "MONTHLY") return 28;
+        return 999;
+    };
+
+    // Get max target value based on goal type
+    const getMaxTargetValue = (goalType) => {
+        if (goalType === "DURATION") return 1440;
+        return null;
+    };
 
     useEffect(() => {
         if (mode === "edit" && initialData) {
@@ -76,11 +103,18 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
             }
         }
 
-        if (name === "targetValue" && value < 0) {
+        if (name === "targetValue" && Number(value) < 0) {
             updated.targetValue = 0;
         }
 
         setForm(updated);
+    };
+
+    // Prevent arrow up/down keyboard behavior on number inputs
+    const handleNumberKeyDown = (e) => {
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            e.preventDefault();
+        }
     };
 
     const handleSubmit = (e) => {
@@ -92,11 +126,7 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
         if (!form.cadence) newErrors.cadence = "Cadence required";
         if (!form.startDate) newErrors.startDate = "Start Date is required";
 
-        const today = getTodayDate();
-        if (mode === 'create' && form.startDate < today) {
-            newErrors.startDate = "Start Date cannot be in the past";
-        }
-
+        // Past date validation removed to allow backdating
         if (form.goalType !== "OFF") {
             if (!form.targetValue || form.targetValue <= 0) {
                 newErrors.targetValue = "Target value required";
@@ -104,8 +134,25 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
         }
 
         // Validate sessionCount only if not daily
-        if (form.cadence !== "DAILY" && (!form.sessionCount || form.sessionCount <= 0)) {
-            newErrors.sessionCount = "Enter a positive session count";
+        if (form.cadence !== "DAILY") {
+            const sessionVal = Number(form.sessionCount);
+            if (!form.sessionCount || sessionVal <= 0) {
+                newErrors.sessionCount = "Enter a positive session count";
+            } else {
+                const maxSessions = getMaxSessionCount(form.cadence);
+                if (sessionVal > maxSessions) {
+                    newErrors.sessionCount = `Max ${maxSessions} sessions for ${form.cadence.toLowerCase()}`;
+                }
+            }
+        }
+
+        // Validate targetValue max limits
+        if (form.goalType !== "OFF" && form.targetValue) {
+            const targetVal = Number(form.targetValue);
+            const maxTarget = getMaxTargetValue(form.goalType);
+            if (maxTarget && targetVal > maxTarget) {
+                newErrors.targetValue = `Max ${maxTarget} ${form.unit || 'units'}`;
+            }
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -115,17 +162,30 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
 
         const payload = { ...form };
 
+        // CLEANUP: backend DTO does not accept startDate for updates
+        delete payload.startDate;
+
         if (payload.cadence === "DAILY") {
             payload.sessionCount = null;
+        } else {
+            // Ensure sessionCount is an Integer or null (not empty string)
+            if (payload.sessionCount === "" || payload.sessionCount === undefined) {
+                payload.sessionCount = null;
+            } else {
+                payload.sessionCount = parseInt(payload.sessionCount, 10);
+            }
         }
 
         if (payload.goalType === "OFF") {
-            delete payload.targetValue;
-            delete payload.unit;
+            payload.targetValue = null;
+            payload.unit = null;
         }
 
         if (mode === "create") {
             delete payload.status;
+            payload.startDate = form.startDate;
+        } else {
+            delete payload.startDate;
         }
 
         // Convert all enum values to uppercase for backend compatibility
@@ -145,6 +205,11 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
             }
         }
 
+        // Ensure targetValue is String as per DTO
+        if (payload.targetValue !== null && payload.targetValue !== undefined) {
+            payload.targetValue = String(payload.targetValue);
+        }
+
         onSubmit(payload);
     };
 
@@ -159,15 +224,21 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
         setShowDeleteModal(false);
     };
 
-    const isStartDateEditable = () => {
-        if (mode === 'create') return true;
-        if (!initialData.startDate) return true; // Should ideally have a start date, but fallback
-
-        const today = getTodayDate();
-        const start = new Date(initialData.startDate).toISOString().split('T')[0];
-
-        // Editable only if start date is in the future (greater than today)
-        return start > today;
+    // Helper to get category icon component
+    const getCategoryIcon = (category) => {
+        const iconProps = { size: 14, className: "habit-form-option-icon" };
+        const icons = {
+            FITNESS: <Dumbbell {...iconProps} />,
+            HEALTH: <Heart {...iconProps} />,
+            LEARNING: <BookOpen {...iconProps} />,
+            PRODUCTIVITY: <Zap {...iconProps} />,
+            MINDFULNESS: <Brain {...iconProps} />,
+            SOCIAL: <Users {...iconProps} />,
+            CREATIVE: <Palette {...iconProps} />,
+            FINANCE: <Wallet {...iconProps} />,
+            OTHER: <Star {...iconProps} />
+        };
+        return icons[category] || <Star {...iconProps} />;
     };
 
     return (
@@ -182,108 +253,130 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
                 variant="danger"
             />
 
-            <form onSubmit={handleSubmit} className="card p-4 shadow-sm border-0 bg-white">
+            <form onSubmit={handleSubmit} className="habit-form-container">
                 {mode === 'edit' && (
-                    <div className="d-flex justify-content-end mb-3">
+                    <div className="habit-form-delete-area">
                         <button
                             type="button"
-                            className="btn btn-outline-danger btn-sm"
+                            className="habit-form-delete-btn"
                             onClick={handleDeleteClick}
                         >
-                            <i className="bi bi-trash me-1"></i> Delete Habit
+                            <Trash2 size={16} /> Delete Habit
                         </button>
                     </div>
                 )}
 
-                <div className="row g-3">
-                    <div className="col-12">
-                        <label className="form-label fw-semibold text-secondary small">TITLE</label>
+                <div className="habit-form-grid">
+                    {/* Title */}
+                    <div className="habit-form-group">
+                        <label className="habit-form-label">
+                            <Sparkles size={16} className="habit-form-label-icon" />
+                            Habit Title
+                        </label>
                         <input
                             type="text"
                             name="title"
-                            className={`form-control form-control-lg ${errors.title ? "is-invalid" : ""}`}
-                            placeholder="e.g. Read 10 pages"
+                            className={`habit-form-input habit-form-input-lg ${errors.title ? "is-invalid" : ""}`}
+                            placeholder="e.g. Read 10 pages daily"
                             value={form.title}
                             onChange={handleChange}
                         />
-                        {errors.title && <div className="invalid-feedback">{errors.title}</div>}
+                        {errors.title && <div className="habit-form-error"><AlertCircle size={14} /> {errors.title}</div>}
                     </div>
 
-                    <div className="col-12">
-                        <label className="form-label fw-semibold text-secondary small">DESCRIPTION (OPTIONAL)</label>
+                    {/* Description */}
+                    <div className="habit-form-group">
+                        <label className="habit-form-label">
+                            <FileText size={16} className="habit-form-label-icon" />
+                            Description (Optional)
+                        </label>
                         <textarea
                             name="description"
-                            className="form-control"
+                            className="habit-form-textarea"
                             rows={2}
-                            placeholder="Add details..."
+                            placeholder="Add some details about your habit..."
                             value={form.description}
                             onChange={handleChange}
                         />
                     </div>
 
-                    <div className="col-md-6">
-                        <label className="form-label fw-semibold text-secondary small">CATEGORY</label>
-                        <select
-                            name="category"
-                            className={`form-select ${errors.category ? "is-invalid" : ""}`}
-                            value={form.category}
-                            onChange={handleChange}
-                        >
-                            {CATEGORIES.map((c) => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
+                    {/* Category & Frequency Row */}
+                    <div className="habit-form-row">
+                        <div className="habit-form-group">
+                            <label className="habit-form-label">
+                                <Tag size={16} className="habit-form-label-icon" />
+                                Category
+                            </label>
+                            <select
+                                name="category"
+                                className={`habit-form-select ${errors.category ? "is-invalid" : ""}`}
+                                value={form.category}
+                                onChange={handleChange}
+                            >
+                                {CATEGORIES.map((c) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="habit-form-group">
+                            <label className="habit-form-label">
+                                <Repeat size={16} className="habit-form-label-icon" />
+                                Frequency
+                            </label>
+                            <select
+                                name="cadence"
+                                className={`habit-form-select ${errors.cadence ? "is-invalid" : ""}`}
+                                value={form.cadence}
+                                onChange={handleChange}
+                            >
+                                {CADENCE.map((c) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="col-md-6">
-                        <label className="form-label fw-semibold text-secondary small">FREQUENCY</label>
-                        <select
-                            name="cadence"
-                            className={`form-select ${errors.cadence ? "is-invalid" : ""}`}
-                            value={form.cadence}
-                            onChange={handleChange}
-                        >
-                            {CADENCE.map((c) => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="col-md-6">
-                        <label className="form-label fw-semibold text-secondary small">START DATE</label>
-                        <input
-                            type="date"
-                            name="startDate"
-                            className={`form-control ${errors.startDate ? "is-invalid" : ""}`}
-                            value={form.startDate}
-                            onChange={handleChange}
-                            disabled={!isStartDateEditable()}
-                        />
-                        {errors.startDate && <div className="invalid-feedback">{errors.startDate}</div>}
-                        {!isStartDateEditable() && <div className="form-text text-muted">Start date cannot be changed after the habit has started.</div>}
-                    </div>
-
+                    {/* Sessions Per Period (Conditional) */}
                     {form.cadence !== "DAILY" && (
-                        <div className="col-md-6">
-                            <label className="form-label fw-semibold text-secondary small">SESSIONS PER PERIOD</label>
+                        <div className="habit-form-group habit-form-animated-section">
+                            <label className="habit-form-label">
+                                <Activity size={16} className="habit-form-label-icon" />
+                                Sessions Per Period
+                            </label>
                             <input
                                 type="number"
                                 name="sessionCount"
-                                className={`form-control ${errors.sessionCount ? "is-invalid" : ""}`}
+                                className={`habit-form-input ${errors.sessionCount ? "is-invalid" : ""}`}
+                                placeholder="Enter session count"
+                                max={getMaxSessionCount(form.cadence)}
+                                min="1"
                                 value={form.sessionCount || ""}
                                 onChange={handleChange}
+                                onKeyDown={handleNumberKeyDown}
                             />
-                            {errors.sessionCount && <div className="invalid-feedback">{errors.sessionCount}</div>}
+                            {errors.sessionCount && <div className="habit-form-error"><AlertCircle size={14} /> {errors.sessionCount}</div>}
                         </div>
                     )}
 
-                    <div className="col-12"><hr className="text-muted opacity-25" /></div>
+                    {/* Divider */}
+                    <div className="habit-form-divider"></div>
 
-                    <div className="col-md-6">
-                        <label className="form-label fw-semibold text-secondary small">GOAL TYPE</label>
+                    {/* Goal Section Title */}
+                    <div className="habit-form-section-title">
+                        <Target size={16} />
+                        <span>Goal Settings</span>
+                    </div>
+
+                    {/* Goal Type */}
+                    <div className="habit-form-group">
+                        <label className="habit-form-label">
+                            <Target size={16} className="habit-form-label-icon" />
+                            Goal Type
+                        </label>
                         <select
                             name="goalType"
-                            className="form-select"
+                            className="habit-form-select"
                             value={form.goalType}
                             onChange={handleChange}
                         >
@@ -293,62 +386,88 @@ export default function HabitForm({ mode = "create", initialData = {}, onSubmit,
                         </select>
                     </div>
 
+                    {/* Target Value (Conditional) */}
                     {form.goalType !== "OFF" && (
-                        <>
-                            <div className="col-md-6">
-                                <label className="form-label fw-semibold text-secondary small">TARGET VALUE</label>
-                                <div className="input-group">
-                                    <input
-                                        type="number"
-                                        name="targetValue"
-                                        className={`form-control ${errors.targetValue ? "is-invalid" : ""}`}
-                                        value={form.targetValue ?? ""}
-                                        onChange={handleChange}
-                                    />
-                                    <span className="input-group-text bg-light text-muted">
-                                        {form.unit || "Units"}
-                                    </span>
-                                </div>
-                                {errors.targetValue && <div className="invalid-feedback d-block">{errors.targetValue}</div>}
+                        <div className="habit-form-group habit-form-animated-section">
+                            <label className="habit-form-label">
+                                <Zap size={16} className="habit-form-label-icon" />
+                                Target Value
+                            </label>
+                            <div className="habit-form-input-group">
+                                <input
+                                    type="number"
+                                    name="targetValue"
+                                    className={`habit-form-input ${errors.targetValue ? "is-invalid" : ""}`}
+                                    placeholder="Enter target value"
+                                    max={getMaxTargetValue(form.goalType) || undefined}
+                                    min="1"
+                                    value={form.targetValue ?? ""}
+                                    onChange={handleChange}
+                                    onKeyDown={handleNumberKeyDown}
+                                />
+                                <span className="habit-form-input-unit">
+                                    {form.unit || "Units"}
+                                </span>
                             </div>
-                        </>
+                            {errors.targetValue && <div className="habit-form-error"><AlertCircle size={14} /> {errors.targetValue}</div>}
+                        </div>
                     )}
 
-                    <div className="col-12"><hr className="text-muted opacity-25" /></div>
+                    {/* Divider */}
+                    <div className="habit-form-divider"></div>
 
-                    <div className="col-md-6">
-                        <label className="form-label fw-semibold text-secondary small">VISIBILITY</label>
-                        <select
-                            name="visibility"
-                            className="form-select"
-                            value={form.visibility}
-                            onChange={handleChange}
-                        >
-                            {VISIBILITY.map((v) => (
-                                <option key={v} value={v}>{v}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {mode === "edit" && (
-                        <div className="col-md-6">
-                            <label className="form-label fw-semibold text-secondary small">STATUS</label>
+                    {/* Visibility Section */}
+                    <div className="habit-form-row">
+                        <div className="habit-form-group">
+                            <label className="habit-form-label">
+                                <Eye size={16} className="habit-form-label-icon" />
+                                Visibility
+                            </label>
                             <select
-                                name="status"
-                                className="form-select"
-                                value={form.status}
+                                name="visibility"
+                                className="habit-form-select"
+                                value={form.visibility}
                                 onChange={handleChange}
                             >
-                                {STATUS.map((s) => (
-                                    <option key={s} value={s}>{s}</option>
+                                {VISIBILITY.map((v) => (
+                                    <option key={v} value={v}>{v}</option>
                                 ))}
                             </select>
                         </div>
-                    )}
+
+                        {mode === "edit" && (
+                            <div className="habit-form-group habit-form-animated-section">
+                                <label className="habit-form-label">
+                                    <Activity size={16} className="habit-form-label-icon" />
+                                    Status
+                                </label>
+                                <select
+                                    name="status"
+                                    className="habit-form-select"
+                                    value={form.status}
+                                    onChange={handleChange}
+                                >
+                                    {STATUS.map((s) => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                <button className="btn btn-primary mt-3 w-100">
-                    {mode === "create" ? "Create Habit" : "Update Habit"}
+                <button type="submit" className="habit-form-submit">
+                    {mode === "create" ? (
+                        <>
+                            <Plus size={18} className="habit-form-submit-icon" />
+                            Create Habit
+                        </>
+                    ) : (
+                        <>
+                            <RefreshCw size={18} className="habit-form-submit-icon" />
+                            Update Habit
+                        </>
+                    )}
                 </button>
             </form>
         </>
