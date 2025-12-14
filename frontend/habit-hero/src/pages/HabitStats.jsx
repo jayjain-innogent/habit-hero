@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchWeeklyReport } from '../services/api';
 import './HabitStats.css';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Award, Target, Download, ThumbsDown} from 'lucide-react';
+import { ArrowLeft, Zap, Award, Target, Download, ThumbsDown, Info} from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 const HabitStats = () => {
@@ -49,15 +49,14 @@ const HabitStats = () => {
             console.log('GeneratePDF - Habit Completions Data:', summary.habitCompletionsData);
 
             // Handle both property name variations (typo fix)
-            const completionDates = summary.habitCompletionsData?.completionDate || 
-                                    summary.habitCompletionsData?.completaionDate || [];
+            const completionDates = summary.habitCompletionsData?.completaionDate ;
             const completionValues = summary.habitCompletionsData?.completionValue || [];
-            
-            console.log('GeneratePDF - Completion Data:', { 
-              completionDates, 
+
+            console.log('GeneratePDF - Completion Data:', {
+              completionDates,
               completionValues,
               completionDatesCount: completionDates.length,
-              completionValuesCount: completionValues.length 
+              completionValuesCount: completionValues.length
             });
 
             const totalDays = weekDates.length;
@@ -65,7 +64,7 @@ const HabitStats = () => {
             const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
             const totalRepetitions = completionValues.reduce((sum, val) => sum + (val || 0), 0);
             const avgRepetitions = completedDays > 0 ? (totalRepetitions / completedDays).toFixed(1) : 0;
-            
+
             console.log('GeneratePDF - Calculated Metrics:', {
               totalDays,
               completedDays,
@@ -623,7 +622,7 @@ const HabitStats = () => {
 
     const completionDates = summary.habitCompletionsData?.completaionDate || [];
     const completionValues = summary.habitCompletionsData?.completionValue || [];
-    const maxValue = completionValues.length > 0 ? Math.max(...completionValues) : 1;
+    const maxValue =  100;
 
     const getSnapshotValue = (weekData) => {
         if (viewMode === 'percentage') {
@@ -660,6 +659,21 @@ const HabitStats = () => {
         return 'Value';
     };
 
+    // Compute tagline text based on cadence and goalType
+    const taglineText = (() => {
+        const cadence = habit?.cadence;
+        const goalType = habit?.goalType;
+        const sessionCount = habit?.sessionCount || 0;
+        const targetValue = habit?.targetValue || 0;
+        const goalUnit = habit?.goalUnit || '';
+        const totalTarget = sessionCount * targetValue;
+
+        if (cadence === 'DAILY' && goalType === 'OFF') return 'Daily';
+        if (cadence === 'DAILY' && goalType !== 'OFF') return `${totalTarget} ${goalUnit} / Daily`;
+        if (cadence !== 'DAILY' && goalType === 'OFF') return `${ habit?.sessionCount} days / ${cadence}`;
+        return `${totalTarget} ${goalUnit} / ${cadence}`;
+    })();
+
     return (
         <div className="report-page">
             <div className="report-container">
@@ -671,17 +685,8 @@ const HabitStats = () => {
                            </button>
                        )}
                        <div>
-                           {isGeneratingPDF ? (
-                               <>
-                                   <h1 className="title-GeneratingPdf">Habit Report: {habit.habitName}</h1>
-                                   <h1 className="tagline-GeneratingPdf">Report Period: {weekRange.startDate} to {weekRange.endDate}</h1>
-                               </>
-                           ) : (
-                               <>
                                    <h1 className="title">{habit.habitName}</h1>
-                                   <h1 className="tagline">{habit.description}</h1>
-                               </>
-                           )}
+                                   <h1 className="tagline">{taglineText}</h1>
                        </div>
                    </div>
                    {!isGeneratingPDF && (
@@ -701,14 +706,29 @@ const HabitStats = () => {
 
                 <div className="stats-grid">
 
-                     <div className="stat-card">
-                        <div className="stat-header">
-                            <span className="stat-label">Total Completion</span>
-                            <Target size={20} />
+                     <div className="stat-card"> 
+                        <div className="stat-header"> 
+                            <span className="stat-label"> 
+                                Total Completion <span className="small text-muted ms-1">(Lifetime)</span> 
+                            <span
+                              className="info-wrapper"
+                              tabIndex={0}
+                              aria-describedby={`lifetime-tooltip-${habit.habitId || habit.habitName}`}
+                            >
+                                 <Info size={14} className="info-icon" />
+                                 <span
+                                    id={`lifetime-tooltip-${habit.habitId || habit.habitName}`}
+                                    role="tooltip"
+                                    className="info-tooltip"
+                                 >
+                                    Lifetime completion:from habit start date to today
+                                  </span>
+                                </span>
+                               </span>
+                            <Target size={20} /> 
                         </div>
-                        <div className="stat-value">{summary.completionRate} %</div>
-                        <p className="stat-subtext">{Math.max(30 - (summary.completionRate || 0), 0)} days to go</p>
-                    </div>
+                        <div className="stat-value">{summary.currentCompletion} {habit.goalUnit}</div>
+                     </div>
 
                     <div className="stat-card">
                         <div className="stat-header">
@@ -797,10 +817,13 @@ const HabitStats = () => {
                     </div>
 
                     <div className="right-column">
+                        <div className="card-header">
+
                         <h3>Recent Activity</h3>
+                        </div>
                         <div className="card">
                             <div className="activity-list">
-                                {completionDates.length > 0 ? completionDates.slice(0, 5).map((dateTime, i) => (
+                                {completionDates.length > 0 ? completionDates.slice(0, 7).map((dateTime, i) => (
                                     <div key={i} className="activity-item">
                                         <div className="activity-left">
                                             <div className="activity-dot completed"></div>
@@ -815,8 +838,7 @@ const HabitStats = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-
+                    </div>
                 <div className="month-grid">
                     <div className="card-header">
                         <h3>Monthly Activity</h3>
@@ -850,6 +872,7 @@ const HabitStats = () => {
                         <div className="legend-item"><div className="legend-box none"></div> Not Done</div>
                         <div className="legend-item"><div className="legend-box high"></div> Completed</div>
                     </div>
+
                 </div>
             </div>
         </div>

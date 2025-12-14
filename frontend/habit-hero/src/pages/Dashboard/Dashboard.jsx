@@ -8,7 +8,7 @@ import HabitsTable from '../../components/Dashboard/HabitsTable';
 import StatsOverview from '../../components/Dashboard/StatsOverview';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useAuth } from '../../context/AuthContext';
-import { ChartColumn, TrendingUp, Gauge, FileText } from 'lucide-react';
+import { ChartColumn, TrendingUp, Gauge, FileText, TriangleAlert } from 'lucide-react';
 import '../../styles/theme.css';
 import './Dashboard.css';
 
@@ -80,7 +80,7 @@ const Dashboard = () => {
   
   if (!token) return (
     <div className="dashboard-error">
-      <h2>⚠️ Authentication Required</h2>
+      <h2><TriangleAlert /> Authentication Required</h2>
       <p>Please log in to view your dashboard</p>
     </div>
   );
@@ -97,7 +97,7 @@ const Dashboard = () => {
   
   if (!dashboardData) return (
     <div className="dashboard-error">
-      <h2>📊 No Data Available</h2>
+      <h2> ChartColumn size={20} No Data Available</h2>
       <p>Start tracking your habits to see your dashboard</p>
     </div>
   );

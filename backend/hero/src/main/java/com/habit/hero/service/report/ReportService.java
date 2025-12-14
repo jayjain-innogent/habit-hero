@@ -1,30 +1,53 @@
 package com.habit.hero.service.report;
 
 
-import com.habit.hero.dao.HabitDAO;
-import com.habit.hero.dao.HabitLogDAO;
-import com.habit.hero.dto.report.*;
-import com.habit.hero.entity.Habit;
-import com.habit.hero.entity.HabitLog;
-import com.habit.hero.enums.GoalType;
-import com.habit.hero.enums.HabitStatus;
-import com.habit.hero.exception.BadRequestException;
-import com.habit.hero.mapper.ReportMapper;
-import com.habit.hero.repository.HabitLogRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import com.habit.hero.enums.Cadence;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.habit.hero.dao.HabitDAO;
+import com.habit.hero.dao.HabitLogDAO;
+import com.habit.hero.dto.report.CompletionData;
+import com.habit.hero.dto.report.FullReportResponse;
+import com.habit.hero.dto.report.HabitReportData;
+import com.habit.hero.dto.report.HabitRowDto;
+import com.habit.hero.dto.report.HabitSummary;
+import com.habit.hero.dto.report.ReportCardDto;
+import com.habit.hero.dto.report.WeekComparison;
+import com.habit.hero.dto.report.WeekRange;
+import com.habit.hero.dto.report.WeekStats;
+import com.habit.hero.dto.report.WeeklyReportResponse;
+import com.habit.hero.entity.Habit;
+import com.habit.hero.entity.HabitLog;
+import com.habit.hero.enums.Cadence;
+import com.habit.hero.enums.GoalType;
+import com.habit.hero.enums.HabitStatus;
+import com.habit.hero.exception.BadRequestException;
+import com.habit.hero.mapper.ReportMapper;
+import com.habit.hero.repository.HabitLogRepository;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
@@ -115,16 +138,11 @@ public class ReportService {
             Double completionCount = calculateCompletionCount(habit, habitLogList);
 
             summary.setTotalMissedDays(missedDays);
-            
-            double overallRate = expectedValue > 0 ? 
-                Math.round((completionCount / expectedValue) * 10000) / 100.0 : 0.0;
-            summary.setCompletionRate(Math.min(overallRate, 100.0));
+            summary.setExpectedCompletion(expectedValue);
+            summary.setCurrentCompletion(completionCount);
 
             summary.setCurrentStreak(habit.getCurrentStreak() != null ? habit.getCurrentStreak() : 0);
             summary.setLongestStreak(habit.getLongestStreak() != null ? habit.getLongestStreak() : 0);
-
-            log.debug("Summary calculated for habit {}: completion rate {}%, missed days {}",
-                    habit.getId(), summary.getCompletionRate(), summary.getTotalMissedDays());
 
             List<LocalDateTime> dateAndTime = habitLogList.stream()
                     .map(HabitLog::getCreatedAt)
@@ -146,7 +164,7 @@ public class ReportService {
     }
 
     private HabitSummary createEmptySummary() {
-        return new HabitSummary(0, 0.0, 0, 0, new CompletionData(Collections.emptyList(), Collections.emptyList()));
+        return new HabitSummary(0, 0.0,0.0, 0, 0, new CompletionData(Collections.emptyList(), Collections.emptyList()));
     }
 
     private int calculateExpectedDays(Habit habit, LocalDate startDate, LocalDate endDate) {
@@ -250,7 +268,7 @@ public class ReportService {
                     prevWeekCompletionValue,
                     calculateExpectedValueForPeriod(habit, prevStart, prevEnd)
             );
-
+            data.setGoalType(habit.getGoalType());
             data.setExpectedValue(expectedValue);
             data.setExpectedDays(thisWeekExpectedDays);
             data.setThisWeek(thisWeekStats);

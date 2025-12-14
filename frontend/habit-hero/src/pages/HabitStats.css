@@ -94,19 +94,10 @@
   box-shadow: var(--shadow-card);
   min-height: 160px;
   border: 1px solid var(--color-border);
+  border-top: 4px solid #6366f1;
   transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-primary);
+  overflow: visible; /* allow tooltips to escape card bounds */
 }
 
 .stat-card:hover {
@@ -148,6 +139,58 @@
   font-weight: var(--font-weight-medium);
 }
 
+
+/* Info tooltip wrapper and styling */
+.info-wrapper {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+  cursor: pointer;
+  outline: none;
+}
+
+.info-icon {
+  color: var(--color-text-secondary);
+}
+
+.info-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-white, #ffffff);
+  color: var(--color-text-secondary, #6B7280);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: normal; /* allow line breaks */
+  z-index: 9999;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.06);
+  border: 1px solid var(--color-border, #e5e7eb);
+  max-width: 260px;
+  text-align: left;
+}
+
+.info-tooltip-desc {
+  color: var(--color-text-secondary, #6B7280);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Show tooltip on hover, focus, or keyboard focus-within */
+.info-wrapper:hover .info-tooltip,
+.info-wrapper:focus .info-tooltip,
+.info-wrapper:focus-within .info-tooltip {
+  display: block;
+}
+
+/* Small visual improvement */
+.info-icon svg {
+  vertical-align: middle;
+}
+
 .progress-bar {
   height: 8px;
   background: #e2e8f0;
@@ -173,6 +216,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+
 }
 
 .right-column {
@@ -191,6 +235,7 @@
   padding: var(--space-6);
   box-shadow: var(--shadow-card);
   border: 1px solid var(--color-border);
+  border-top: 4px solid #6366f1;
   position: relative;
   overflow: hidden;
 }
@@ -201,7 +246,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 4px;
   background: var(--gradient-primary);
 }
 
@@ -212,6 +257,7 @@
   box-shadow: var(--shadow-card);
   margin-top: var(--space-6);
   border: 1px solid var(--color-border);
+  border-top: 4px solid #6366f1;
 }
 
 .card-header {
@@ -388,6 +434,7 @@ background: gray;
   text-align: center;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
+  border-top: 4px solid #6366f1;
   transition: all 0.2s ease;
 }
 
@@ -474,7 +521,7 @@ background: gray;
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: var(--space-3);
+  gap: 5px;
   margin-bottom: var(--space-6);
   max-width: 100%;
   margin-top: var(--space-6);
@@ -486,8 +533,8 @@ background: gray;
 .calendar-day {
   width: 100%;
   aspect-ratio: 1;
-  height: 56px;
-  width: 56px;
+  height: 100px;
+  width: 100px;
   border-radius: var(--radius-md);
   position: relative;
   cursor: pointer;
@@ -732,4 +779,10 @@ background: gray;
   .snapshot-grid {
     grid-template-columns: 1fr;
   }
+}
+.activity-section .card {
+  min-height: 280px;
+}
+.activity-section .card {
+  min-height: 380px;
 }

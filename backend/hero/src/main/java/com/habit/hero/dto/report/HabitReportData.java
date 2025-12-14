@@ -1,15 +1,17 @@
 package com.habit.hero.dto.report;
 
-import com.habit.hero.enums.Cadence;
-import com.habit.hero.enums.Categories;
-import com.habit.hero.enums.GoalUnit;
-import com.habit.hero.enums.HabitStatus;
-import lombok.Data;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import com.habit.hero.enums.Cadence;
+import com.habit.hero.enums.Categories;
+import com.habit.hero.enums.GoalType;
+import com.habit.hero.enums.GoalUnit;
+import com.habit.hero.enums.HabitStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
@@ -20,6 +22,7 @@ public class HabitReportData {
     private Categories category;
     private Cadence cadence;
     private String description;
+    private GoalType goalType;
     private GoalUnit goalUnit;
     private Integer sessionCount;
     private BigDecimal targetValue;
