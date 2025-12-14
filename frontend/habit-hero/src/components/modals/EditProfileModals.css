@@ -4,12 +4,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5) !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   z-index: 1000 !important;
-  animation: fadeIn 0.3s ease-out !important;
+  animation: fadeIn 0.4s ease-out !important;
 }
 
 @keyframes fadeIn {
@@ -19,20 +20,20 @@
 
 .edit-profile-content {
   background: white !important;
-  border-radius: 16px !important;
+  border-radius: 20px !important;
   width: 90% !important;
   max-width: 520px !important;
   max-height: 85vh !important;
   overflow: hidden !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
-  animation: slideUp 0.4s ease-out !important;
-  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 @keyframes slideUp {
   from { 
     opacity: 0;
-    transform: translateY(30px) scale(0.95);
+    transform: translateY(40px) scale(0.9);
   }
   to { 
     opacity: 1;
@@ -98,21 +99,24 @@
 .edit-form-input,
 .edit-form-textarea {
   width: 100% !important;
-  padding: 12px 16px !important;
-  border: 1px solid #d1d5db !important;
-  border-radius: 8px !important;
-  font-size: 14px !important;
+  padding: 14px 18px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
   background: white !important;
   color: #1f2937 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 .edit-form-input:focus,
 .edit-form-textarea:focus {
   outline: none !important;
   border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+  transform: translateY(-1px) !important;
 }
 
 .edit-form-textarea {
@@ -137,25 +141,45 @@
 
 .edit-btn-secondary,
 .edit-btn-primary {
-  padding: 12px 20px !important;
+  padding: 14px 24px !important;
   border: none !important;
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   cursor: pointer !important;
   font-size: 14px !important;
-  font-weight: 500 !important;
-  transition: all 0.2s ease !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
   min-width: 100px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.edit-btn-secondary::before,
+.edit-btn-primary::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.1) 100%) !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.edit-btn-secondary:hover::before,
+.edit-btn-primary:hover::before {
+  opacity: 1 !important;
 }
 
 .edit-btn-secondary {
   background: white !important;
   color: #4b5563 !important;
-  border: 1px solid #d1d5db !important;
+  border: 2px solid #d1d5db !important;
 }
 
 .edit-btn-secondary:hover {
   background: #f9fafb !important;
   border-color: #9ca3af !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
 }
 
 .edit-btn-primary {
@@ -165,8 +189,8 @@
 
 .edit-btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35) !important;
 }
 
 .edit-btn-primary:disabled {
@@ -187,7 +211,14 @@
   border-radius: 50% !important;
   margin: 0 auto !important;
   display: block !important;
-  border: 3px solid #e5e7eb !important;
+  border: 4px solid #e5e7eb !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.3s ease !important;
+}
+
+.profile-preview-image:hover {
+  transform: scale(1.02) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
 }
 
 .upload-section {
@@ -197,18 +228,19 @@
 .edit-upload-btn {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
   color: white !important;
-  padding: 8px 16px !important;
-  border-radius: 8px !important;
+  padding: 10px 20px !important;
+  border-radius: 12px !important;
   cursor: pointer !important;
   display: inline-block !important;
   font-size: 14px !important;
-  font-weight: 500 !important;
-  transition: all 0.2s ease !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
   border: none !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2) !important;
 }
 
 .edit-upload-btn:hover {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35) !important;
 }

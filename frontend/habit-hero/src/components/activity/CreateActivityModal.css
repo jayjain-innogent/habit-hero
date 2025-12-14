@@ -1,62 +1,99 @@
 .create-activity-overlay {
   position: fixed !important;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5) !important;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(30, 41, 59, 0.7) 100%) !important;
+  backdrop-filter: blur(12px) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   z-index: 50 !important;
   padding: 16px !important;
+  animation: fadeInBackdrop 0.4s ease-out !important;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(12px); }
 }
 
 .create-activity-content {
   margin: 12px !important;
-  background-color: white !important;
-  border-radius: 16px !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%) !important;
+  backdrop-filter: blur(20px) !important;
+  border-radius: 24px !important;
   max-width: 512px !important;
   width: 100% !important;
   max-height: 85vh !important;
   overflow-y: auto !important;
   display: flex !important;
   flex-direction: column !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.25), 0 8px 32px rgba(99, 102, 241, 0.15) !important;
   overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  animation: slideUpModal 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+@keyframes slideUpModal {
+  from { 
+    opacity: 0;
+    transform: translateY(40px) scale(0.9);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .create-activity-header {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  padding: 20px !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  border-radius: 16px 16px 0 0 !important;
+  padding: 24px !important;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border-radius: 24px 24px 0 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.create-activity-header::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.1) 100%) !important;
+  opacity: 0.6 !important;
 }
 
 .create-activity-title {
-  font-size: 20px !important;
-  font-weight: 600 !important;
-  color: #1f2937 !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: white !important;
   margin: 0 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .create-activity-close {
-  width: 32px !important;
-  height: 32px !important;
+  width: 36px !important;
+  height: 36px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   border-radius: 50% !important;
   border: none !important;
-  background-color: transparent !important;
-  color: #1f2937 !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
   cursor: pointer !important;
-  transition: background-color 0.2s ease !important;
+  transition: all 0.3s ease !important;
   font-size: 18px !important;
   font-weight: bold !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .create-activity-close:hover {
-  background-color: #f3f4f6 !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.1) !important;
 }
 
 .create-activity-form {
@@ -84,27 +121,36 @@
 }
 
 .create-option-btn {
-  padding: 12px 16px !important;
-  border: 1px solid #d1d5db !important;
-  border-radius: 8px !important;
-  background: white !important;
+  padding: 16px 20px !important;
+  border: 2px solid rgba(229, 231, 235, 0.6) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%) !important;
+  backdrop-filter: blur(8px) !important;
   color: #4b5563 !important;
   font-size: 14px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   text-align: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
 }
 
 .create-option-btn:hover {
-  border-color: #3b82f6 !important;
-  color: #3b82f6 !important;
+  border-color: #6366f1 !important;
+  color: #6366f1 !important;
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.25) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(99, 102, 241, 0.05) 100%) !important;
 }
 
 .create-option-btn.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
   color: white !important;
-  border-color: #3b82f6 !important;
+  border-color: #6366f1 !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.4) !important;
 }
 
 .create-form-input {

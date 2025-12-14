@@ -6,6 +6,7 @@ import { Target, Flame, Medal, BarChart3 } from "lucide-react";
 import Avatar from "../common/Avatar";
 import SegmentedButton from "../common/SegmentedButton";
 import { getTodayStatus } from "../../api/habitLogs";
+import { fetchDashboardData } from "../../services/api";
 import "./CreateActivityModal.css";
 
 const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }) => {
@@ -22,9 +23,6 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
     ? habits.filter(habit => habit.completedToday === true)
     : habits;
 
-  console.log('All habits:', habits);
-  console.log('Filtered habits:', filteredHabits);
-
   useEffect(() => {
     if (isOpen) {
       fetchHabits();
@@ -35,6 +33,24 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
   useEffect(() => {
     setSelectedHabit(null);
   }, [activityType]);
+
+// Add this useEffect after the existing ones
+useEffect(() => {
+  if (activityType === "SUMMARY" && selectedHabit) {
+    const generateSummary = async () => {
+      setSummary("Generating summary..."); // Loading state
+      try {
+        const generatedSummary = await generateHabitSummary(selectedHabit.id, selectedHabit.title);
+        setSummary(generatedSummary);
+      } catch (error) {
+        setSummary(`Weekly summary for ${selectedHabit.title}: Great progress this week!`);
+      }
+    };
+    
+    generateSummary();
+  }
+}, [activityType, selectedHabit]);
+
 
   const fetchHabits = async () => {
     try {
@@ -51,6 +67,85 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
       console.error("Failed to fetch habits:", error);
     }
   };
+
+ const generateHabitSummary = async (habitId, habitTitle) => {
+   try {
+     // Try to fetch habit-specific weekly report
+     let habitReport = null;
+     try {
+       const endDate = new Date().toISOString().split('T')[0];
+       const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+       
+       const reportResponse = await fetch(`http://localhost:8080/reports/weekly?startDate=${startDate}&endDate=${endDate}&habitId=${habitId}`, {
+         headers: {
+           'Authorization': `Bearer ${localStorage.getItem('token')}`
+         }
+       });
+       if (reportResponse.ok) {
+         habitReport = await reportResponse.json();
+       }
+     } catch (err) {
+       console.log('Weekly report not available, using dashboard data');
+     }
+
+     // Fallback to dashboard data
+     const dashboardData = await fetchDashboardData();
+     const habitStats = dashboardData.tableData?.find(h => 
+       h.habitName.toLowerCase().includes(habitTitle.toLowerCase()) ||
+       habitTitle.toLowerCase().includes(h.habitName.toLowerCase())
+     );
+     const overallStats = dashboardData.cardData || {};
+     
+     // Create a personal achievement-focused prompt
+      const prompt = `Write a personal weekly summary for my "${habitTitle}" habit as if I'm sharing my achievements with friends. Use this real data:
+
+      My Progress This Week:
+      - Habit: ${habitTitle}
+      - Completion Rate: ${habitReport?.completionRate || habitStats?.completionRate || 'N/A'}%
+      - Current Streak: ${habitReport?.currentStreak || habitStats?.streak || overallStats.currentStreak || 'N/A'} days
+      - Days Completed: ${habitReport?.completedDays || habitReport?.daysCompleted || 'N/A'}
+      - Total Days: ${habitReport?.totalDays || 7}
+      - Category: ${habitStats?.category || 'Personal Development'}
+
+      Write in first person (I achieved, I worked on, I maintained, etc.) as a personal accomplishment post. Make it:
+      1. Celebratory of specific achievements (use actual numbers)
+      2. Personal and authentic 
+      3. 2-3 sentences maximum
+      4. Include what I accomplished and how it benefited me
+      5. DO NOT use any markdown formatting like **bold** or *italic* - use plain text only
+
+      Example tone: "I successfully maintained my meditation habit with an 85% completion rate this week, achieving a 5-day streak! This consistent practice has really helped me feel more centered and focused throughout my busy days."`;
+
+
+     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=AIzaSyDOSfWFFpJNsuj12zYXe5UjdCLzwbxUixk`, {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+       },
+       body: JSON.stringify({
+         contents: [{
+           parts: [{
+             text: prompt
+           }]
+         }]
+       })
+     });
+     
+     const data = await response.json();
+     
+     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+       return data.candidates[0].content.parts[0].text;
+     } else {
+       throw new Error('Invalid response format');
+     }
+   } catch (error) {
+     console.error('Failed to generate summary:', error);
+     return `I've been working consistently on my ${habitTitle} habit this week and feeling great about the progress! This routine is really making a positive impact on my daily life.`;
+   }
+ };
+
+
+      
 
   const handleSubmit = async (e) => {
     e.preventDefault();

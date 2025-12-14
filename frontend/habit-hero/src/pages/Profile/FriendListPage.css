@@ -6,21 +6,39 @@
 
 .friend-card {
   background: white;
-  border-radius: 12px;
-  padding: 20px 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
   border: 1px solid #e1e8ed;
   display: flex;
   align-items: center;
   gap: 20px;
   transition: all 0.3s ease;
   min-height: 70px;
+  position: relative;
+  overflow: hidden;
+}
+
+.friend-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.friend-card:hover::before {
+  opacity: 1;
 }
 
 .friend-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  border-color: #007bff;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .friend-info {
@@ -32,15 +50,20 @@
 }
 
 .friend-avatar {
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  border: 2px solid #e1e8ed;
-  transition: border-color 0.3s ease;
+  border: 3px solid #e1e8ed;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .friend-info:hover .friend-avatar {
-  border-color: #007bff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.friend-info:hover .friend-avatar {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .friend-details {
@@ -49,32 +72,48 @@
 
 .friend-name {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1a1a1a;
   margin: 0;
   transition: color 0.3s ease;
 }
 
 .friend-info:hover .friend-name {
-  color: #007bff;
+  color: var(--color-primary);
 }
 
 .remove-btn {
-  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
   color: white;
   border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(248, 113, 113, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.remove-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%, rgba(255, 255, 255, 0.2) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.remove-btn:hover::before {
+  opacity: 1;
 }
 
 .remove-btn:hover {
-  background: linear-gradient(135deg, #c82333 0%, #e8590c 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(248, 113, 113, 0.25);
 }
 
 .remove-btn:disabled {
@@ -85,5 +124,10 @@
 
 .remove-btn:disabled:hover {
   transform: none;
-  box-shadow: none;
+  box-shadow: 0 2px 8px rgba(248, 113, 113, 0.2);
+}
+
+.remove-btn:active:not(:disabled) {
+  transform: translateY(0px) scale(1);
+  transition: all 0.1s ease;
 }

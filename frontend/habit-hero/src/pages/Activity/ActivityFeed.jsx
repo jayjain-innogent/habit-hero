@@ -10,7 +10,6 @@ import CreateActivityModal from "../../components/activity/CreateActivityModal";
 import CommentsModal from "../../components/activity/CommentsModal";
 import { Activity, Users } from "lucide-react";
 import "./ActivityFeed.css";
-import { generateReportApi } from "../../utils/use-gemini";
 
 export default function ActivityFeed() {
   const navigate = useNavigate();
@@ -31,8 +30,6 @@ export default function ActivityFeed() {
     setLoading(true);
     try {
       const response = await getFeedApi({ userId: currentUserId, filter, page: 0, size: 20 });
-      const summary = generateReportApi(response.data);
-      setSummaryRes(summary)
       setFeed(response.data || []);
     } catch (error) {
       console.error("Failed to load feed:", error);
@@ -42,31 +39,33 @@ export default function ActivityFeed() {
     }
   };
 
-  const handleLikeToggle = async (activity) => {
-    if (!activity || !activity.id) {
-      return;
-    }
+  const handleLikeToggle = async (activity) => {  
+  if (!activity || !activity.id) {
+    return;
+  }
 
-    const updatedFeed = feed.map((item) =>
-      item.id === activity.id
-        ? {
-          ...item,
-          likedByCurrentUser: !item.likedByCurrentUser,
-          likesCount: item.likedByCurrentUser
-            ? (item.likesCount || 1) - 1
-            : (item.likesCount || 0) + 1,
-        }
-        : item
-    );
-    setFeed(updatedFeed);
+  const updatedFeed = feed.map((item) =>
+    item.id === activity.id
+      ? {
+        ...item,
+        likedByCurrentUser: !item.likedByCurrentUser,
+        likesCount: item.likedByCurrentUser
+          ? (item.likesCount || 1) - 1
+          : (item.likesCount || 0) + 1,
+      }
+      : item
+  );
+  setFeed(updatedFeed);
 
-    try {
-      await likeActivityApi({ activityId: activity.id, userId: currentUserId });
-    } catch (error) {
-      console.error("Failed to toggle like:", error);
-      loadFeed();
-    }
-  };
+  try {
+    const response = await likeActivityApi({ activityId: activity.id, userId: currentUserId });
+  } catch (error) {
+    console.error("Failed to toggle like:", error);
+  }
+};
+
+
+
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
@@ -75,6 +74,16 @@ export default function ActivityFeed() {
   const handleCommentClick = (activityId) => {
     setSelectedActivityId(activityId);
     setShowCommentsModal(true);
+  };
+
+  const handleCommentAdded = () => {
+    setFeed(prevFeed => 
+      prevFeed.map(activity => 
+        activity.id === selectedActivityId 
+          ? { ...activity, commentsCount: (activity.commentsCount || 0) + 1 }
+          : activity
+      )
+    );
   };
 
   const handleProfileClick = (userId) => {
@@ -124,7 +133,7 @@ export default function ActivityFeed() {
         )}
       </div>
 
-      <button onClick={() => setShowCreateModal(true)} className="fab">
+      <button onClick={() => setShowCreateModal(true)} className="fab" title="Share Activity">
         +
       </button>
 
@@ -132,15 +141,14 @@ export default function ActivityFeed() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSubmit={loadFeed}
-        summary={summaryRes}
       />
 
       <CommentsModal
         isOpen={showCommentsModal}
         onClose={() => setShowCommentsModal(false)}
         activityId={selectedActivityId}
-        onCommentAdded={loadFeed}
-        onProfileClick={handleProfileClick} // Add this line
+        onCommentAdded={handleCommentAdded}  
+        onProfileClick={handleProfileClick}
       />
     </div>
   );

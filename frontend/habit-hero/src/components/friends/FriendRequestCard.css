@@ -8,12 +8,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.friend-request-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.friend-request-card:hover::before {
+  opacity: 1;
 }
 
 .friend-request-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  border-color: var(--color-border-focus);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 
@@ -34,12 +53,24 @@
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.friend-request-card .user-info:hover .user-avatar {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .friend-request-card .username {
   color: #404040;
-  font-weight: 500;
+  font-weight: 600;
   margin: 0;
+  transition: color 0.2s ease;
+}
+
+.friend-request-card .user-info:hover .username {
+  color: var(--color-primary);
 }
 
 .friend-request-card .user-bio {
@@ -50,40 +81,58 @@
 
 .friend-request-card .actions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .friend-request-card .btn-icon {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.friend-request-card .btn-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%, rgba(255, 255, 255, 0.2) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.friend-request-card .btn-icon:hover::before {
+  opacity: 1;
 }
 
 .friend-request-card .btn-icon.accept {
-  background: var(--gradient-success);
-  color: var(--color-white);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
 }
 
 .friend-request-card .btn-icon.accept:hover {
-  background: linear-gradient(135deg, var(--color-success-dark) 0%, var(--color-success) 100%);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
 }
 
 .friend-request-card .btn-icon.reject {
-  background: var(--color-error);
-  color: var(--color-white);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
 }
 
 .friend-request-card .btn-icon.reject:hover {
-  background: #dc2626;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
 }
 
 .friend-request-card .btn-icon:disabled {

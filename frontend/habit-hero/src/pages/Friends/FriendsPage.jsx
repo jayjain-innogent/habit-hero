@@ -35,11 +35,16 @@ function FriendsPage() {
     }
   }, [userId]);
 
-  useEffect(() => {
-    if (!loading) {
+useEffect(() => {
+  if (!loading) {
+    // Small delay to ensure server state is updated
+    setTimeout(() => {
       fetchSuggestedUsers();
-    }
-  }, [loading, friends, requests, sentRequests]);
+    }, 100);
+  }
+}, [loading, friends, requests, sentRequests]);
+
+
 
   // Add debounced search
   useEffect(() => {
@@ -74,41 +79,25 @@ function FriendsPage() {
     }
   }
 
-  async function fetchSuggestedUsers() {
-    try {
-      const res = await getAllUsersApi();
-      const allUsers = Array.isArray(res.data) ? res.data : [];
+async function fetchSuggestedUsers() {
+  try {
+    const res = await getAllUsersApi();
+    const allUsers = Array.isArray(res.data) ? res.data : [];
 
-      console.log("All users:", allUsers.length);
-      console.log("Friends:", friends);
-      console.log("Requests:", requests);
-      console.log("Sent requests:", sentRequests);
-      console.log("Current userId:", userId);
+    const suggested = allUsers.filter(user => {
+      const isFriend = friends.some(f => f.friendId === user.userId);
+      const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
+      const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
+      const isCurrentUser = user.userId === userId;
 
-      const suggested = allUsers.filter(user => {
-        const isFriend = friends.some(f => f.friendId === user.userId);
-        const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
-        const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
-        const isCurrentUser = user.userId === userId;
+      return !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser;
+    });
 
-        console.log(`User ${user.username}:`, {
-          isFriend,
-          hasIncomingRequest,
-          hasSentRequest,
-          isCurrentUser,
-          shouldInclude: !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser
-        });
-
-        return !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser;
-      });
-
-      console.log("Suggested users:", suggested);
-      setSuggestedUsers(suggested.slice(0, 5));
-    } catch (err) {
-      console.error("Failed to fetch suggested users:", err);
-    }
+    setSuggestedUsers(suggested.slice(0, 5));
+  } catch (err) {
+    console.error("Failed to fetch suggested users:", err);
   }
-
+}
 
 
   async function searchUsers() {
@@ -156,18 +145,24 @@ function FriendsPage() {
 
 
   async function handleAddFriend(receiverId) {
-    try {
-      setButtonLoading({ [`add_${receiverId}`]: true });
-      await sendRequestApi({ senderId: userId, receiverId });
+  try {
+    setButtonLoading({ [`add_${receiverId}`]: true });
+    await sendRequestApi({ senderId: userId, receiverId });
 
-      setSuggestedUsers(prev => prev.filter(user => user.userId !== receiverId));
+    setSentRequests(prev => [...prev, { 
+      receiverId: receiverId,
+      senderId: userId 
+    }]);
 
-    } catch (err) {
-      console.error("Failed to send friend request:", err);
-    } finally {
-      setButtonLoading({});
-    }
+    setSuggestedUsers(prev => prev.filter(user => user.userId !== receiverId));
+
+  } catch (err) {
+    console.error("Failed to send friend request:", err);
+  } finally {
+    setButtonLoading({});
   }
+}
+
 
   const getRelationshipStatus = (user) => {
     const isFriend = friends.some(f => f.friendId === user.userId);
@@ -179,8 +174,6 @@ function FriendsPage() {
     if (hasSentRequest) return "sent";
     return "none";
   };
-
-  console.log("Render - activeTab:", activeTab, "suggestedUsers:", suggestedUsers.length, "searchQuery:", searchQuery);
 
   if (!userId) return <div className="loading">Loading user...</div>;
   if (loading) return <div className="loading">Loading requests…</div>;
@@ -277,16 +270,44 @@ function FriendsPage() {
                         </div>
                       </div>
                       <div className="user-actions">
-                        <button
-                          type="button"
-                          className="btn btn-primary"
-                          onClick={() => handleAddFriend(user.userId)}
-                          disabled={buttonLoading[`add_${user.userId}`]}
-                        >
-                          <UserPlus size={16} />
-                          {buttonLoading[`add_${user.userId}`] ? "Sending..." : "Add Friend"}
-                        </button>
+                        {(() => {
+                          const status = getRelationshipStatus(user);
+                          
+                          if (status === "friends") {
+                            return (
+                              <button className="btn btn-secondary" disabled>
+                                Friends
+                              </button>
+                            );
+                          }
+                          if (status === "incoming") {
+                            return (
+                              <button className="btn btn-success" disabled>
+                                Request Received
+                              </button>
+                            );
+                          }
+                          if (status === "sent") {
+                            return (
+                              <button className="btn btn-warning" disabled>
+                                Request Sent
+                              </button>
+                            );
+                          }
+                          return (
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              onClick={() => handleAddFriend(user.userId)}
+                              disabled={buttonLoading[`add_${user.userId}`]}
+                            >
+                              <UserPlus size={16} />
+                              {buttonLoading[`add_${user.userId}`] ? "Sending..." : "Add Friend"}
+                            </button>
+                          );
+                        })()}
                       </div>
+
                     </div>
                   ))}
                 </div>

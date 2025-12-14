@@ -2,30 +2,58 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
+  padding: 20px;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border: 1px solid var(--color-border-light);
+  position: relative;
+  overflow: hidden;
+}
+
+.user-search-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.user-search-item:hover::before {
+  opacity: 1;
 }
 
 .user-search-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(99, 102, 241, 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   cursor: pointer;
   flex: 1;
 }
 
 .profile-pic {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-info:hover .profile-pic {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .user-details {
@@ -35,52 +63,75 @@
 .username {
   font-weight: 600;
   color: #333;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  transition: color 0.2s ease;
+}
+
+.user-info:hover .username {
+  color: var(--color-primary);
 }
 
 .bio {
   font-size: 14px;
   color: #666;
+  font-weight: 500;
 }
 
 .btn-group {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .btn {
-  padding: 6px 12px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%, rgba(255, 255, 255, 0.2) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn:hover::before {
+  opacity: 1;
 }
 
 .btn.add {
-  background: #007bff;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
 }
 
 .btn.remove {
-  background: #dc3545;
+  background: linear-gradient(135deg, #dc3545 0%, #b91c1c 100%);
   color: white;
 }
 
 .btn.accept {
-  background: #28a745;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
 }
 
 .btn.reject {
-  background: #6c757d;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
 }
 
 .btn.cancel {
-  background: #ffc107;
-  color: #333;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  font-weight: 600;
 }
 
 .btn.loading {
@@ -90,6 +141,11 @@
 }
 
 .btn:hover:not(.loading) {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active:not(.loading) {
+  transform: translateY(0px) scale(1);
+  transition: all 0.1s ease;
 }
