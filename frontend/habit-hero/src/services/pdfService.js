@@ -5,11 +5,11 @@ const generateHTMLReport = (dashboardData) => {
   
   const currentDate = new Date().toLocaleDateString();
   
-  // Handle different possible data structures
-  const reportTitle = dashboardData.reportTitle || dashboardData.title || 'Habit Tracking Report';
-  const startDate = dashboardData.startDate || dashboardData.dateRange?.start || new Date().toISOString().split('T')[0];
-  const endDate = dashboardData.endDate || dashboardData.dateRange?.end || new Date().toISOString().split('T')[0];
-  const motivationMessage = dashboardData.motivationMessage || dashboardData.message || 'Keep building great habits!';
+
+  const reportTitle = dashboardData.reportTitle ||  'Habit Tracking Report';
+  const startDate = dashboardData.startDate  || new Date().toISOString().split('T')[0];
+  const endDate = dashboardData.endDate  || new Date().toISOString().split('T')[0];
+  const motivationMessage = dashboardData.motivationMessage || 'Keep building great habits!';
   
   // Extract actual data from API response and map to expected format
   let cardData = [];
@@ -42,22 +42,18 @@ const generateHTMLReport = (dashboardData) => {
   let tableData = [];
   if (Array.isArray(dashboardData.tableData)) {
     tableData = dashboardData.tableData;
-  } else if (Array.isArray(dashboardData.habits)) {
-    tableData = dashboardData.habits;
-  } else if (Array.isArray(dashboardData.habitData)) {
-    tableData = dashboardData.habitData;
   }
   
   // Normalize table data fields
   tableData = tableData.map(habit => ({
-    habitName: habit.habitName || habit.name || habit.title || 'Unknown Habit',
-    completionRate: habit.completionRate || habit.completion || habit.rate || 0,
-    streak: habit.streak || habit.currentStreak || habit.streakDays || 0,
-    category: habit.category || habit.type || 'OTHER'
+    habitName: habit.habitName || 'Unknown Habit',
+    completionRate: habit.efficiency || 0,
+    streak: cardData.currentStreak || 0,
+    category: habit.category || 'OTHER'
   }));
   
   const totalHabits = tableData.length || 0;
-  const completedHabits = tableData.filter(h => h.completionRate > 0).length || 0;
+  const completedHabits = tableData.filter(h => h.taskCompletedCount > 0).length || 0;
   const overallScore = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0;
   
   // Calculate category performance
@@ -70,6 +66,7 @@ const generateHTMLReport = (dashboardData) => {
     categories[category].total++;
     if (habit.completionRate > 0) categories[category].completed++;
     categories[category].efficiency = Math.round((categories[category].completed / categories[category].total) * 100);
+    
   });
   
   const topPerformers = tableData.filter(h => h.completionRate >= 80).slice(0, 3) || [];
