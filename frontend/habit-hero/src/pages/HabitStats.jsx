@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchWeeklyReport } from '../services/api';
 import './HabitStats.css';
 import { useParams, useNavigate } from 'react-router-dom';
-<<<<<<< Updated upstream
 import { ArrowLeft, Zap, Award, Target, Download, ThumbsDown, Info } from 'lucide-react';
-=======
-import { ArrowLeft, Zap, Award, Target, Download, ThumbsDown, Info, TrendingUp, TrendingDown, Minus} from 'lucide-react';
->>>>>>> Stashed changes
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 const HabitStats = () => {
@@ -647,23 +643,7 @@ const HabitStats = () => {
             return weekChange?.completionsDiff || 0;
         }
     };
-<<<<<<< Updated upstream
     const getSubText = (goalUnit) => {
-=======
-
-    const getChangeIcon = (value) => {
-        if (value > 0) return <TrendingUp size={14} />;
-        if (value < 0) return <TrendingDown size={14} />;
-        return <Minus size={14} />;
-    };
-
-    const getChangeClass = (value) => {
-        if (value > 0) return 'positive';
-        if (value < 0) return 'negative';
-        return 'neutral';
-    };
-  const getSubText = (goalUnit) => {
->>>>>>> Stashed changes
         if (viewMode === 'percentage') {
             return '% Completed';
         } else if (viewMode === 'days') {
@@ -815,37 +795,11 @@ const HabitStats = () => {
                             <button className="card-label" onClick={toggleViewMode}>{getButtonLabel()}</button>
                         </div>
 
-<<<<<<< Updated upstream
                         <div className="snapshot-grid">
                             <div className="snapshot-card">
                                 <p className="snapshot-label">Last Week</p>
                                 <p className="snapshot-value">{getSnapshotValue(habit.previousWeek)}</p>
                                 <p className="snapshot-subtext">{getSubText(habit.goalUnit)}</p>
-=======
-                            <div className="snapshot-grid">
-                                <div className="snapshot-card">
-                                    <p className="snapshot-label">Last Week</p>
-                                    <p className="snapshot-value">{getSnapshotValue(habit.previousWeek)}</p>
-                                    <p className="snapshot-subtext">{getSubText(habit.goalUnit)}</p>
-                                </div>
-                                <div className="snapshot-card">
-                                    <p className="snapshot-label">Current Week</p>
-                                    <p className="snapshot-value">{getSnapshotValue(habit.thisWeek)}</p>
-                                    <div className="snapshot-change-row">
-                                        <div className={`snapshot-change ${getChangeClass(getSnapshotDifferent(habit.weekOverWeekChange))}`}>
-                                            {getChangeIcon(getSnapshotDifferent(habit.weekOverWeekChange))}
-                                            <span>{Math.abs(getSnapshotDifferent(habit.weekOverWeekChange))}{viewMode === 'percentage' ? '%' : ''}</span>
-                                        </div>
-                                        <p className="snapshot-subtext">{getSubText(habit.goalUnit)}</p>
-                                    </div>
-                                    
-                                </div>
-                                <div className="snapshot-card">
-                                    <p className="snapshot-label">Missed Days</p>
-                                    <p className="snapshot-value">{habit.thisWeek?.missedDays || 0}</p>
-                                    <p className="snapshot-subtext">This week</p>
-                                </div>
->>>>>>> Stashed changes
                             </div>
                             <div className="snapshot-card">
                                 <p className="snapshot-label">Current Week</p>
@@ -884,16 +838,9 @@ const HabitStats = () => {
                             </div>
                         </div>
                     </div>
-<<<<<<< Updated upstream
                 </div>
                 <div className="month-grid">
                     <div className="card-header">
-=======
-                    
-                    </div>
-                    <div className="month-grid">
-                     <div className="card-header">
->>>>>>> Stashed changes
                         <h3>Monthly Activity</h3>
                         <div className="month-nav">
                             <button onClick={handlePreviousMonth} disabled={!canGoPrevious}>←</button>
@@ -901,7 +848,6 @@ const HabitStats = () => {
                             <button onClick={handleNextMonth} disabled={!canGoNext}>→</button>
                         </div>
                     </div>
-<<<<<<< Updated upstream
                     <div className="calendar-grid">
                         {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => {
                             const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1).toISOString().split('T')[0];
@@ -922,29 +868,6 @@ const HabitStats = () => {
                             </div>;
                         })}
                     </div>
-=======
-                
-                 <div className="calendar-grid">
-                     {Array.from({length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()}, (_, i) => {
-                         const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1).toISOString().split('T')[0];
-                         const dateIndex = completionDates.findIndex(d => d.startsWith(dayDate));
-                         const dayValue = dateIndex >= 0 ? completionValues[dateIndex] : null;
-                         const completed = dayValue !== null;
-                         const intensity = completed ? 'high' : 'none';
-                         return <div key={i}
-                                     className={`calendar-day ${intensity}`}
-                                     onMouseEnter={() => setHoveredDay(i)}
-                                     onMouseLeave={() => setHoveredDay(null)}>
-                                    {hoveredDay === i && (
-                                        <div className="calendar-tooltip">
-                                            <div>{dayValue || 0 } {habit.goalUnit}</div>
-                                            <div>Date: {new Date(dayDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</div>
-                                        </div>
-                                    )}
-                                 </div>;
-                     })}
-                 </div>
->>>>>>> Stashed changes
                     <div className="legend">
                         <div className="legend-item"><div className="legend-box none"></div> Not Done</div>
                         <div className="legend-item"><div className="legend-box high"></div> Completed</div>
