@@ -33,13 +33,13 @@ public class JwtUtil {
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .setSubject(user.getUserId().toString())   // who is this token for?
+                .setSubject(user.getUserId().toString())
                 .claim("email", user.getEmail())
                 .claim("username", user.getUsername())
                 .claim("verified", user.getVerified())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS256)   // signing
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 

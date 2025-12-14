@@ -1,0 +1,511 @@
+/* ============================================
+   HabitForm Styles - Playful & Attractive Design
+   ============================================ */
+
+/* Form Container */
+.habit-form-container {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f5ff 100%);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow:
+        0 10px 40px rgba(111, 45, 189, 0.12),
+        0 4px 12px rgba(111, 45, 189, 0.08);
+    border: 2px solid rgba(166, 99, 204, 0.15);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.habit-form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg,
+            #6F2DBD 0%,
+            #A663CC 25%,
+            #B298DC 50%,
+            #A663CC 75%,
+            #6F2DBD 100%);
+    background-size: 200% 100%;
+    animation: gradientSlide 3s ease-in-out infinite;
+}
+
+@keyframes gradientSlide {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.habit-form-container:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 20px 60px rgba(111, 45, 189, 0.18),
+        0 8px 20px rgba(111, 45, 189, 0.12);
+}
+
+/* Floating Decorations - Icon based */
+.habit-form-container::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba(111, 45, 189, 0.1) 0%, rgba(166, 99, 204, 0.15) 100%);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.9;
+    }
+}
+
+/* Delete Button Area */
+.habit-form-delete-area {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 24px;
+}
+
+.habit-form-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border: 2px solid #fecaca;
+    background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.habit-form-delete-btn:hover {
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    border-color: #f87171;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.habit-form-delete-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.habit-form-delete-btn:hover svg {
+    transform: rotate(-10deg) scale(1.1);
+}
+
+/* Form Grid */
+.habit-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Form Row for Side-by-Side Fields */
+.habit-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 576px) {
+    .habit-form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Input Groups */
+.habit-form-group {
+    position: relative;
+}
+
+/* Labels */
+.habit-form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #6F2DBD;
+    margin-bottom: 10px;
+}
+
+.habit-form-label-icon {
+    font-size: 16px;
+}
+
+/* Text Input */
+.habit-form-input {
+    width: 100%;
+    padding: 16px 18px;
+    border: 2px solid #e8e0f0;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+    color: #1e1b4b;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.habit-form-input::placeholder {
+    color: #a78bbd;
+    font-weight: 400;
+}
+
+.habit-form-input:focus {
+    outline: none;
+    border-color: #A663CC;
+    background: #ffffff;
+    box-shadow:
+        0 0 0 4px rgba(166, 99, 204, 0.15),
+        0 4px 16px rgba(111, 45, 189, 0.1);
+    transform: scale(1.01);
+}
+
+.habit-form-input.is-invalid {
+    border-color: #f87171;
+    background: #fef2f2;
+}
+
+/* Large Input */
+.habit-form-input-lg {
+    padding: 18px 20px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Textarea */
+.habit-form-textarea {
+    width: 100%;
+    padding: 16px 18px;
+    border: 2px solid #e8e0f0;
+    border-radius: 16px;
+    font-size: 15px;
+    background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+    color: #1e1b4b;
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.habit-form-textarea::placeholder {
+    color: #a78bbd;
+}
+
+.habit-form-textarea:focus {
+    outline: none;
+    border-color: #A663CC;
+    background: #ffffff;
+    box-shadow:
+        0 0 0 4px rgba(166, 99, 204, 0.15),
+        0 4px 16px rgba(111, 45, 189, 0.1);
+}
+
+/* Select Dropdown */
+.habit-form-select {
+    width: 100%;
+    padding: 16px 18px;
+    padding-right: 48px;
+    border: 2px solid #e8e0f0;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 500;
+    background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+    color: #1e1b4b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236F2DBD' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 20px;
+    box-sizing: border-box;
+}
+
+.habit-form-select:focus {
+    outline: none;
+    border-color: #A663CC;
+    background-color: #ffffff;
+    box-shadow:
+        0 0 0 4px rgba(166, 99, 204, 0.15),
+        0 4px 16px rgba(111, 45, 189, 0.1);
+}
+
+.habit-form-select.is-invalid {
+    border-color: #f87171;
+    background-color: #fef2f2;
+}
+
+/* Input Group with Unit */
+.habit-form-input-group {
+    display: flex;
+    border: 2px solid #e8e0f0;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+}
+
+.habit-form-input-group:focus-within {
+    border-color: #A663CC;
+    box-shadow:
+        0 0 0 4px rgba(166, 99, 204, 0.15),
+        0 4px 16px rgba(111, 45, 189, 0.1);
+}
+
+.habit-form-input-group .habit-form-input {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+}
+
+.habit-form-input-group .habit-form-input:focus {
+    box-shadow: none;
+    transform: none;
+}
+
+.habit-form-input-unit {
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    color: #6F2DBD;
+    font-size: 14px;
+    font-weight: 600;
+    border-left: 2px solid #e8e0f0;
+    min-width: 80px;
+    justify-content: center;
+}
+
+/* Divider */
+.habit-form-divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #e8e0f0 20%, #d8d0e8 50%, #e8e0f0 80%, transparent 100%);
+    margin: 8px 0;
+    border-radius: 999px;
+}
+
+/* Error Message */
+.habit-form-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-radius: 10px;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 500;
+    animation: errorShake 0.4s ease-in-out;
+}
+
+@keyframes errorShake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+/* Error icon is now handled by lucide-react in JSX */
+
+/* Submit Button */
+.habit-form-submit {
+    width: 100%;
+    margin-top: 16px;
+    padding: 18px 32px;
+    border: none;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #6F2DBD 0%, #A663CC 50%, #B298DC 100%);
+    background-size: 200% 100%;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    box-shadow:
+        0 6px 20px rgba(111, 45, 189, 0.35),
+        0 2px 8px rgba(111, 45, 189, 0.2);
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.habit-form-submit-icon {
+    transition: transform 0.3s ease;
+}
+
+.habit-form-submit:hover .habit-form-submit-icon {
+    transform: rotate(90deg);
+}
+
+.habit-form-submit::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.habit-form-submit:hover {
+    background-position: 100% 0;
+    transform: translateY(-3px);
+    box-shadow:
+        0 12px 30px rgba(111, 45, 189, 0.4),
+        0 4px 12px rgba(111, 45, 189, 0.25);
+}
+
+.habit-form-submit:hover::before {
+    left: 100%;
+}
+
+.habit-form-submit:active {
+    transform: translateY(-1px);
+    box-shadow:
+        0 6px 20px rgba(111, 45, 189, 0.35),
+        0 2px 8px rgba(111, 45, 189, 0.2);
+}
+
+/* Section Title */
+.habit-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b5cf6;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+}
+
+.habit-form-section-title::before,
+.habit-form-section-title::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #e8e0f0, transparent);
+}
+
+/* Animated Section Appearance */
+.habit-form-animated-section {
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fun Category Icons */
+.habit-form-category-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    border-radius: 20px;
+    font-size: 12px;
+    color: #6F2DBD;
+    font-weight: 500;
+}
+
+/* Playful Floating Labels Effect */
+.habit-form-group.focused .habit-form-label {
+    color: #A663CC;
+    transform: scale(1.02);
+}
+
+/* Hide Number Input Spinner Arrows */
+.habit-form-input[type="number"]::-webkit-inner-spin-button,
+.habit-form-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.habit-form-input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Custom focus ring for accessibility */
+.habit-form-input:focus-visible,
+.habit-form-select:focus-visible,
+.habit-form-textarea:focus-visible {
+    outline: 3px solid rgba(166, 99, 204, 0.5);
+    outline-offset: 2px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .habit-form-container {
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+
+    .habit-form-container::after {
+        font-size: 22px;
+        top: 16px;
+        right: 18px;
+    }
+
+    .habit-form-input-lg {
+        padding: 16px 18px;
+        font-size: 16px;
+    }
+
+    .habit-form-submit {
+        padding: 16px 28px;
+        font-size: 16px;
+    }
+}

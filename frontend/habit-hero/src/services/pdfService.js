@@ -7,23 +7,34 @@ const generateHTMLReport = (dashboardData) => {
   
   // Handle different possible data structures
   const reportTitle = dashboardData.reportTitle || dashboardData.title || 'Habit Tracking Report';
-  const startDate = dashboardData.startDate || dashboardData.dateRange?.start || '';
-  const endDate = dashboardData.endDate || dashboardData.dateRange?.end || '';
+  const startDate = dashboardData.startDate || dashboardData.dateRange?.start || new Date().toISOString().split('T')[0];
+  const endDate = dashboardData.endDate || dashboardData.dateRange?.end || new Date().toISOString().split('T')[0];
   const motivationMessage = dashboardData.motivationMessage || dashboardData.message || 'Keep building great habits!';
   
-  // Handle cardData - could be array or object
+  // Extract actual data from API response and map to expected format
   let cardData = [];
   if (Array.isArray(dashboardData.cardData)) {
-    cardData = dashboardData.cardData;
-  } else if (dashboardData.cards) {
-    cardData = Array.isArray(dashboardData.cards) ? dashboardData.cards : [];
+    cardData = dashboardData.cardData.map(card => ({
+      title: card.title || 'Unknown',
+      value: card.value !== undefined ? card.value : 'N/A'
+    }));
+  } else if (dashboardData.cardData && typeof dashboardData.cardData === 'object') {
+    // Handle object structure from DashboardCards component
+    const data = dashboardData.cardData;
+    cardData = [
+      { title: 'Overall Score', value: `${data.scorePercentage || 0}%` },
+      { title: 'Current Streak', value: data.currentStreak || 0 },
+      { title: 'Perfect Days', value: data.perfectDays || 0 },
+      { title: 'Longest Streak', value: data.longestStreak || 0 },
+      { title: 'Active Days', value: data.activeDaysCount || 0 }
+    ];
   } else {
     // Create default cards from available data
     cardData = [
-      { title: 'Total Habits', value: dashboardData.totalHabits || 0 },
-      { title: 'Completed', value: dashboardData.completedHabits || 0 },
-      { title: 'Streak', value: dashboardData.currentStreak || 0 },
-      { title: 'Score', value: dashboardData.overallScore || '0%' }
+      { title: 'Overall Score', value: `${dashboardData.scorePercentage || 0}%` },
+      { title: 'Current Streak', value: dashboardData.currentStreak || 0 },
+      { title: 'Perfect Days', value: dashboardData.perfectDays || 0 },
+      { title: 'Active Days', value: dashboardData.activeDaysCount || 0 }
     ];
   }
   
@@ -227,7 +238,7 @@ const generateHTMLReport = (dashboardData) => {
                 <div class="insight-title">✅ What's Working Well</div>
                 <div class="insight-content">
                     <strong>Top Performance:</strong> ${topPerformers.length} habits showing excellent completion rates (80%+)<br>
-                    <strong>Consistency:</strong> Best streak of ${Math.max(...(dashboardData.tableData?.map(h => h.streak) || [0]))} days shows good momentum
+                    <strong>Consistency:</strong> Best streak of ${Math.max(...(tableData.map(h => h.streak) || [0]))} days shows good momentum
                 </div>
             </div>
             <div class="insight-box critical">

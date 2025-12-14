@@ -17,13 +17,25 @@ export const generateHabitStatsPDF = async (reportData) => {
     weekDates.push(new Date(d).toISOString().split('T')[0]);
   }
 
-  const completionDates = summary.habitCompletionsData?.completaionDate || [];
+  const completionDates = summary.habitCompletionsData?.completionDate || 
+                          summary.habitCompletionsData?.completaionDate || [];
   const completionValues = summary.habitCompletionsData?.completionValue || [];
   const totalDays = weekDates.length;
   const completedDays = completionDates.length;
-  const completionRate = Math.round((completedDays / totalDays) * 100);
-  const totalRepetitions = completionValues.reduce((sum, val) => sum + val, 0);
+  const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
+  const totalRepetitions = completionValues.reduce((sum, val) => sum + (val || 0), 0);
   const avgRepetitions = completedDays > 0 ? (totalRepetitions / completedDays).toFixed(1) : 0;
+  const missedDays = totalDays - completedDays;
+
+  console.log('PDF Service - Calculated Data:', {
+    completionDates: completionDates.slice(0, 5),
+    completionValues,
+    totalDays,
+    completedDays,
+    completionRate,
+    totalRepetitions,
+    avgRepetitions
+  });
 
   const addNewPageIfNeeded = (requiredSpace) => {
     if (yPosition + requiredSpace > pageHeight - 20) {
@@ -32,223 +44,322 @@ export const generateHabitStatsPDF = async (reportData) => {
     }
   };
 
-  // Header
-  pdf.setFontSize(20);
+  // Header with Background Color
+  pdf.setFillColor(41, 128, 185);
+  pdf.rect(0, 0, pageWidth, 50, 'F');
+  
+  pdf.setFontSize(24);
   pdf.setFont(undefined, 'bold');
-  pdf.text(`${habit.habitName.toUpperCase()} HABIT REPORT`, pageWidth/2, yPosition, { align: 'center' });
-
-  yPosition += 15;
+  pdf.setTextColor(255, 255, 255);
+  pdf.text(`${habit.habitName.toUpperCase()}`, pageWidth/2, 20, { align: 'center' });
   pdf.setFontSize(12);
+  pdf.text('Weekly Habit Tracking Report', pageWidth/2, 32, { align: 'center' });
+
+  yPosition = 60;
+  pdf.setTextColor(0, 0, 0);
+  
+  // Report Details
+  pdf.setFontSize(10);
   pdf.setFont(undefined, 'normal');
-  pdf.text(`Report Period: ${new Date(weekRange.startDate).toLocaleDateString()} - ${new Date(weekRange.endDate).toLocaleDateString()}`, pageWidth/2, yPosition, { align: 'center' });
-  yPosition += 7;
-  pdf.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth/2, yPosition, { align: 'center' });
-  yPosition += 7;
-  pdf.text(`Tracking Duration: ${totalDays} days`, pageWidth/2, yPosition, { align: 'center' });
+  const reportPeriodStart = new Date(weekRange.startDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const reportPeriodEnd = new Date(weekRange.endDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  
+  pdf.text(`📅 Report Period: ${reportPeriodStart} - ${reportPeriodEnd}`, 20, yPosition);
+  yPosition += 6;
+  pdf.text(`📆 Generated: ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`, 20, yPosition);
+  yPosition += 6;
+  pdf.text(`📊 Tracking Duration: ${totalDays} days`, 20, yPosition);
+  yPosition += 6;
+  pdf.text(`📋 Habit Type: ${habit.category || 'General'} | Frequency: ${habit.cadence || 'Daily'}`, 20, yPosition);
 
   yPosition += 25;
 
-  // Key Metrics with Circular Progress
+  // Key Metrics Section with Cards
   pdf.setFontSize(14);
   pdf.setFont(undefined, 'bold');
-  pdf.text('KEY METRICS', pageWidth/2, yPosition, { align: 'center' });
-  yPosition += 15;
+  pdf.text('📊 KEY METRICS AT A GLANCE', 20, yPosition);
+  yPosition += 12;
 
-  // Completion Rate Circle
-  const centerX1 = 60;
-  const centerY1 = yPosition + 20;
-  const radius = 15;
+  // Metrics Grid (2x2)
+  const metrics = [
+    { label: 'Completion Rate', value: `${completionRate}%`, color: [52, 211, 153] },
+    { label: 'Days Completed', value: `${completedDays}/${totalDays}`, color: [59, 130, 246] },
+    { label: 'Current Streak', value: `${summary.currentStreak || 0} days`, color: [251, 146, 60] },
+    { label: 'Longest Streak', value: `${summary.longestStreak || 0} days`, color: [168, 85, 247] }
+  ];
 
-  pdf.setDrawColor(220, 220, 220);
-  pdf.setLineWidth(3);
-  pdf.circle(centerX1, centerY1, radius);
+  const cardWidth = 40;
+  const cardHeight = 25;
+  const startX = 20;
+  const spacing = 10;
+  
+  metrics.forEach((metric, idx) => {
+    const row = Math.floor(idx / 2);
+    const col = idx % 2;
+    const x = startX + col * (cardWidth + spacing);
+    const y = yPosition + row * (cardHeight + spacing);
 
-  const progressAngle = (completionRate / 100) * 360;
-  pdf.setDrawColor(34, 197, 94);
-  pdf.setLineWidth(4);
+    // Card background
+    pdf.setFillColor(metric.color[0], metric.color[1], metric.color[2]);
+    pdf.setOpacity(0.1);
+    pdf.rect(x, y, cardWidth, cardHeight, 'F');
+    pdf.setOpacity(1);
+    
+    // Card border
+    pdf.setDrawColor(metric.color[0], metric.color[1], metric.color[2]);
+    pdf.setLineWidth(1);
+    pdf.rect(x, y, cardWidth, cardHeight);
 
-  for (let angle = 0; angle < progressAngle; angle += 5) {
-    const x1 = centerX1 + (radius - 2) * Math.cos((angle - 90) * Math.PI / 180);
-    const y1 = centerY1 + (radius - 2) * Math.sin((angle - 90) * Math.PI / 180);
-    const x2 = centerX1 + (radius + 2) * Math.cos((angle - 90) * Math.PI / 180);
-    const y2 = centerY1 + (radius + 2) * Math.sin((angle - 90) * Math.PI / 180);
-    pdf.line(x1, y1, x2, y2);
-  }
+    // Text
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(metric.color[0], metric.color[1], metric.color[2]);
+    pdf.text(metric.value, x + cardWidth/2, y + 8, { align: 'center' });
+    
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, 'normal');
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(metric.label, x + cardWidth/2, y + 18, { align: 'center' });
+  });
 
-  pdf.setFontSize(10);
-  pdf.setFont(undefined, 'bold');
-  pdf.text(`${completionRate}%`, centerX1, centerY1 + 2, { align: 'center' });
-  pdf.setFontSize(8);
-  pdf.setFont(undefined, 'normal');
-  pdf.text('Completion', centerX1, centerY1 + 30, { align: 'center' });
-
-  // Streak Circle
-  const centerX2 = 130;
-  const centerY2 = yPosition + 20;
-
-  pdf.setDrawColor(251, 191, 36);
-  pdf.setLineWidth(3);
-  pdf.circle(centerX2, centerY2, radius);
-
-  const streakProgress = Math.min((summary.currentStreak || 0) / 7, 1) * 360;
-  pdf.setDrawColor(245, 158, 11);
-  pdf.setLineWidth(4);
-
-  for (let angle = 0; angle < streakProgress; angle += 5) {
-    const x1 = centerX2 + (radius - 2) * Math.cos((angle - 90) * Math.PI / 180);
-    const y1 = centerY2 + (radius - 2) * Math.sin((angle - 90) * Math.PI / 180);
-    const x2 = centerX2 + (radius + 2) * Math.cos((angle - 90) * Math.PI / 180);
-    const y2 = centerY2 + (radius + 2) * Math.sin((angle - 90) * Math.PI / 180);
-    pdf.line(x1, y1, x2, y2);
-  }
-
-  pdf.setFontSize(10);
-  pdf.setFont(undefined, 'bold');
-  pdf.text(`${summary.currentStreak || 0}`, centerX2, centerY2 + 2, { align: 'center' });
-  pdf.setFontSize(8);
-  pdf.setFont(undefined, 'normal');
-  pdf.text('Day Streak', centerX2, centerY2 + 30, { align: 'center' });
-
-  yPosition += 50;
+  yPosition += 65;
 
   // Performance Summary
   addNewPageIfNeeded(80);
-  pdf.setFontSize(16);
+  pdf.setFontSize(14);
   pdf.setFont(undefined, 'bold');
-  pdf.text('PERFORMANCE SUMMARY', 20, yPosition);
+  pdf.text('📈 DETAILED PERFORMANCE ANALYSIS', 20, yPosition);
   yPosition += 15;
 
-  // Progress Bar
-  pdf.setFontSize(12);
-  pdf.text(`Completion Rate: ${completionRate}%`, 25, yPosition);
+  // Completion Progress Bar
+  pdf.setFontSize(11);
+  pdf.setFont(undefined, 'bold');
+  pdf.text(`Overall Completion: ${completionRate}%`, 25, yPosition);
+  yPosition += 8;
 
-  const barWidth = 100;
-  const barHeight = 8;
+  const barWidth = 150;
+  const barHeight = 6;
   const barX = 25;
-  const barY = yPosition + 5;
+  const barY = yPosition;
 
   pdf.setFillColor(240, 240, 240);
   pdf.rect(barX, barY, barWidth, barHeight, 'F');
 
   const fillWidth = (completionRate / 100) * barWidth;
-  const fillColor = completionRate >= 80 ? [34, 197, 94] : completionRate >= 60 ? [251, 191, 36] : [239, 68, 68];
+  let fillColor = [239, 68, 68]; // Red
+  if (completionRate >= 90) fillColor = [34, 197, 94]; // Green
+  else if (completionRate >= 70) fillColor = [251, 146, 60]; // Orange
+  else if (completionRate >= 50) fillColor = [251, 191, 36]; // Yellow
+
   pdf.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
   pdf.rect(barX, barY, fillWidth, barHeight, 'F');
 
+  // Status indicator
+  const status = completionRate >= 90 ? '✓ Excellent' : completionRate >= 70 ? '⚠ Good' : '✗ Needs Focus';
+  pdf.setFontSize(9);
+  pdf.setFont(undefined, 'normal');
+  pdf.text(status, barX + barWidth + 10, yPosition + 4);
+
   yPosition += 20;
 
-  // Key Metrics
-  const metrics = [
-    [`Completion Rate: ${completionRate}%`, completionRate >= 90 ? 'Excellent' : completionRate >= 70 ? 'Good' : 'Needs Focus'],
-    [`Days Completed: ${completedDays}/${totalDays}`, completedDays >= totalDays * 0.7 ? 'Good' : 'Needs Focus'],
-    [`Current Streak: ${summary.currentStreak || 0} days`, summary.currentStreak > 0 ? 'Active' : 'Inactive'],
-    [`Longest Streak: ${summary.longestStreak || 0} days`, 'Best'],
-    [`Days Missed: ${totalDays - completedDays}`, totalDays - completedDays <= 2 ? 'Good' : 'Needs Focus']
+  // Detailed Metrics Table
+  const detailedMetrics = [
+    ['📅 Days Completed', `${completedDays}/${totalDays}`, 'Days', completedDays >= totalDays * 0.7 ? 'Good' : 'Fair'],
+    ['❌ Days Missed', `${missedDays}`, 'Days', missedDays <= 2 ? 'Excellent' : 'Needs Work'],
+    ['🔥 Current Streak', `${summary.currentStreak || 0}`, 'Days', summary.currentStreak > 0 ? 'Active' : 'Inactive'],
+    ['🏆 Best Streak', `${summary.longestStreak || 0}`, 'Days', 'Personal Record'],
+    ['📊 Total Repetitions', `${totalRepetitions}`, habit.goalUnit || 'Units', 'Accumulated'],
+    ['📈 Average per Session', `${avgRepetitions}`, habit.goalUnit || 'Units', 'Per Completion']
   ];
 
-  pdf.setFontSize(11);
-  pdf.setFont(undefined, 'normal');
-  metrics.forEach(([metric, status]) => {
-    pdf.text(metric, 25, yPosition);
-    pdf.text(status, 140, yPosition);
+  pdf.setFontSize(10);
+  yPosition += 2;
+  
+  detailedMetrics.forEach((row, idx) => {
+    pdf.setFont(undefined, idx === 0 ? 'bold' : 'normal');
+    pdf.text(row[0], 25, yPosition);
+    pdf.text(row[1], 95, yPosition);
+    pdf.text(row[2], 130, yPosition);
+    pdf.setFont(undefined, 'normal');
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(row[3], 160, yPosition);
+    pdf.setTextColor(0, 0, 0);
     yPosition += 7;
   });
-
-  yPosition += 15;
-
-  // Capture Charts
-  try {
-    addNewPageIfNeeded(100);
-    pdf.setFontSize(16);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('WEEKLY PERFORMANCE CHART', 20, yPosition);
-    yPosition += 15;
-
-    const chartElement = document.querySelector('.chart-container');
-    if (chartElement) {
-      const canvas = await html2canvas(chartElement, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 160;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 25, yPosition, imgWidth, imgHeight);
-      yPosition += imgHeight + 15;
-    }
-  } catch (error) {
-    console.error('Error capturing chart:', error);
-    pdf.setFontSize(11);
-    pdf.text('Chart visualization unavailable', 25, yPosition);
-    yPosition += 10;
-  }
-
-  // Calendar Heatmap
-  try {
-    addNewPageIfNeeded(120);
-    pdf.setFontSize(16);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('MONTHLY ACTIVITY HEATMAP', 20, yPosition);
-    yPosition += 15;
-
-    const calendarElement = document.querySelector('.calendar-grid');
-    if (calendarElement) {
-      const canvas = await html2canvas(calendarElement, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 160;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 25, yPosition, imgWidth, imgHeight);
-      yPosition += imgHeight + 15;
-    }
-  } catch (error) {
-    console.error('Error capturing calendar:', error);
-    pdf.setFontSize(11);
-    pdf.text('Calendar visualization unavailable', 25, yPosition);
-    yPosition += 10;
-  }
-
-  // Insights & Recommendations
-  addNewPageIfNeeded(60);
-  pdf.setFontSize(16);
-  pdf.setFont(undefined, 'bold');
-  pdf.text('INSIGHTS & RECOMMENDATIONS', 20, yPosition);
-  yPosition += 15;
-
-  const findings = [
-    `Weekly Pattern: ${completionRate >= 70 ? `Strong ${completionRate}% completion rate` : `${completionRate}% completion - room for improvement`}`,
-    `Streak Status: ${summary.currentStreak > 0 ? `Active ${summary.currentStreak}-day streak` : 'No active streak - focus needed'}`,
-    `Performance: ${totalRepetitions > 0 ? `Averaging ${avgRepetitions} ${habit.goalUnit?.toLowerCase() || 'reps'}` : 'No completions this week'}`
-  ];
-
-  pdf.setFontSize(11);
-  pdf.setFont(undefined, 'normal');
-  findings.forEach((finding, i) => {
-    addNewPageIfNeeded(7);
-    pdf.text(`${i + 1}. ${finding}`, 25, yPosition);
-    yPosition += 7;
-  });
-
-  // Footer
-  yPosition += 15;
-  addNewPageIfNeeded(30);
-  pdf.setFontSize(12);
-  pdf.setFont(undefined, 'bold');
-  const footerMessage = completedDays > 0 
-    ? 'Keep up the momentum! You\'re building a strong foundation for this habit.'
-    : 'Every expert was once a beginner. Start your journey today!';
-  pdf.text(footerMessage, pageWidth/2, yPosition, { align: 'center' });
 
   yPosition += 10;
+
+  // Day-by-Day Breakdown
+  addNewPageIfNeeded(80);
+  pdf.setFontSize(14);
+  pdf.setFont(undefined, 'bold');
+  pdf.text('📅 WEEKLY BREAKDOWN', 20, yPosition);
+  yPosition += 12;
+
+  pdf.setFontSize(9);
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  let currentDay = new Date(weekRange.startDate);
+  
+  for (let i = 0; i < totalDays; i++) {
+    const dateStr = currentDay.toISOString().split('T')[0];
+    const dayName = dayNames[currentDay.getDay()];
+    const dateNum = currentDay.getDate();
+    const isCompleted = completionDates.includes(dateStr);
+    const completionValue = completionValues[completionDates.indexOf(dateStr)] || 0;
+
+    // Box for each day
+    const boxX = 20 + (i % 4) * 45;
+    const boxY = yPosition + Math.floor(i / 4) * 35;
+
+    if (isCompleted) {
+      pdf.setFillColor(52, 211, 153);
+      pdf.setTextColor(255, 255, 255);
+    } else {
+      pdf.setFillColor(240, 240, 240);
+      pdf.setTextColor(100, 100, 100);
+    }
+    
+    pdf.rect(boxX, boxY, 40, 30, 'F');
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.setFontSize(10);
+    pdf.text(dayName, boxX + 20, boxY + 6, { align: 'center' });
+    
+    pdf.setFontSize(11);
+    pdf.text(dateNum.toString(), boxX + 20, boxY + 13, { align: 'center' });
+    
+    pdf.setFontSize(8);
+    pdf.text(isCompleted ? `✓ ${completionValue}` : '✗', boxX + 20, boxY + 22, { align: 'center' });
+    
+    currentDay.setDate(currentDay.getDate() + 1);
+  }
+
+  pdf.setTextColor(0, 0, 0);
+  yPosition += Math.ceil(totalDays / 4) * 35 + 10;
+
+  // Insights & Recommendations
+  addNewPageIfNeeded(70);
+  pdf.setFontSize(14);
+  pdf.setFont(undefined, 'bold');
+  pdf.text('💡 PERFORMANCE INSIGHTS & ANALYSIS', 20, yPosition);
+  yPosition += 15;
+
   pdf.setFontSize(10);
+  pdf.setFont(undefined, 'normal');
+
+  const insights = [];
+  
+  // Completion insights
+  if (completionRate >= 90) {
+    insights.push('✓ OUTSTANDING PERFORMANCE\nYou\'re consistently exceeding expectations with excellent dedication.');
+  } else if (completionRate >= 70) {
+    insights.push('⚠ GOOD PROGRESS\nYou\'re on track! Focus on small improvements to reach 90%+ completion.');
+  } else if (completionRate >= 50) {
+    insights.push('⚡ BUILDING MOMENTUM\nYou\'re halfway there! Identify your barriers and create solutions.');
+  } else {
+    insights.push('🎯 NEEDS ATTENTION\nLow completion rate detected. Consider breaking down into smaller steps.');
+  }
+
+  // Streak insights
+  if (summary.currentStreak > 0) {
+    insights.push(`🔥 ACTIVE STREAK: ${summary.currentStreak} DAYS\nYou\'re on fire! Maintain this momentum to build lasting habits.`);
+  } else {
+    insights.push('⏰ NO ACTIVE STREAK\nFocus on completing today to start building your next streak!');
+  }
+
+  // Consistency insights
+  const consistencyScore = ((completedDays / totalDays) * 100).toFixed(0);
+  if (missedDays === 0) {
+    insights.push('✓ PERFECT CONSISTENCY\nYou didn\'t miss a single day - this is exceptional dedication!');
+  } else if (missedDays <= 1) {
+    insights.push(`💪 EXCELLENT WEEK\nOnly ${missedDays} missed day${missedDays > 1 ? 's' : ''} out of ${totalDays} - fantastic consistency!`);
+  } else if (missedDays <= 3) {
+    insights.push(`📊 ROOM FOR IMPROVEMENT\n${missedDays} missed days detected. Schedule dedicated time daily.`);
+  } else {
+    insights.push(`⚠ CONSISTENCY CHALLENGE\nToo many missed days (${missedDays}). Create a commitment strategy.`);
+  }
+
+  // Best streak comparison
+  if (summary.longestStreak > summary.currentStreak) {
+    insights.push(`🏆 PERSONAL RECORD: ${summary.longestStreak} DAYS\nYou've achieved longer streaks before - you have the capability!`);
+  } else if (summary.longestStreak > 0) {
+    insights.push(`🏆 MATCHING YOUR BEST\nYour current streak equals your personal best!`);
+  }
+
+  insights.forEach((insight, idx) => {
+    addNewPageIfNeeded(12);
+    const lines = pdf.splitTextToSize(`${idx + 1}. ${insight}`, 160);
+    lines.forEach((line) => {
+      pdf.text(line, 25, yPosition);
+      yPosition += 5;
+    });
+    yPosition += 5;
+  });
+
+  yPosition += 5;
+
+  // Action Items & Tips
+  addNewPageIfNeeded(60);
+  pdf.setFontSize(14);
+  pdf.setFont(undefined, 'bold');
+  pdf.text('🎯 ACTION ITEMS FOR NEXT WEEK', 20, yPosition);
+  yPosition += 12;
+
+  const actionItems = [];
+  if (missedDays > 0) {
+    actionItems.push('• Schedule specific times for this habit each day');
+  }
+  if (completionRate < 70) {
+    actionItems.push('• Break the habit into smaller, manageable steps');
+  }
+  if (completionRate < 50) {
+    actionItems.push('• Remove obstacles that prevent habit completion');
+  }
+  actionItems.push('• Track your progress daily to build awareness');
+  actionItems.push('• Celebrate small wins to maintain motivation');
+  if (summary.currentStreak > 0) {
+    actionItems.push(`• Protect your ${summary.currentStreak}-day streak - it's your momentum!`);
+  }
+
+  pdf.setFontSize(10);
+  pdf.setFont(undefined, 'normal');
+  actionItems.forEach((item) => {
+    addNewPageIfNeeded(7);
+    pdf.text(item, 25, yPosition);
+    yPosition += 7;
+  });
+
+  // Footer Section
+  yPosition += 15;
+  addNewPageIfNeeded(40);
+  
+  pdf.setDrawColor(200, 200, 200);
+  pdf.setLineWidth(0.5);
+  pdf.line(20, yPosition, pageWidth - 20, yPosition);
+  
+  yPosition += 10;
+  
+  pdf.setFontSize(13);
+  pdf.setFont(undefined, 'bold');
+  const motivationalMessage = 
+    completionRate >= 90 ? '🌟 You\'re a habit champion! Keep crushing your goals!' :
+    completionRate >= 70 ? '💪 Great work! You\'re building strong habits!' :
+    completionRate >= 50 ? '📈 Keep pushing! Every day counts toward your goal.' :
+    '🚀 Start today! Every expert was once a beginner.';
+  
+  const footerLines = pdf.splitTextToSize(motivationalMessage, 160);
+  footerLines.forEach((line) => {
+    pdf.text(line, pageWidth/2, yPosition, { align: 'center' });
+    yPosition += 6;
+  });
+
+  yPosition += 8;
+  pdf.setFontSize(9);
   pdf.setFont(undefined, 'italic');
-  pdf.text('For questions or feedback about this report, contact support or review app settings.', pageWidth/2, yPosition, { align: 'center' });
+  pdf.setTextColor(100, 100, 100);
+  pdf.text('Habit Hero - Building Better Habits, One Day at a Time', pageWidth/2, yPosition, { align: 'center' });
+  yPosition += 5;
+  pdf.text(`Report Generated: ${new Date().toLocaleString('en-US')}`, pageWidth/2, yPosition, { align: 'center' });
 
   pdf.save(`${habit.habitName}_Report_${new Date().toISOString().split('T')[0]}.pdf`);
 };

@@ -3,6 +3,7 @@ package com.habit.hero.controller;
 import com.habit.hero.dto.user.UserResponse;
 import com.habit.hero.dto.user.UserUpdateRequest;
 import com.habit.hero.entity.User;
+import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.UserService;
 import com.habit.hero.util.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class UserController {
 
     private final UserService userService;
     private final CurrentUserUtil currentUserUtil;
-
+   private final UserRepository userRepository;
     // get any user profile by their id
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {

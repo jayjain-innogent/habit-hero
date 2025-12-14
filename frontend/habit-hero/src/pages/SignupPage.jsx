@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaLeaf, FaUser, FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
+import { FaLeaf, FaUser, FaEnvelope, FaLock, FaQuoteLeft } from 'react-icons/fa';
 import AuthService from '../services/authService';
+
+const motivationalQuotes = [
+    { quote: "Your future is created by what you do today, not tomorrow.", author: "Robert Kiyosaki" },
+    { quote: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+    { quote: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+    { quote: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+    { quote: "The only impossible journey is the one you never begin.", author: "Tony Robbins" },
+    { quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+    { quote: "What you get by achieving your goals is not as important as what you become by achieving your goals.", author: "Zig Ziglar" },
+    { quote: "The difference between who you are and who you want to be is what you do.", author: "Unknown" }
+];
 
 const SignupPage = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({ name: '', email: '', password: '', username: '' });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [currentQuote, setCurrentQuote] = useState(motivationalQuotes[0]);
+
+    useEffect(() => {
+        const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
+        setCurrentQuote(motivationalQuotes[randomIndex]);
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -44,13 +61,13 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: 'linear-gradient(135deg, #FFF8DE 0%, #FFF2C6 100%)' }}>
+        <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #8CA9FF 100%)' }}>
             <div className="card border-0 shadow-lg rounded-4 overflow-hidden" style={{ maxWidth: '950px', width: '90%' }}>
                 <div className="row g-0">
                     {/* Left Side - Form */}
                     <div className="col-lg-7 bg-white p-5">
                         <div className="d-lg-none text-center mb-4">
-                            <span className="fs-1" style={{ color: '#8CA9FF' }}><FaLeaf /></span>
+                            <span className="fs-1" style={{ color: '#667eea' }}><FaLeaf /></span>
                         </div>
                         <h3 className="fw-bold text-center text-lg-start mb-2" style={{ color: '#0f172a', fontSize: '2rem' }}>Create Account</h3>
                         <p className="text-muted text-center text-lg-start mb-4">Start your journey to better habits today</p>
@@ -90,36 +107,36 @@ const SignupPage = () => {
                                 </div>
                             </div>
 
-                            <button type="submit" disabled={isLoading} className="btn w-100 py-3 rounded-pill fw-bold shadow-lg mb-3" style={{ background: 'linear-gradient(135deg, #8CA9FF, #AAC4F5)', color: 'white', border: 'none', fontSize: '1rem' }}>
+                            <button type="submit" disabled={isLoading} className="btn w-100 py-3 rounded-pill fw-bold shadow-lg mb-3" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', fontSize: '1rem' }}>
                                 {isLoading ? 'Creating Account...' : 'Sign Up'}
                             </button>
 
                             <div className="text-center">
                                 <span className="text-muted small">Already have an account? </span>
-                                <Link to="/login" className="fw-bold text-decoration-none small" style={{ color: '#8CA9FF' }}>
+                                <Link to="/login" className="fw-bold text-decoration-none small" style={{ color: '#667eea' }}>
                                     Sign In
                                 </Link>
                             </div>
                         </form>
                     </div>
 
-                    {/* Right Side - Image/Info */}
-                    <div className="col-lg-5 d-none d-lg-flex flex-column justify-content-center align-items-center p-5 position-relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #AAC4F5 0%, #8CA9FF 100%)' }}>
-                        <div className="position-absolute top-0 start-0 w-100 h-100" style={{ background: 'radial-gradient(circle at bottom right, rgba(255,255,255,0.2) 0%, transparent 70%)' }}></div>
+                    {/* Right Side - Motivational Quote */}
+                    <div className="col-lg-5 d-none d-lg-flex flex-column justify-content-center align-items-center p-5 position-relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' }}>
+                        <div className="position-absolute top-0 start-0 w-100 h-100" style={{ background: 'radial-gradient(circle at bottom right, rgba(255,255,255,0.15) 0%, transparent 70%)' }}></div>
                         <div className="text-center position-relative z-1">
-                            <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style={{ width: '90px', height: '90px', background: '#FFF2C6', boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}>
-                                <FaLeaf size={45} color="#8CA9FF" />
+                            <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style={{ width: '70px', height: '70px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}>
+                                <FaQuoteLeft size={30} color="white" />
                             </div>
-                            <h2 className="fw-bold mb-3" style={{ fontSize: '2rem', color: 'white' }}>Hello, Friend!</h2>
-                            <p className="mb-0" style={{ color: 'white', opacity: 0.95, lineHeight: 1.6 }}>Enter your details and start your journey towards building better habits</p>
+                            <p className="mb-4" style={{ color: 'white', fontSize: '1.3rem', fontStyle: 'italic', lineHeight: 1.7, fontWeight: 300 }}>"{currentQuote.quote}"</p>
+                            <p className="mb-0 fw-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>— {currentQuote.author}</p>
                         </div>
                     </div>
                 </div>
             </div>
             <style>
                 {`
-          .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(140, 169, 255, 0.4) !important; }
-          .form-control:focus { box-shadow: 0 0 0 3px rgba(140, 169, 255, 0.1); border-color: #8CA9FF; background: white !important; }
+          .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4) !important; }
+          .form-control:focus { box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); border-color: #667eea; background: white !important; }
           .input-group-text { border-color: #e2e8f0; }
         `}
             </style>

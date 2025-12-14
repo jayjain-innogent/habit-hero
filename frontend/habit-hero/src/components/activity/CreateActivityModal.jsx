@@ -4,28 +4,15 @@ import { createActivityApi } from "../../api/activity";
 import { getAllHabits } from "../../api/habits";
 import Avatar from "../common/Avatar";
 import SegmentedButton from "../common/SegmentedButton";
-import { getTodayStatus } from "../../api/habitLogs";
 import "./CreateActivityModal.css";
 
-const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }) => {
+const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
   const [activityType, setActivityType] = useState("COMPLETION");
   const [selectedHabit, setSelectedHabit] = useState(null);
-  const [summary, setSummary] = useState("");
-  const [caption, setCaption] = useState("");
+  const [note, setNote] = useState("");
   const [visibility, setVisibility] = useState("FRIENDS"); 
   const [habits, setHabits] = useState([]);
   const { currentUserId } = useAppContext();
-
-    // Filter habits based on activity type and completion status
-    const filteredHabits = activityType === "COMPLETION" 
-      ? habits.filter(habit => habit.completedToday === true)
-      : habits;
-
-    console.log('All habits:', habits);
-    console.log('Filtered habits:', filteredHabits);
-
-
-
 
   useEffect(() => {
     if (isOpen) {
@@ -33,28 +20,14 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
     }
   }, [isOpen]);
 
-    // Reset selected habit when activity type changes
-    useEffect(() => {
-      setSelectedHabit(null);
-    }, [activityType]);
-
-
   const fetchHabits = async () => {
     try {
-      const habitList = await getAllHabits(currentUserId);
-      const todayStatus = await getTodayStatus(currentUserId);
-      
-      const habitsWithStatus = habitList.map(h => ({
-        ...h,
-        completedToday: todayStatus?.status?.[h.id]?.completedToday || false,
-      }));
-      
-      setHabits(habitsWithStatus);
+      const data = await getAllHabits(currentUserId);
+      setHabits(data);
     } catch (error) {
       console.error("Failed to fetch habits:", error);
     }
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,18 +53,16 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
         userId: currentUserId,
         habitId: selectedHabit.id,
         activityType,
-        title: getActivityTitle(activityType, selectedHabit.title),
-        description : summary,
-        caption,
+        title: `${getActivityTitle(activityType, selectedHabit.title)}${note ? `\n${note}` : ''}`,
         visibility,
       };
+
 
       await createActivityApi(payload);
       onSubmit();
       onClose();
       setSelectedHabit(null);
-      setCaption("");
-      setSummary("");
+      setNote("");
       setActivityType("COMPLETION");
       setVisibility("FRIENDS");
     } catch (error) {
@@ -114,39 +85,39 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label className="form-label">Activity Type</label>
-            <select
-              value={activityType}
-              onChange={(e) => setActivityType(e.target.value)}
-              className="form-input"
-            >
-              <option value="COMPLETION">Completion</option>
-              <option value="STREAK">Streak</option>
-              <option value="MILESTONE">Milestone</option>
-              <option value="SUMMARY">Summary</option>
-            </select>
+            <div className="button-group">
+              {[
+                { value: "COMPLETION", label: "Completion" },
+                { value: "STREAK", label: "Streak" },
+                { value: "MILESTONE", label: "Milestone" },
+                { value: "SUMMARY", label: "Summary" }
+              ].map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  className={`option-btn ${activityType === type.value ? 'active' : ''}`}
+                  onClick={() => setActivityType(type.value)}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="form-group">
             <label className="form-label">Select Habit</label>
-            <select
-              value={selectedHabit?.id || ""}
-              onChange={(e) =>
-                setSelectedHabit(
-                  filteredHabits.find((habit) => habit.id === parseInt(e.target.value))
-                )
-              }
-
-              className="form-input"
-            >
-              <option value="" disabled>
-                Select a habit...
-              </option>
-              {filteredHabits.map((habit) => (
-                <option key={habit.id} value={habit.id}>
+            <div className="habit-grid">
+              {habits.map((habit) => (
+                <button
+                  key={habit.id}
+                  type="button"
+                  className={`habit-btn ${selectedHabit?.id === habit.id ? 'active' : ''}`}
+                  onClick={() => setSelectedHabit(habit)}
+                >
                   {habit.title}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           <div className="form-group">
@@ -162,28 +133,16 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }
             />
           </div>
 
-          {activityType != "SUMMARY" && <div className="form-group">
-            <label className="form-label">Add a caption</label>
+          <div className="form-group">
+            <label className="form-label">Add a note (optional)</label>
             <textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
               rows={3}
               className="form-textarea"
-              placeholder="Caption."
+              placeholder="Share your thoughts..."
             />
-          </div>}
-
-          {activityType === "SUMMARY" && <div className="form-group">
-            <label className="form-label">Add a summary</label>
-            <textarea
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-              rows={3}
-              className="form-textarea"
-              placeholder="Share summary."
-            />
-          </div>}
-
+          </div>
 
           <div className="modal-footer">
             <button type="button" onClick={onClose} className="btn-secondary">

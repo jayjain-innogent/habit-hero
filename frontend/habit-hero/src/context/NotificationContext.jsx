@@ -14,6 +14,7 @@ export const NotificationProvider = ({ children }) => {
     const [unreadCount, setUnreadCount] = useState(0);
     const stompClientRef = useRef(null);
     const processedIds = useRef(new Set());
+    const pollIntervalRef = useRef(null);
 
     // Use user.id if available, otherwise don't connect
     const userId = user?.id;
@@ -23,22 +24,30 @@ export const NotificationProvider = ({ children }) => {
 
         fetchInitialData();
         connectWebSocket();
+        
+        // Add polling every 10 seconds to fetch latest notifications
+        pollIntervalRef.current = setInterval(() => {
+            fetchInitialData();
+        }, 10000);
 
         return () => {
             if (stompClientRef.current) {
                 stompClientRef.current.disconnect();
+            }
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
             }
         };
     }, [userId]); // Re-run when userId changes
 
     const fetchInitialData = async () => {
         try {
-            const [notifs, count] = await Promise.all([
-                notificationService.getNotifications(),
-                notificationService.getUnreadCount()
-            ]);
+            const notifs = await notificationService.getNotifications();
             setNotifications(notifs);
-            setUnreadCount(count);
+            
+            // Calculate unread count from notifications array instead of relying on API
+            const unreadCountCalculated = notifs.filter(n => !n.isRead).length;
+            setUnreadCount(unreadCountCalculated);
 
             // Sync processed IDs
             notifs.forEach(n => processedIds.current.add(n.notificationId));

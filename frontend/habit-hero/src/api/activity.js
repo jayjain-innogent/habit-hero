@@ -6,13 +6,9 @@ import {
   GET_USER_ACTIVITIES,
 } from "./endpoints";
 
-// BASE_URL is handled in axiosConfig (http://localhost:8080)
-// Endpoints in endpoints.js are relative paths like "activity/feed"
-// So we just need to join them.
-
 // CREATE
-export function createActivityApi({ userId, habitId, activityType, title, visibility }) {
-  return axiosInstance.post(`/activity`, {
+export function createActivityApi({ userId, habitId, activityType, title, visibility, description, caption }) {
+  return axiosInstance.post("/activity", {
     userId,
     habitId,
     activityType,
@@ -35,7 +31,7 @@ export function getFeedApi({ userId, filter = "ALL", page = 0, size = 10 }) {
   });
 }
 
-// LIKE/UNLIKE 
+// LIKE/UNLIKE
 export function likeActivityApi({ activityId, userId }) {
   return axiosInstance.post(`/activity/${activityId}/like`, null, {
     params: {
@@ -53,17 +49,17 @@ export function addCommentApi({ activityId, userId, text }) {
   });
 }
 
-// GET COMMENTS 
+// GET COMMENTS
 export function getCommentsApi({ activityId }) {
   return axiosInstance.get(`/activity/comments/${activityId}`);
 }
 
-// GET USER ACTIVITIES
-export function getUserActivitiesApi({ userId }) {
-  return axiosInstance.get(`/${GET_USER_ACTIVITIES}/${userId}`);
+export function getUserActivitiesApi({ userId, page = 0, size = 10 }) {
+  return axiosInstance.get(`/${GET_USER_ACTIVITIES}/${userId}`, {
+    params: { page, size }
+  });
 }
 
-// DELETE ACTIVITY
 export function deleteActivityApi({ activityId, userId }) {
   return axiosInstance.delete(`/activity/${activityId}`, {
     params: { userId }

@@ -2,26 +2,49 @@ import React, { useState, useEffect } from 'react';
 import { fetchDashboardData } from '../../services/api';
 import { generateDashboardPDF } from '../../services/pdfService';
 import { formatDateRange } from '../../utils/dateUtils';
+import { isTokenExpired } from '../../utils/jwtUtil';
 import DashboardCards from '../../components/Dashboard/DashboardCards';
 import HabitsTable from '../../components/Dashboard/HabitsTable';
 import StatsOverview from '../../components/Dashboard/StatsOverview';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useAuth } from '../../context/AuthContext';
 import { ChartColumn, TrendingUp, Gauge, FileText } from 'lucide-react';
+import '../../styles/theme.css';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    console.log('=== Dashboard Component Mount ===');
+    console.log('Token exists:', !!token);
+    if (token) {
+      console.log('Token expired:', isTokenExpired(token));
+    }
+  }, []);
+
   const handleGenerateReport = () => {
     if (dashboardData) {
-      console.log('=== DASHBOARD DATA STRUCTURE ===');
-      console.log('Full data:', JSON.stringify(dashboardData, null, 2));
-      console.log('Keys:', Object.keys(dashboardData));
+      console.log('=== DASHBOARD DATA FOR PDF ===');
+      console.log('Full data:', dashboardData);
       console.log('cardData:', dashboardData.cardData);
       console.log('tableData:', dashboardData.tableData);
-      generateDashboardPDF(dashboardData);
+      
+      // Validate and structure data for PDF generation
+      const validatedData = {
+        ...dashboardData,
+        cardData: dashboardData.cardData || {},
+        tableData: dashboardData.tableData || [],
+        startDate: dashboardData.startDate || new Date().toISOString().split('T')[0],
+        endDate: dashboardData.endDate || new Date().toISOString().split('T')[0],
+        motivationMessage: dashboardData.motivationMessage || 'Keep building great habits!'
+      };
+      
+      generateDashboardPDF(validatedData);
     } else {
       alert('No data available to generate report');
     }
@@ -29,6 +52,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      // Check if user is authenticated (token exists)
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
       try {
         setLoading(true);
         const data = await fetchDashboardData();
@@ -44,6 +74,17 @@ const Dashboard = () => {
   }, []);
 
   if (loading) return <LoadingSpinner message="Loading your dashboard..." />;
+  
+  // Check if user is authenticated
+  const token = localStorage.getItem('token');
+  
+  if (!token) return (
+    <div className="dashboard-error">
+      <h2>⚠️ Authentication Required</h2>
+      <p>Please log in to view your dashboard</p>
+    </div>
+  );
+  
   if (error) return (
     <div className="dashboard-error">
       <h2>⚠️ Something went wrong</h2>
@@ -53,9 +94,10 @@ const Dashboard = () => {
       </button>
     </div>
   );
+  
   if (!dashboardData) return (
     <div className="dashboard-error">
-      <h2>ChartColumn No Data Available</h2>
+      <h2>📊 No Data Available</h2>
       <p>Start tracking your habits to see your dashboard</p>
     </div>
   );
@@ -64,7 +106,7 @@ const Dashboard = () => {
     <div className="dashboard">
       <div className="dashboard-header">
         <div className="header-content">
-          <h1><Gauge size={24} style={{ marginRight: '8px', color: '#667eea' }} /> Analytics Dashboard</h1>
+          <h1><Gauge size={24} style={{ marginRight: '8px', color: 'var(--color-primary)' }} /> Analytics Dashboard</h1>
           <p className="date-range">
             {formatDateRange(dashboardData.startDate, dashboardData.endDate)}
           </p>
@@ -82,7 +124,7 @@ const Dashboard = () => {
       />
       
       <div className="habits-section">
-         <h2><TrendingUp size={20} style={{ marginRight: '8px', color: '#667eea' }} /> Habit Performance</h2>
+         <h2><TrendingUp size={20} style={{ marginRight: '8px', color: 'var(--color-primary)' }} /> Habit Performance</h2>
         <HabitsTable tableData={dashboardData.tableData} />
       </div>
 

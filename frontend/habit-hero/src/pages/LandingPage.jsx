@@ -8,7 +8,7 @@ const LandingPage = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-vh-100 d-flex flex-column" style={{ background: 'linear-gradient(135deg, #8CA9FF 0%, #AAC4F5 50%, #FFF8DE 100%)' }}>
+        <div className="min-vh-100 d-flex flex-column" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #8CA9FF 100%)' }}>
             {/* Animated Background */}
             <div className="position-absolute top-0 start-0 w-100 h-100 overflow-hidden" style={{ zIndex: 0, pointerEvents: 'none' }}>
                 <div className="position-absolute rounded-circle" style={{ width: '500px', height: '500px', background: '#FFF2C6', opacity: 0.3, top: '-100px', right: '-50px', filter: 'blur(80px)', animation: 'float 6s ease-in-out infinite' }} />
@@ -33,23 +33,23 @@ const LandingPage = () => {
                     <div className="row justify-content-center">
                         {/* Content */}
                         <div className="col-lg-8 text-center">
-                            <div className="d-inline-flex align-items-center gap-2 mb-4 px-4 py-2 rounded-pill fw-semibold small" style={{ backgroundColor: '#FFF2C6', color: '#1e293b', backdropFilter: 'blur(10px)' }}>
+                            <div className="d-inline-flex align-items-center gap-2 mb-4 px-4 py-2 rounded-pill fw-semibold small" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', backdropFilter: 'blur(10px)' }}>
                                 <BiSpa /> Your Daily Growth Partner
                             </div>
-                            <h1 className="display-2 fw-bold mb-4" style={{ lineHeight: 1.1, color: '#1e293b', textShadow: '0 2px 20px rgba(0,0,0,0.05)' }}>
+                            <h1 className="display-2 fw-bold mb-4" style={{ lineHeight: 1.1, color: 'white', textShadow: '0 2px 20px rgba(0,0,0,0.1)' }}>
                                 Build Habits That <span style={{ fontWeight: 300 }}>Last Forever</span>
                             </h1>
-                            <p className="lead mb-5 mx-auto" style={{ maxWidth: '600px', color: '#475569', fontSize: '1.15rem' }}>
+                            <p className="lead mb-5 mx-auto" style={{ maxWidth: '600px', color: 'rgba(255,255,255,0.9)', fontSize: '1.15rem' }}>
                                 Transform your life one habit at a time. Track, analyze, and achieve your goals with our beautiful and intuitive platform.
                             </p>
 
                             <div className="d-flex gap-3 justify-content-center">
-                                <button onClick={() => navigate('/signup')} className="btn btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center gap-2" style={{ fontSize: '1.1rem', background: 'linear-gradient(135deg, #8CA9FF, #AAC4F5)', color: 'white', border: 'none' }}>
+                                <button onClick={() => navigate('/signup')} className="btn btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center gap-2" style={{ fontSize: '1.1rem', background: 'white', color: '#667eea', border: 'none' }}>
                                     Get Started Free <FaArrowRight size={16} />
                                 </button>
                             </div>
 
-                            <div className="mt-5 d-flex align-items-center justify-content-center gap-4 small fw-semibold" style={{ color: '#475569' }}>
+                            <div className="mt-5 d-flex align-items-center justify-content-center gap-4 small fw-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
                                 <div className="d-flex align-items-center gap-2">
                                     <FaCheckCircle />
                                     No Credit Card
@@ -68,7 +68,7 @@ const LandingPage = () => {
                 </div>
             </main>
 
-            <footer className="py-4 text-center small position-relative" style={{ zIndex: 10, color: '#475569' }}>
+            <footer className="py-4 text-center small position-relative" style={{ zIndex: 10, color: 'rgba(255,255,255,0.7)' }}>
                 <div className="container">
                     &copy; {new Date().getFullYear()} HabitHero. All rights reserved.
                 </div>

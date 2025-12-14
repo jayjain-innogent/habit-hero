@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { getAllHabits } from "../../api/habits";
 import { getTodayStatus } from "../../api/habitLogs";
+import { fetchDashboardData } from "../../services/api";
 import HabitCard from "../../components/habits/HabitCard";
 import { useNavigate } from "react-router-dom";
-import ProgressRing from "../../components/common/ProgressRing";
-
-import { FaClipboardList, FaBullseye, FaSeedling, FaPlus } from "react-icons/fa";
-import { QUOTES } from "../../data/quotes";
+import { FaPlus, FaFire, FaClock, FaTrophy } from "react-icons/fa";
+import PerfectDayPopup from "../../components/habits/PerfectDayPopup";
+import "./HabitsList.css";
 
 const sortHabits = (list) => {
     const getTodayDate = () => {
@@ -50,6 +50,9 @@ export default function HabitsList() {
     const [habits, setHabits] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [activeCategory, setActiveCategory] = useState("All");
+    const [showPerfectPopup, setShowPerfectPopup] = useState(false);
+    const [perfectDays, setPerfectDays] = useState(0);
 
     const navigate = useNavigate();
     const userId = 1;
@@ -65,6 +68,14 @@ export default function HabitsList() {
 
             const habitList = await getAllHabits(userId);
             const todayStatus = await getTodayStatus(userId);
+
+            // Fetch dashboard data for perfectDays
+            try {
+                const dashboardData = await fetchDashboardData();
+                setPerfectDays(dashboardData?.cardData?.perfectDays || 0);
+            } catch (e) {
+                // Ignore dashboard errors
+            }
 
             let list = Array.isArray(habitList) ? habitList : [];
             list = list.filter(h => h.status !== "ARCHIVED");
@@ -93,6 +104,12 @@ export default function HabitsList() {
                     ? { ...h, completedToday: true, actualValue, logId: newLogId }
                     : h
             );
+            // Check if all active habits are now completed
+            const activeHabits = updated.filter(h => h.status === "ACTIVE");
+            const allCompleted = activeHabits.every(h => h.completedToday);
+            if (allCompleted && activeHabits.length > 0) {
+                setShowPerfectPopup(true);
+            }
             return sortHabits(updated);
         });
     };
@@ -108,113 +125,166 @@ export default function HabitsList() {
         });
     };
 
+    // Get unique categories
+    const categories = useMemo(() => {
+        const cats = new Set(habits.map(h => h.category).filter(Boolean));
+        return ["All", ...Array.from(cats)];
+    }, [habits]);
+
+    // Filter habits by category
+    const filteredHabits = useMemo(() => {
+        if (activeCategory === "All") return habits;
+        return habits.filter(h => h.category === activeCategory);
+    }, [habits, activeCategory]);
+
+    // Get priority habit (first incomplete)
+    const priorityHabit = useMemo(() => {
+        return habits.find(h => !h.completedToday && h.status === "ACTIVE");
+    }, [habits]);
+
     const activeHabits = habits.filter(h => h.status === "ACTIVE");
     const total = activeHabits.length;
     const completed = activeHabits.filter(h => h.completedToday).length;
-    const remaining = total - completed;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-    const formattedDate = new Date().toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric"
-    });
+    // Calculate highest streak (max of all habit streaks)
+    const highestStreak = habits.length > 0
+        ? Math.max(...habits.map(h => h.currentStreak || h.streak || 0))
+        : 0;
+
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 17) return "Good afternoon";
+        return "Good evening";
+    };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: 'linear-gradient(135deg, #FFF8DE 0%, #8CA9FF 100%)',
-            paddingBottom: '40px'
-        }}>
-            <div className="container py-4">
+        <div className="habits-page">
+            {/* Perfect Day Popup */}
+            <PerfectDayPopup
+                show={showPerfectPopup}
+                onClose={() => setShowPerfectPopup(false)}
+            />
 
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h1 className="fw-bold mb-2" style={{ color: '#000', fontSize: '2rem' }}>Welcome back, Hero!</h1>
-                        <p className="text-muted mb-1" style={{ fontSize: '1rem', fontStyle: 'italic' }}>
-                            "{QUOTES[Math.floor(Math.random() * QUOTES.length)].text}"
+            {/* Header */}
+            <div className="habits-header">
+                <div className="habits-header-left">
+                    <h1 className="habits-title">Welcome back, Hero!</h1>
+                    <p className="habits-date">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                    <p className="habits-subtitle">
+                        {getGreeting()}! You have {total - completed} pending habits today.
+                    </p>
+                </div>
+                <button
+                    className="add-habit-btn"
+                    onClick={() => navigate("/habits/create")}
+                >
+                    <FaPlus size={14} />
+                    <span>Add New Habit</span>
+                </button>
+            </div>
+
+            {/* Daily Progress Card */}
+            <div className="daily-progress-card">
+                <div className="progress-main">
+                    <div className="progress-info">
+                        <h3 className="progress-title">Daily Progress</h3>
+                        <div className="progress-bar-container">
+                            <div
+                                className="progress-bar-fill"
+                                style={{ width: `${progress}%` }}
+                            />
+                        </div>
+                        <p className="progress-text">
+                            {completed === total && total > 0
+                                ? "All habits completed! Great job!"
+                                : `${total - completed} habits remaining today`}
                         </p>
-                        <p className="text-muted mb-0 small">{formattedDate}</p>
                     </div>
-                    <button
-                        className="btn rounded-pill px-4 py-2 shadow-lg fw-semibold d-flex align-items-center gap-2"
-                        style={{ background: 'linear-gradient(135deg, #8CA9FF, #6B8EFF)', color: '#fff', border: '2px solid #6B8EFF' }}
-                        onClick={() => navigate("/habits/create")}
-                    >
-                        <FaPlus size={14} />
-                        <span>Create Habit</span>
-                    </button>
+                    <div className="progress-percentage">{progress}%</div>
                 </div>
-
-                <div className="card border-0 shadow-lg mb-4 overflow-hidden rounded-4" style={{ background: 'linear-gradient(135deg, #8CA9FF 0%, #6B8EFF 100%)', border: '3px solid #6B8EFF' }}>
-                    <div className="card-body p-4">
-                        <div className="row align-items-center">
-                            <div className="col-md-8">
-                                <div className="d-flex align-items-center gap-2 mb-2">
-                                    <FaBullseye size={24} style={{ color: '#fff' }} />
-                                    <h4 className="fw-bold mb-0" style={{ color: '#fff' }}>Daily Progress</h4>
-                                </div>
-                                <p className="mb-0" style={{ color: '#fff', opacity: 0.95 }}>
-                                    You've completed <span className="fw-bold">{completed}</span> out of <span className="fw-bold">{total}</span> habits today.
-                                    Keep it up!
-                                </p>
-                            </div>
-                            <div className="col-md-4 text-center text-md-end mt-3 mt-md-0">
-                                <div style={{ width: 90, height: 90, display: 'inline-block' }}>
-                                    <ProgressRing radius={45} stroke={9} progress={progress} />
-                                </div>
-                            </div>
-                        </div>
+                <div className="progress-stats">
+                    <div className="stat-item">
+                        {(total === 0 || total - completed > 0) ? (
+                            <>
+                                <span className="stat-icon pending"><FaClock /></span>
+                                <span className="stat-value">{total - completed}</span>
+                                <span className="stat-label">PENDING</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="stat-icon perfect"><FaTrophy /></span>
+                                <span className="stat-value">{perfectDays}</span>
+                                <span className="stat-label">PERFECT DAYS</span>
+                            </>
+                        )}
                     </div>
-                </div>
-
-                {loading && (
-                    <div className="text-center py-5">
-                        <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
+                    <div className="stat-item">
+                        <span className="stat-icon streak"><FaFire /></span>
+                        <span className="stat-value">{highestStreak}</span>
+                        <span className="stat-label">BEST STREAK</span>
                     </div>
-                )}
-
-                {error && (
-                    <div className="alert alert-danger shadow-sm border-0" role="alert">
-                        {error}
-                    </div>
-                )}
-
-                {!loading && !error && habits.length === 0 && (
-                    <div className="card border-0 shadow-lg rounded-4 text-center py-5" style={{ background: 'white', border: '2px solid #8CA9FF' }}>
-                        <FaSeedling size={80} className="mb-3" style={{ color: '#8CA9FF' }} />
-                        <h5 className="fw-bold" style={{ color: '#2C3E50' }}>No habits yet</h5>
-                        <p className="text-muted">Start your journey by creating your first habit!</p>
-                    </div>
-                )}
-
-                <div className="row g-3">
-                    {habits.map((habit, index) => {
-                        const showCategoryHeader = index === 0 || habits[index - 1].category !== habit.category;
-                        return (
-                            <React.Fragment key={habit.id}>
-                                {showCategoryHeader && (
-                                    <div className="col-12 mt-3">
-                                        <h5 className="fw-bold mb-0" style={{ color: '#2C3E50', fontSize: '1.1rem', letterSpacing: '0.5px' }}>
-                                            {habit.category}
-                                        </h5>
-                                        <hr style={{ borderTop: '2px solid #8CA9FF', opacity: 0.3, margin: '8px 0 16px 0' }} />
-                                    </div>
-                                )}
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                                    <HabitCard
-                                        habit={habit}
-                                        onComplete={handleCompleteCallback}
-                                        onUncomplete={handleUncompleteCallback}
-                                    />
-                                </div>
-                            </React.Fragment>
-                        );
-                    })}
                 </div>
             </div>
+
+            {/* Category Tabs - Below Daily Progress */}
+            <div className="category-tabs">
+                {categories.map(cat => (
+                    <button
+                        key={cat}
+                        className={`category-tab ${activeCategory === cat ? 'active' : ''}`}
+                        onClick={() => setActiveCategory(cat)}
+                    >
+                        {cat}
+                    </button>
+                ))}
+            </div>
+
+            {/* Loading State */}
+            {loading && (
+                <div className="loading-state">
+                    <div className="spinner"></div>
+                    <p>Loading habits...</p>
+                </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+                <div className="error-state">
+                    {error}
+                </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && habits.length === 0 && (
+                <div className="empty-state">
+                    <div className="empty-icon">🌱</div>
+                    <h3>No habits yet</h3>
+                    <p>Start your journey by creating your first habit!</p>
+                    <button
+                        className="add-habit-btn"
+                        onClick={() => navigate("/habits/create")}
+                    >
+                        <FaPlus /> Create Your First Habit
+                    </button>
+                </div>
+            )}
+
+            {/* Habits Grid */}
+            {!loading && !error && filteredHabits.length > 0 && (
+                <div className="habits-grid">
+                    {filteredHabits.map(habit => (
+                        <div key={habit.id} className="habit-grid-item">
+                            <HabitCard
+                                habit={habit}
+                                onComplete={handleCompleteCallback}
+                                onUncomplete={handleUncompleteCallback}
+                            />
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

@@ -10,20 +10,30 @@ import com.habit.hero.dto.habitlog.TodayStatusResponse;
 import com.habit.hero.entity.Habit;
 import com.habit.hero.entity.HabitLog;
 import com.habit.hero.entity.User;
+import com.habit.hero.enums.Cadence;
 import com.habit.hero.enums.NotificationType;
 import com.habit.hero.exception.BadRequestException;
 import com.habit.hero.exception.ResourceNotFoundException;
 import com.habit.hero.mapper.HabitLogMapper;
+import com.habit.hero.mapper.HabitMapper;
+import com.habit.hero.repository.HabitLogRepository;
 import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.HabitLogService;
 import com.habit.hero.service.NotificationService;
+import com.habit.hero.service.report.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Service
@@ -34,37 +44,51 @@ public class HabitLogServiceImpl implements HabitLogService {
     private final HabitLogDAO habitLogDAO;
     private final HabitDAO habitDAO;
     private final UserRepository userRepository;
+    private final ReportService reportService;
     private final NotificationService notificationService;
 
-    // Create a new habit log for a user and send notifications
     @Override
     public HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request) {
 
         if (userId == null || habitId == null || request == null)
             throw new BadRequestException("userId, habitId, and request body required");
 
+        log.info("Creating log for user {} habit {}", userId, habitId);
+
+        // Check user existence
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        //Habit check
         Habit habit = habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
         LocalDate logDate = request.getLogDate() == null ? LocalDate.now() : request.getLogDate();
 
-        // Prevent duplicate log for the same date
+        // Check if log already exists for this date
         habitLogDAO.findTodayLog(habitId, logDate)
                 .ifPresent(l -> {
                     throw new BadRequestException("Log already exists for this date");
                 });
 
+        // Create and Save Log
         HabitLog logEntity = HabitLogMapper.toEntity(request, habit);
         logEntity.setCreatedAt(LocalDateTime.now());
         logEntity.setLogDate(logDate);
 
         HabitLog saved = habitLogDAO.save(logEntity);
 
+            log.info("Calculating Streak");
+           ResponseEntity response = reportService.calculateStreak(habitId, userId);
+           if (response.getStatusCode().is2xxSuccessful()) {
+               log.info("Streak calculated successfully");
+           } else {
+               log.error("Error calculating streak: {}", response.getStatusCode());
+               throw new RuntimeException("Error calculating streak");
+           }
+            log.info("Streak inserted successfully");
         // Notify user about streak update
-        notificationService.createNotification(
+           notificationService.createNotification(
                 userId,
                 null,
                 NotificationType.STREAK_REACTION,
@@ -92,7 +116,6 @@ public class HabitLogServiceImpl implements HabitLogService {
         return HabitLogMapper.toResponse(saved);
     }
 
-    // Get all logs for a specific habit of a user
     @Override
     public List<HabitLogResponse> getLogsForHabit(Long userId, Long habitId) {
 
@@ -101,9 +124,11 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Fetching logs for user {} habit {}", userId, habitId);
 
+        // Verify Habit ownership
         habitDAO.findByIdAndUserId(habitId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Habit not found or access denied"));
 
+        // Return list of logs
         return habitLogDAO.findByHabitId(habitId)
                 .stream()
                 .map(HabitLogMapper::toResponse)
@@ -120,12 +145,16 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Deleting log {} for user {}", logId, userId);
 
+        // Find log ensuring user owns the habit
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
+        // Delete Log
         Long habitId = logEntity.getHabit().getId();
 
         habitLogDAO.delete(logEntity);
+
+        reportService.calculateStreak(habitId, userId);
 
         // Delete the associated notification
         try {
@@ -171,18 +200,18 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         Map<Long, HabitStatusItem> responseMap = new HashMap<>();
 
+        // Iterate through habits and check today's log status
         for (Habit habit : habits) {
+
             Optional<HabitLog> todayLog = habitLogDAO.findTodayLog(habit.getId(), today);
 
             HabitStatusItem item = todayLog
                     .map(HabitLogMapper::toTodayStatus)
-                    .orElse(
-                            HabitStatusItem.builder()
-                                    .completedToday(false)
-                                    .actualValue(null)
-                                    .logId(null)
-                                    .build()
-                    );
+                    .orElse(HabitStatusItem.builder()
+                            .completedToday(false)
+                            .actualValue(null)
+                            .logId(null)
+                            .build());
 
             responseMap.put(habit.getId(), item);
         }
@@ -199,13 +228,13 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Fetching note for user {} log {}", userId, logId);
 
+        // Find log ensuring ownership
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
         return HabitLogMapper.toResponse(logEntity);
     }
 
-    // Update the note for a specific habit log
     @Override
     public HabitLogResponse updateNote(Long userId, Long logId, String note) {
 
@@ -214,9 +243,11 @@ public class HabitLogServiceImpl implements HabitLogService {
 
         log.info("Updating note for user {} log {}", userId, logId);
 
+        // Find log
         HabitLog logEntity = habitLogDAO.findByIdAndUserId(logId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Log not found or access denied"));
 
+        // Update Note
         logEntity.setNote(note);
 
         HabitLog updated = habitLogDAO.save(logEntity);
@@ -224,7 +255,6 @@ public class HabitLogServiceImpl implements HabitLogService {
         return HabitLogMapper.toResponse(updated);
     }
 
-    // Delete the note from a specific habit log
     @Override
     public void deleteNote(Long userId, Long logId) {
 

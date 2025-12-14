@@ -1,5 +1,7 @@
+import React from 'react';
+
 const Avatar = ({ src, alt }) => {
-  const fallback = "/avator.jpg"; 
+  const fallback = "/avator.jpg";
   return (
     <img
       src={src || fallback}

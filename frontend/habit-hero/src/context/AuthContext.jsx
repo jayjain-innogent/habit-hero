@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyProfileApi } from '../api/userApi';
+import { getUserIdFromToken } from '../utils/jwtUtil';
 
 const AuthContext = createContext();
 
@@ -21,6 +22,13 @@ export const AuthProvider = ({ children }) => {
         if (storedToken) {
             setToken(storedToken);
             setIsAuthenticated(true);
+            
+            // Extract userId from token and store if not already stored
+            const userId = getUserIdFromToken(storedToken);
+            if (userId && !localStorage.getItem('userId')) {
+                localStorage.setItem('userId', userId);
+            }
+            
             // Fetch user details
             getMyProfileApi()
                 .then(response => {

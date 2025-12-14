@@ -64,21 +64,23 @@
 }
 
 .friend-request-card .btn-icon.accept {
-  background: #171717;
-  color: white;
+  background: var(--gradient-success);
+  color: var(--color-white);
 }
 
 .friend-request-card .btn-icon.accept:hover {
-  background: #262626;
+  background: linear-gradient(135deg, var(--color-success-dark) 0%, var(--color-success) 100%);
+  transform: translateY(-1px);
 }
 
 .friend-request-card .btn-icon.reject {
-  background: #F5F5F5;
-  color: #404040;
+  background: var(--color-error);
+  color: var(--color-white);
 }
 
 .friend-request-card .btn-icon.reject:hover {
-  background: #E5E5E5;
+  background: #dc2626;
+  transform: translateY(-1px);
 }
 
 .friend-request-card .btn-icon:disabled {

@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import HabitCreate from "../pages/Habits/HabitCreate";
 import HabitEdit from "../pages/Habits/HabitEdit";
 import HabitsList from "../pages/Habits/HabitsList";
+import HabitStats from "../pages/HabitStats";
 import ActivityFeed from "../pages/Activity/ActivityFeed";
 import FriendsPage from "../pages/Friends/FriendsPage";
 import ProfilePage from "../pages/Profile/ProfilePage";
@@ -15,6 +16,7 @@ import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import OtpVerificationPage from "../pages/OtpVerificationPage";
 import DashboardLayout from "../components/common/DashboardLayout";
+import Dashboard from "../pages/Dashboard/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
 
 import { useAuth } from "../context/AuthContext";
@@ -38,6 +40,7 @@ export default function AppRoutes() {
   // Defined menu items for the dashboard
   const menuItems = [
     { id: "/habits", label: "Home" },
+    { id: "/dashboard", label: "Dashboard" },
     { id: "/friends", label: "Friends" },
     { id: "/activity", label: "Activity" },
     { id: "/profile", label: "Profile" },
@@ -63,8 +66,10 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout menuItems={menuItems} onItemClick={handleClick} />}>
             <Route path="/habits" element={<HabitsList />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/habits/create" element={<HabitCreate />} />
             <Route path="/habits/:habitId/edit" element={<HabitEdit />} />
+            <Route path="/habits/:habitId/report" element={<HabitStats />} />
             <Route path="/friends" element={<FriendsPage />} />
             <Route path="/activity" element={<ActivityFeed />} />
             <Route path="/settings" element={<div style={{ padding: '20px' }}><h2>Settings</h2><p>Coming soon...</p></div>} />

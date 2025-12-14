@@ -8,7 +8,7 @@ import {
 import ActivityCard from "../../components/activity/ActivityCard";
 import CreateActivityModal from "../../components/activity/CreateActivityModal";
 import CommentsModal from "../../components/activity/CommentsModal";
-import SegmentedButton from "../../components/common/SegmentedButton";
+import { Activity, Users } from "lucide-react";
 import "./ActivityFeed.css";
 import { generateReportApi } from "../../utils/use-gemini";
 
@@ -88,12 +88,21 @@ export default function ActivityFeed() {
           <h1 className="activity-title">Activity Feed</h1>
           <p className="activity-subtitle">See what your friends are accomplishing</p>
         </div>
-        <div className="filter-segment">
-          <SegmentedButton
-            options={[{ label: "ALL", value: "ALL" }, { label: "FRIENDS", value: "FRIENDS" }]}
-            selected={filter}
-            onChange={handleFilterChange}
-          />
+        <div className="tab-navigation">
+          <button 
+            className={`tab ${filter === "ALL" ? "active" : ""}`}
+            onClick={() => handleFilterChange("ALL")}
+          >
+            <Activity size={18} />
+            All
+          </button>
+          <button 
+            className={`tab ${filter === "FRIENDS" ? "active" : ""}`}
+            onClick={() => handleFilterChange("FRIENDS")}
+          >
+            <Users size={18} />
+            Friends
+          </button>
         </div>
 
         {loading ? (

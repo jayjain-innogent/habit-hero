@@ -1,13 +1,16 @@
 .activity-card {
-  background: #FFFFFF;
-  border: 2px solid #E5E5E5;
-  border-radius: 16px;
-  padding: 24px;
-  transition: border-color 0.2s ease;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .activity-card:hover {
-  border-color: #D4D4D8;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .card-header {
@@ -36,22 +39,22 @@
 }
 
 .user-name {
-  color: #171717;
-  font-weight: bold;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
 }
 
 .activity-text {
-  color: #525252;
-  font-weight: normal;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-normal);
   margin-left: 4px;
   white-space: pre-line;
   line-height: 2;
+  font-size: var(--font-size-2xl);
 }
 
-
 .activity-time {
-  color: #737373;
-  font-size: 14px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
   margin-top: 4px;
 }
 
@@ -78,10 +81,10 @@
 }
 
 .summary-card {
-  background: linear-gradient(180deg, #FAF5FF 0%, #EFF6FF 100%);
-  border: 1px solid #F3E8FF;
-  border-radius: 12px;
-  padding: 16px;
+  background: var(--gradient-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
 }
 
 .summary-header {
@@ -92,15 +95,15 @@
 }
 
 .summary-title {
-  font-weight: 600;
-  color: #171717;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
   margin: 0;
 }
 
 .summary-trend {
-  color: #22C55E;
-  font-size: 14px;
-  font-weight: 500;
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .summary-grid {
@@ -116,14 +119,14 @@
 }
 
 .summary-label {
-  color: #525252;
-  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .summary-value {
-  font-size: 20px;
-  font-weight: bold;
-  color: #171717;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
 }
 
 .summary-habit {
@@ -177,26 +180,26 @@
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
   background: none;
   border: none;
   cursor: pointer;
   transition: color 0.2s ease;
-  color: #737373;
+  color: var(--color-text-muted);
 }
 
 .action-btn.liked {
-  color: #EF4444;
-  font-weight: 600;
+  color: var(--color-error);
+  font-weight: var(--font-weight-semibold);
 }
 
 .action-btn:hover:not(.liked) {
-  color: #EF4444;
+  color: var(--color-error);
 }
 
 .comment-btn:hover {
-  color: #171717;
+  color: var(--color-primary);
 }
 
 .comment-input-row {
@@ -207,16 +210,17 @@
 
 .comment-input {
   flex: 1;
-  padding: 12px 16px;
-  background-color: #FAFAFA;
-  border: 1px solid #E5E5E5;
-  border-radius: 12px;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   outline: none;
   transition: border-color 0.2s ease;
 }
 
 .comment-input:focus {
-  border-color: #171717;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .comment-submit {
@@ -229,17 +233,17 @@
 }
 
 .comment-submit:enabled {
-  background-color: #171717;
-  color: #FFFFFF;
+  background: var(--gradient-primary);
+  color: var(--color-text-on-primary);
 }
 
 .comment-submit:enabled:hover {
-  background-color: #404040;
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-secondary-hover) 100%);
 }
 
 .comment-submit:disabled {
-  background-color: #F5F5F5;
-  color: #737373;
+  background-color: var(--color-surface-light);
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
