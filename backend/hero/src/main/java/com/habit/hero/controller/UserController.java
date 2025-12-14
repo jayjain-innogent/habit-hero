@@ -22,7 +22,8 @@ public class UserController {
 
     private final UserService userService;
     private final CurrentUserUtil currentUserUtil;
-   private final UserRepository userRepository;
+    private final UserRepository userRepository;
+
     // get any user profile by their id
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {

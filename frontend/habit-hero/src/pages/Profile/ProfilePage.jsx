@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   getFriendsListApi,
@@ -10,22 +10,25 @@ import {
   cancelRequestApi,
   getSentRequestsApi
 } from "../../api/social";
-import { getUserApi } from "../../api/userApi";
+import { getUserApi, getMyProfileApi } from "../../api/userApi";
+import { useAuth } from "../../context/AuthContext";
 import ImageWithFallback from "../../components/ImageWithFallback";
 import EditProfileModal from "../../components/modals/EditProfileModals";
 import { getUserActivitiesApi, deleteActivityApi } from "../../api/activity";
 import ActivityCard from "../../components/activity/ActivityCard";
 import { fetchDashboardData } from "../../services/api";
 import { Edit3, Calendar, Flame, Target, TrendingUp, Users, Activity } from "lucide-react";
-import { useAppContext } from "../../routes/AppRoutes";
+import FriendListPage from './FriendListPage';
 import "./ProfilePage.css";
 
 export default function ProfilePage() {
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.userId;
   const { userId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const sourcePage = location.state?.from || null;
-  const { currentUserId } = useAppContext();
+  const friendListRef = useRef();
 
   const viewedUserId = userId ? parseInt(userId, 10) : currentUserId;
   const isOwn = currentUserId === viewedUserId;
@@ -44,17 +47,22 @@ export default function ProfilePage() {
   const [dashboardData, setDashboardData] = useState(null);
   const [activeTab, setActiveTab] = useState('activity');
 
-
-
   const fetchUser = useCallback(async () => {
     try {
-      const res = await getUserApi({ userId: viewedUserId });
+      let res;
+      if (!viewedUserId) return;
+
+      if (isOwn) {
+        res = await getMyProfileApi();
+      } else {
+        res = await getUserApi({ userId: viewedUserId });
+      }
       setUser(res.data);
     } catch (err) {
       console.error("fetchUser:", err);
       setError("Cannot load user profile");
     }
-  }, [viewedUserId]);
+  }, [viewedUserId, isOwn]);
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -73,7 +81,6 @@ export default function ProfilePage() {
       console.error("fetchDashboard:", err);
     }
   }, []);
-
 
   const fetchFriendsOfViewed = useCallback(async () => {
     try {
@@ -102,7 +109,6 @@ export default function ProfilePage() {
     }
   }, [currentUserId]);
 
-
   const refreshAll = useCallback(async () => {
     setLoading(true);
     await Promise.all([
@@ -125,7 +131,6 @@ export default function ProfilePage() {
     }
   };
 
-
   const computeStatus = useCallback(() => {
     if (isOwn) {
       setStatus("self");
@@ -142,11 +147,9 @@ export default function ProfilePage() {
     else setStatus("none");
   }, [friendsOfViewed, pendingToMe, sentByMe, viewedUserId, currentUserId, isOwn, justSentRequest]);
 
-
   useEffect(() => {
     refreshAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewedUserId]);
+  }, [viewedUserId, refreshAll]);
 
   useEffect(() => {
     computeStatus();
@@ -154,12 +157,8 @@ export default function ProfilePage() {
 
   const handleAddFriend = async () => {
     try {
-      if (status === "friends") {
-        return;
-      }
-      if (status === "pending_outgoing") {
-        return;
-      }
+      if (status === "friends") return;
+      if (status === "pending_outgoing") return;
 
       await sendRequestApi({ senderId: currentUserId, receiverId: viewedUserId });
 
@@ -184,6 +183,12 @@ export default function ProfilePage() {
       await removeFriendApi({ userId: currentUserId, friendId });
       setJustSentRequest(null);
       await Promise.all([fetchFriendsOfViewed(), fetchSentByMe(), fetchPendingToMe()]);
+
+      // Refresh FriendListPage if it's currently active
+      if (activeTab === 'friends' && friendListRef.current?.refreshFriends) {
+        friendListRef.current.refreshFriends();
+      }
+
       computeStatus();
     } catch (err) {
       console.error("Failed to remove friend:", err);
@@ -192,6 +197,7 @@ export default function ProfilePage() {
       computeStatus();
     }
   };
+
 
   const handleAccept = async (requestId) => {
     try {
@@ -254,7 +260,7 @@ export default function ProfilePage() {
             <div className="profile-avatar-section">
               <ImageWithFallback
                 src={user?.profileImageUrl}
-                fallbackSrc="../../public/avator.jpeg"
+                fallbackSrc="../../public/avator.jpg"
                 alt={`${user?.username} avatar`}
                 className="modern-avatar"
               />
@@ -276,85 +282,49 @@ export default function ProfilePage() {
 
               <div className="profile-meta">
                 <Calendar size={16} />
-                <span>Joined January 2024</span>
+                <span>Joined {user?.createdAt ? (() => {
+                  const date = new Date(user.createdAt);
+                  return isNaN(date.getTime()) ? 'Recently' : date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                })() : 'Recently'}</span>
               </div>
             </div>
           </div>
-
-          {/* Stats Cards */}
-          {/* <div className="profile-stats-grid"> */}
-          {/* <div className="profile-stat-card">
-              <div className="profile-stat-icon orange">
-                <Flame size={20} />
-              </div>
-              <div className="profile-stat-content">
-                <span className="profile-stat-label">Current Streak</span>
-                <span className="profile-stat-value">{dashboardData?.cardData?.currentStreak || 0} days</span>
-              </div>
-            </div> */}
-
-          {/* <div className="profile-stat-card">
-              <div className="profile-stat-icon blue">
-                <Target size={20} />
-              </div>
-              <div className="profile-stat-content">
-                <span className="profile-stat-label">Active Habits</span>
-                <span className="profile-stat-value">{dashboardData?.tableData?.length || 0}</span>
-              </div>
-            </div> */}
-
-          {/* <div className="profile-stat-card">
-              <div className="profile-stat-icon green">
-                <TrendingUp size={20} />
-              </div>
-              <div className="profile-stat-content">
-                <span className="profile-stat-label">Completion Rate</span>
-                <span className="profile-stat-value">{dashboardData?.cardData?.scorePercentage || 0}%</span>
-              </div>
-            </div> */}
-
-          {/* <div className="profile-stat-card">
-              <div className="profile-stat-icon purple">
-                <Users size={20} />
-              </div>
-              <div className="profile-stat-content">
-                <span className="profile-stat-label">Friends</span>
-                <span className="profile-stat-value">{friendsOfViewed.length}</span>
-              </div>
-            </div> */}
-          {/* </div> */}
         </div>
 
-        {/* Action Buttons for non-own profiles */}
-        {!isOwn && (
-          <div className="profile-actions-modern">
-            {status === "none" && (
-              <button className="action-btn primary" onClick={handleAddFriend}>
-                Add Friend
-              </button>
-            )}
-            {status === "pending_incoming" && incomingRequest && (
-              <>
-                <button className="action-btn success" onClick={() => handleAccept(incomingRequest.requestId)}>
-                  Accept
+        <div className="profile-actions">
+          {!isOwn && (
+            <>
+              {status === "none" && (
+                <button type="button" className="btn btn-primary" onClick={handleAddFriend}>
+                  Add Friend
                 </button>
-                <button className="action-btn danger" onClick={() => handleReject(incomingRequest.requestId)}>
-                  Reject
+              )}
+
+              {status === "pending_incoming" && incomingRequest && (
+                <>
+                  <button type="button" className="btn btn-success" onClick={() => handleAccept(incomingRequest.requestId)}>
+                    Accept
+                  </button>
+                  <button type="button" className="btn btn-danger" onClick={() => handleReject(incomingRequest.requestId)}>
+                    Reject
+                  </button>
+                </>
+              )}
+
+              {status === "pending_outgoing" && outgoingRequest && (
+                <button type="button" className="btn btn-warning" onClick={() => handleCancelRequest(outgoingRequest.requestId)}>
+                  Cancel Request
                 </button>
-              </>
-            )}
-            {status === "pending_outgoing" && outgoingRequest && (
-              <button className="action-btn warning" onClick={() => handleCancelRequest(outgoingRequest.requestId)}>
-                Cancel Request
-              </button>
-            )}
-            {status === "friends" && (
-              <button className="action-btn danger" onClick={(e) => handleRemoveFriend(e, viewedUserId)}>
-                Remove Friend
-              </button>
-            )}
-          </div>
-        )}
+              )}
+
+              {status === "friends" && (
+                <button type="button" className="btn btn-danger" onClick={(e) => handleRemoveFriend(e, viewedUserId)}>
+                  Remove Friend
+                </button>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Tab Navigation */}
         <div className="tab-navigation">
@@ -362,7 +332,7 @@ export default function ProfilePage() {
             className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
             onClick={() => setActiveTab('activity')}
           >
-            My Activity
+            {isOwn ? 'My Activity' : `${user?.username}'s Activity`}
           </button>
           <button
             className={`tab-btn ${activeTab === 'friends' ? 'active' : ''}`}
@@ -381,7 +351,7 @@ export default function ProfilePage() {
                   <div className="empty-state">
                     <Activity size={48} />
                     <p>No activities yet</p>
-                    <span>Start tracking habits to see your activity here</span>
+                    <span>Start sharing habits today!</span>
                   </div>
                 ) : (
                   <div className="activities-list">
@@ -405,10 +375,12 @@ export default function ProfilePage() {
                     return false;
                   });
 
+                  const hasPrivateActivities = activities.some(activity => activity.visibility === 'PRIVATE');
+
                   return visibleActivities.length === 0 ? (
                     <div className="empty-state">
                       <Activity size={48} />
-                      <p>{status === 'friends' ? 'No activities to show' : 'This account is private'}</p>
+                      <p>{hasPrivateActivities ? 'This account is private' : 'No activities to show'}</p>
                     </div>
                   ) : (
                     <div className="activities-list">
@@ -430,27 +402,7 @@ export default function ProfilePage() {
 
           {activeTab === 'friends' && (
             <div className="friends-section">
-              {friendsOfViewed.length === 0 ? (
-                <div className="empty-state">
-                  <Users size={48} />
-                  <p>No friends yet</p>
-                  <span>Connect with others to build habits together</span>
-                </div>
-              ) : (
-                <div className="friends-grid">
-                  {friendsOfViewed.map((friend) => (
-                    <div key={friend.friendId} className="friend-card" onClick={() => navigate(`/profile/${friend.friendId}`)}>
-                      <ImageWithFallback
-                        src={friend.profileImageUrl}
-                        fallbackSrc="../../public/avator.jpeg"
-                        alt={friend.username}
-                        className="friend-avatar"
-                      />
-                      <span className="friend-name">{friend.username}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <FriendListPage ref={friendListRef} userId={viewedUserId} />
             </div>
           )}
         </div>

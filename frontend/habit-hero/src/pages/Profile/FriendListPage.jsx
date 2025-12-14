@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getFriendsListApi, removeFriendApi } from "../../api/social";
 import { getUserApi } from "../../api/userApi";
@@ -9,13 +9,14 @@ import "./FriendListPage.css";
 import { useAuth } from "../../context/AuthContext";
 // ... imports
 
-export default function FriendListPage() {
+const FriendListPage = forwardRef(({ userId: propUserId }, ref) => {
   const { user: authUser } = useAuth();
   const currentUserId = authUser?.userId;
-  const { userId } = useParams();
+  const { userId: paramUserId } = useParams();
   const navigate = useNavigate();
-  const viewedUserId = parseInt(userId, 10);
+  const viewedUserId = propUserId || parseInt(paramUserId, 10);
   const isOwn = currentUserId === viewedUserId;
+  const isStandalone = !propUserId;
 
   const [user, setUser] = useState(null);
   const [friends, setFriends] = useState([]);
@@ -23,6 +24,11 @@ export default function FriendListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [buttonLoading, setButtonLoading] = useState({});
+
+  // Expose refreshFriends to parent component
+  useImperativeHandle(ref, () => ({
+    refreshFriends
+  }));
 
   useEffect(() => {
     fetchUser();
@@ -92,14 +98,6 @@ export default function FriendListPage() {
 
   return (
     <div className="friend-list-page">
-      <div className="friend-list-header">
-        <button className="back-btn" onClick={handleBack}>
-          ← Back
-        </button>
-        <h2>{user?.username}'s Friends</h2>
-        <div className="friend-count">{friends.length} friends</div>
-      </div>
-
       <div className="search-container">
         <input
           type="text"
@@ -110,7 +108,7 @@ export default function FriendListPage() {
         />
       </div>
 
-      <div className="friends-grid">
+      <div className="friends-list">
         {filteredFriends.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon"><FaUserFriends /></div>
@@ -123,13 +121,12 @@ export default function FriendListPage() {
               <div className="friend-info" onClick={() => handleFriendClick(friend.friendId)}>
                 <ImageWithFallback
                   src={friend.friendProfileImage}
-                  fallbackSrc="../../public/avator.jpeg"
+                  fallbackSrc="../../public/avator.jpg"
                   alt={`${friend.friendUsername} avatar`}
                   className="friend-avatar"
                 />
                 <div className="friend-details">
                   <h4 className="friend-name">{friend.friendUsername}</h4>
-                  <p className="friend-status">Friend</p>
                 </div>
               </div>
               {isOwn && (
@@ -152,4 +149,6 @@ export default function FriendListPage() {
       </div>
     </div>
   );
-}
+});
+
+export default FriendListPage;

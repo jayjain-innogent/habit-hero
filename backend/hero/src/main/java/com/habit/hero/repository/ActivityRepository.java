@@ -26,7 +26,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
        OR (a.visibility = com.habit.hero.enums.Visibility.FRIENDS AND a.user IN :friends)
        OR a.user = :currentUser
     ORDER BY a.createdAt DESC
-""")
+    """)
     List<Activity> fetchFeed(@Param("currentUser") User currentUser,
                              @Param("friends") List<User> friends,
                              Pageable pageable);
@@ -36,7 +36,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
     WHERE a.visibility = com.habit.hero.enums.Visibility.FRIENDS
       AND a.user IN :friends
     ORDER BY a.createdAt DESC
-""")
+    """)
     List<Activity> fetchFriendsOnlyFeed(@Param("friends") List<User> friends,
                                         Pageable pageable);
 }

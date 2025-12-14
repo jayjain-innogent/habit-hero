@@ -147,6 +147,12 @@ export default function HabitsList() {
     const completed = activeHabits.filter(h => h.completedToday).length;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
+    const formattedDate = new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric"
+    });
+
     // Calculate highest streak (max of all habit streaks)
     const highestStreak = habits.length > 0
         ? Math.max(...habits.map(h => h.currentStreak || h.streak || 0))

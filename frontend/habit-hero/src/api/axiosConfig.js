@@ -14,6 +14,8 @@ axiosInstance.interceptors.request.use(
         const token = localStorage.getItem("token");
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+        } else {
+            console.warn('NO TOKEN IN LOCALSTORAGE - Request will not have Authorization header');
         }
         return config;
     },

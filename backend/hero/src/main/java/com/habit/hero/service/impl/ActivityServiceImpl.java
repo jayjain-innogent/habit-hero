@@ -95,7 +95,7 @@ public class ActivityServiceImpl implements ActivityService {
                 .username(activity.getUser().getUsername())
                 .description(activity.getDescription())
                 .caption(activity.getCaption())
-                .profileImageUrl(activity.getUser().getProfileImageUrl()) // Add this line
+                .profileImageUrl(activity.getUser().getProfileImageUrl())
                 .habitId(activity.getHabit() != null ? activity.getHabit().getId() : null)
                 .likesCount(activity.getLikesCount())
                 .commentsCount(activity.getCommentsCount())
@@ -163,18 +163,17 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional(readOnly = true)
     @Override
     public List<CommentResponse> getCommentsByActivity(Long activityId) {
+
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new RuntimeException("Activity not found"));
 
-        List<Comment> comments = commentRepository.findAll()
-                .stream()
-                .filter(c -> c.getActivity().equals(activity))
-                .toList();
+        List<Comment> comments = commentRepository.findByActivityOrderByCreatedAtDesc(activity);
 
         return comments.stream()
                 .map(this::mapToResponse)
                 .toList();
     }
+
 
     private CommentResponse mapToResponse(Comment c) {
         return CommentResponse.builder()

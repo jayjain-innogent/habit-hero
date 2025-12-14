@@ -110,15 +110,15 @@
   transition: background-color 0.2s;
 }
 
-.generate-report-btn:hover {
+/* .generate-report-btn:hover {
   background-color: #45a049;
-}
+} */
 
-.activity-item {
+/* .activity-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
+} */
 
 @media (max-width: 768px) {
   .activity-content {

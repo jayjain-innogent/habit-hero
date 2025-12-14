@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Trophy } from "lucide-react";
 import { FaArrowLeft, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import "./SideBar.css";

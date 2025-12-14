@@ -41,6 +41,7 @@
 .user-name {
   color: var(--color-text-primary);
   font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
 }
 
 .activity-text {
@@ -48,9 +49,10 @@
   font-weight: var(--font-weight-normal);
   margin-left: 4px;
   white-space: pre-line;
-  line-height: 2;
-  font-size: var(--font-size-2xl);
+  line-height: 1.5;
+  font-size: var(--font-size-base);
 }
+
 
 .activity-time {
   color: var(--color-text-muted);

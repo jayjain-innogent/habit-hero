@@ -19,8 +19,12 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (userRepository.count() == 0) {
+
+        if(userRepository.count() == 0){
             seedUsers();
+        }
+
+        if (userRepository.count() > 15) {
             seedFriendRequests();
         }
     }
@@ -203,8 +207,8 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedFriendRequests() {
         try {
-            for (long i = 2; i <= 10; i++) {
-                friendService.sendFriendRequest(i, 1L);
+            for (long i = 1; i <= 15; i++) {
+                friendService.sendFriendRequest(i, 16L);
             }
             System.out.println("✅ Seeded 9 friend requests to user 1");
         } catch (Exception e) {
