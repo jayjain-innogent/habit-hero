@@ -669,7 +669,7 @@ const HabitStats = () => {
         const totalTarget = sessionCount * targetValue;
 
         if (cadence === 'DAILY' && goalType === 'OFF') return 'Daily';
-        if (cadence === 'DAILY' && goalType !== 'OFF') return `${totalTarget} ${goalUnit} / Daily`;
+        if (cadence === 'DAILY' && goalType !== 'OFF') return `${targetValue} ${goalUnit} / Daily`;
         if (cadence !== 'DAILY' && goalType === 'OFF') return `${ habit?.sessionCount} days / ${cadence}`;
         return `${totalTarget} ${goalUnit} / ${cadence}`;
     })();
@@ -727,7 +727,7 @@ const HabitStats = () => {
                                </span>
                             <Target size={20} /> 
                         </div>
-                        <div className="stat-value">{summary.currentCompletion} {habit.goalUnit}</div>
+                        <div className="stat-value">{summary.currentCompletion} {habit.goalUnit ? habit.goalUnit : summary.currentCompletion >= 2 ? 'Days' : 'Day'}</div>
                      </div>
 
                     <div className="stat-card">
@@ -767,7 +767,7 @@ const HabitStats = () => {
                                 {weekDates.length > 0 ? weekDates.map((date, i) => {
                                     const dateIndex = completionDates.findIndex(d => d.startsWith(date));
                                     const value = dateIndex >= 0 ? completionValues[dateIndex] : 0;
-                                    const height = value > 0 ? (value / maxValue) * 100 : 0;
+                                    const height = habit.targetValue? value > 0 ? (value / maxValue) * 100 : 0 : 100;
                                     return (
                                          <div
                                              key={i}
