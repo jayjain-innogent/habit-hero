@@ -178,9 +178,7 @@ export default function HabitsList() {
                 <div className="habits-header-left">
                     <h1 className="habits-title">Welcome back, Hero!</h1>
                     <p className="habits-date">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                    <p className="habits-subtitle">
-                        {getGreeting()}! You have {total - completed} pending habits today.
-                    </p>
+
                 </div>
                 <button
                     className="add-habit-btn"

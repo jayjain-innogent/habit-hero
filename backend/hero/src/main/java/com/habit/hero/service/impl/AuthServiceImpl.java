@@ -18,8 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -92,8 +92,8 @@ public class AuthServiceImpl implements AuthService {
 
         // Find Token in DB matching OTP and Type
         VerificationToken verificationToken = tokenRepository.findByTokenHashAndTokenTypeAndUsedFalse(
-                request.getOtp(), TokenType.VERIFICATION
-        ).orElseThrow(() -> new RuntimeException("Invalid or used OTP"));
+                request.getOtp(), TokenType.VERIFICATION)
+                .orElseThrow(() -> new RuntimeException("Invalid or used OTP"));
 
         // Validate Token ownership
         if (!verificationToken.getUser().getUserId().equals(user.getUserId())) {
@@ -175,8 +175,8 @@ public class AuthServiceImpl implements AuthService {
 
         // Find valid, unused token (OTP)
         VerificationToken token = tokenRepository.findByTokenHashAndTokenTypeAndUsedFalse(
-                request.getOtp(), TokenType.PASSWORD_RESET
-        ).orElseThrow(() -> new RuntimeException("Invalid or expired OTP"));
+                request.getOtp(), TokenType.PASSWORD_RESET)
+                .orElseThrow(() -> new RuntimeException("Invalid or expired OTP"));
 
         // Check expiry manually if not handled by query
         if (token.isExpired()) {
@@ -196,8 +196,8 @@ public class AuthServiceImpl implements AuthService {
 
     // Helper method to generate numeric OTP
     private String generateOTP() {
-        Random random = new Random();
-        int otp = 100000 + random.nextInt(900000);
+        SecureRandom secureRandom = new SecureRandom();
+        int otp = 100000 + secureRandom.nextInt(900000);
         return String.valueOf(otp);
     }
 

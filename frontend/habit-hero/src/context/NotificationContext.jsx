@@ -42,12 +42,15 @@ export const NotificationProvider = ({ children }) => {
 
     const fetchInitialData = async () => {
         try {
-            const notifs = await notificationService.getNotifications();
-            setNotifications(notifs);
+            // Fetch notifications and unread count in parallel
+            const [notifs, unreadCountFromApi] = await Promise.all([
+                notificationService.getNotifications(),
+                notificationService.getUnreadCount()
+            ]);
 
-            // Calculate unread count from notifications array instead of relying on API
-            const unreadCountCalculated = notifs.filter(n => !n.isRead).length;
-            setUnreadCount(unreadCountCalculated);
+            setNotifications(notifs);
+            // Use the backend's unread count as source of truth
+            setUnreadCount(unreadCountFromApi || 0);
 
             // Sync processed IDs
             notifs.forEach(n => processedIds.current.add(n.notificationId));

@@ -40,6 +40,7 @@ public class HabitLogServiceImpl implements HabitLogService {
 
     // Create a new habit log for a user and send notifications
     @Override
+    @Transactional
     public HabitLogResponse createLog(Long userId, Long habitId, HabitLogCreateRequest request) {
 
         if (userId == null || habitId == null || request == null)
@@ -71,21 +72,27 @@ public class HabitLogServiceImpl implements HabitLogService {
                 null,
                 NotificationType.STREAK_REACTION,
                 "Streak updated! You completed your habit.",
-                habitId
-        );
+                habitId);
+
+        // Calculate streak and update in database
+        reportService.calculateStreak(habitId, userId);
+
+        // Fetch fresh habit data to get updated streak
+        Habit updatedHabit = habitDAO.findByIdAndUserId(habitId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Habit not found"));
 
         // Check and notify for milestone achievements
         try {
-            int currentStreak = habit.getCurrentStreak();
+            int currentStreak = updatedHabit.getCurrentStreak();
             if (currentStreak == 7 || currentStreak == 30) {
-                String message = "Congratulations! You hit a " + currentStreak + "-day milestone on " + habit.getTitle();
+                String message = "Congratulations! You hit a " + currentStreak + "-day milestone on "
+                        + updatedHabit.getTitle();
                 notificationService.createNotification(
                         userId,
                         null,
                         NotificationType.MILESTONE,
                         message,
-                        habitId
-                );
+                        habitId);
             }
         } catch (Exception e) {
             log.error("Failed to check or create milestone notification after saving log.", e);
@@ -138,8 +145,7 @@ public class HabitLogServiceImpl implements HabitLogService {
             notificationService.deleteNotificationByReference(
                     userId,
                     NotificationType.STREAK_REACTION,
-                    habitId
-            );
+                    habitId);
         } catch (Exception e) {
             log.error("Failed to delete notification", e);
         }
@@ -211,6 +217,7 @@ public class HabitLogServiceImpl implements HabitLogService {
     }
 
     @Override
+    @Transactional
     public HabitLogResponse updateNote(Long userId, Long logId, String note) {
 
         if (userId == null || logId == null || note == null || note.trim().isEmpty())
@@ -230,6 +237,7 @@ public class HabitLogServiceImpl implements HabitLogService {
 
     // Delete the note from a specific habit log
     @Override
+    @Transactional
     public void deleteNote(Long userId, Long logId) {
 
         if (userId == null || logId == null)
