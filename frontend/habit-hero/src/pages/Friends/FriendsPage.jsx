@@ -26,7 +26,7 @@ function FriendsPage() {
   const [buttonLoading, setButtonLoading] = useState({});
 
   const [activeTab, setActiveTab] = useState(() => {
-  return localStorage.getItem('friendsActiveTab') || 'search';
+    return localStorage.getItem('friendsActiveTab') || 'search';
   });
 
   useEffect(() => {
@@ -42,30 +42,30 @@ function FriendsPage() {
   }, [loading, friends, requests, sentRequests]);
 
   // Add debounced search
-useEffect(() => {
-  const timeoutId = setTimeout(() => {
-    if (searchQuery.trim()) {
-      searchUsers();
-    } else {
-      setSearchResults([]);
-    }
-  }, 500); // Wait 500ms after user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        searchUsers();
+      } else {
+        setSearchResults([]);
+      }
+    }, 500); // Wait 500ms after user stops typing
 
-  return () => clearTimeout(timeoutId);
-}, [searchQuery]);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   async function fetchAllData() {
     try {
       setLoading(true);
-      const [pendingRes, friendsRes, sentRes] = await Promise.all([  
+      const [pendingRes, friendsRes, sentRes] = await Promise.all([
         getPendingApi({ userId }),
         getFriendsListApi({ userId }),
         getSentRequestsApi({ userId })
       ]);
-      
+
       setRequests(pendingRes.data || []);
       setFriends(friendsRes.data || []);
-      setSentRequests(sentRes.data || []);  
+      setSentRequests(sentRes.data || []);
     } catch (err) {
       console.error(err);
       setError("Failed to load data");
@@ -78,19 +78,19 @@ useEffect(() => {
     try {
       const res = await getAllUsersApi();
       const allUsers = Array.isArray(res.data) ? res.data : [];
-      
+
       console.log("All users:", allUsers.length);
       console.log("Friends:", friends);
       console.log("Requests:", requests);
       console.log("Sent requests:", sentRequests);
       console.log("Current userId:", userId);
-      
+
       const suggested = allUsers.filter(user => {
         const isFriend = friends.some(f => f.friendId === user.userId);
         const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
         const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
         const isCurrentUser = user.userId === userId;
-        
+
         console.log(`User ${user.username}:`, {
           isFriend,
           hasIncomingRequest,
@@ -98,10 +98,10 @@ useEffect(() => {
           isCurrentUser,
           shouldInclude: !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser
         });
-        
+
         return !isFriend && !hasIncomingRequest && !hasSentRequest && !isCurrentUser;
       });
-      
+
       console.log("Suggested users:", suggested);
       setSuggestedUsers(suggested.slice(0, 5));
     } catch (err) {
@@ -118,7 +118,7 @@ useEffect(() => {
       setSearchResults(res.data || []);
     } catch (err) {
       console.error("Search failed:", err);
-      setSearchResults([]); 
+      setSearchResults([]);
     } finally {
       setSearchLoading(false);
     }
@@ -128,10 +128,10 @@ useEffect(() => {
     try {
       setButtonLoading({ [`accept_${requestId}`]: true });
       await acceptRequestApi({ requestId });
-      
+
       // Update state locally instead of refetching
       setRequests(prev => prev.filter(req => req.requestId !== requestId));
-      
+
     } catch (err) {
       console.error("Failed to accept request:", err);
     } finally {
@@ -143,10 +143,10 @@ useEffect(() => {
     try {
       setButtonLoading({ [`reject_${requestId}`]: true });
       await rejectRequestApi({ requestId });
-      
+
       // Update state locally instead of refetching
       setRequests(prev => prev.filter(req => req.requestId !== requestId));
-      
+
     } catch (err) {
       console.error("Failed to reject request:", err);
     } finally {
@@ -159,9 +159,9 @@ useEffect(() => {
     try {
       setButtonLoading({ [`add_${receiverId}`]: true });
       await sendRequestApi({ senderId: userId, receiverId });
-      
+
       setSuggestedUsers(prev => prev.filter(user => user.userId !== receiverId));
-      
+
     } catch (err) {
       console.error("Failed to send friend request:", err);
     } finally {
@@ -173,7 +173,7 @@ useEffect(() => {
     const isFriend = friends.some(f => f.friendId === user.userId);
     const hasIncomingRequest = requests.some(r => r.senderId === user.userId);
     const hasSentRequest = sentRequests.some(r => r.receiverId === user.userId);
-    
+
     if (isFriend) return "friends";
     if (hasIncomingRequest) return "incoming";
     if (hasSentRequest) return "sent";
@@ -194,17 +194,17 @@ useEffect(() => {
       </div>
 
       <div className="tab-navigation">
-        <button 
+        <button
           className={`tab ${activeTab === "requests" ? "active" : ""}`}
           onClick={() => {
-                  setActiveTab("requests");
-                  localStorage.setItem('friendsActiveTab', 'requests');
-                }}
+            setActiveTab("requests");
+            localStorage.setItem('friendsActiveTab', 'requests');
+          }}
         >
           <Bell size={18} />
           Requests ({requests.length})
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === "search" ? "active" : ""}`}
           onClick={() => {
             setActiveTab("search");
@@ -261,8 +261,8 @@ useEffect(() => {
                 <div className="users-list">
                   {suggestedUsers.map(user => (
                     <div key={user.userId} className="user-card">
-                      <div 
-                        className="user-info" 
+                      <div
+                        className="user-info"
                         onClick={() => navigate(`/profile/${user.userId}`)}
                       >
                         <ImageWithFallback
@@ -308,11 +308,11 @@ useEffect(() => {
                 <div className="users-list">
                   {searchResults.filter(user => user.userId !== userId).map(user => {
                     const status = getRelationshipStatus(user);
-                    
+
                     return (
                       <div key={user.userId} className="user-card">
-                        <div 
-                          className="user-info" 
+                        <div
+                          className="user-info"
                           onClick={() => navigate(`/profile/${user.userId}`)}
                         >
                           <ImageWithFallback

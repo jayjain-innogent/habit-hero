@@ -17,7 +17,7 @@ export default function ActivityFeed() {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showCommentsModal, setShowCommentsModal] = useState(false); 
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState(null);
   const [summaryRes, setSummaryRes] = useState(null);
   const [filter, setFilter] = useState("ALL");
@@ -50,12 +50,12 @@ export default function ActivityFeed() {
     const updatedFeed = feed.map((item) =>
       item.id === activity.id
         ? {
-            ...item,
-            likedByCurrentUser: !item.likedByCurrentUser,
-            likesCount: item.likedByCurrentUser 
-              ? (item.likesCount || 1) - 1 
-              : (item.likesCount || 0) + 1,
-          }
+          ...item,
+          likedByCurrentUser: !item.likedByCurrentUser,
+          likesCount: item.likedByCurrentUser
+            ? (item.likesCount || 1) - 1
+            : (item.likesCount || 0) + 1,
+        }
         : item
     );
     setFeed(updatedFeed);
@@ -78,8 +78,8 @@ export default function ActivityFeed() {
   };
 
   const handleProfileClick = (userId) => {
-  navigate(`/profile/${userId}`);
-};
+    navigate(`/profile/${userId}`);
+  };
 
   return (
     <div className="activity-feed">
@@ -89,14 +89,14 @@ export default function ActivityFeed() {
           <p className="activity-subtitle">See what your friends are accomplishing</p>
         </div>
         <div className="tab-navigation">
-          <button 
+          <button
             className={`tab ${filter === "ALL" ? "active" : ""}`}
             onClick={() => handleFilterChange("ALL")}
           >
             <Activity size={18} />
             All
           </button>
-          <button 
+          <button
             className={`tab ${filter === "FRIENDS" ? "active" : ""}`}
             onClick={() => handleFilterChange("FRIENDS")}
           >

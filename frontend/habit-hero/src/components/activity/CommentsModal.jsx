@@ -22,7 +22,7 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded, onProfileC
     try {
       const response = await getCommentsApi({ activityId });
       // Sort comments by createdAt descending (newest first)
-      const sortedComments = (response.data || []).sort((a, b) => 
+      const sortedComments = (response.data || []).sort((a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
       );
       setComments(sortedComments);
@@ -38,7 +38,7 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded, onProfileC
       await addCommentApi({ activityId, userId: currentUserId, text: newComment });
       setNewComment("");
       fetchComments();
-      onCommentAdded?.(); 
+      onCommentAdded?.();
     } catch (error) {
       console.error("Failed to add comment:", error);
     }
@@ -63,23 +63,23 @@ const CommentsModal = ({ isOpen, onClose, activityId, onCommentAdded, onProfileC
             <ul className="comments-list">
               {comments.map((comment) => (
                 <li key={comment.commentId} className="comment-item">
-                <div
-                  onClick={() => onProfileClick?.(comment.author?.userId)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Avatar src={comment.author?.profileImage} alt={comment.author?.username} />
-                </div>
-                <div className="comment-content">
-                  <span
-                    className="comment-author"
+                  <div
                     onClick={() => onProfileClick?.(comment.author?.userId)}
                     style={{ cursor: 'pointer' }}
                   >
-                    {comment.author?.username}
-                  </span>
-                  <p className="comment-text">{comment.text}</p>
-                </div>
-              </li>
+                    <Avatar src={comment.author?.profileImage} alt={comment.author?.username} />
+                  </div>
+                  <div className="comment-content">
+                    <span
+                      className="comment-author"
+                      onClick={() => onProfileClick?.(comment.author?.userId)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {comment.author?.username}
+                    </span>
+                    <p className="comment-text">{comment.text}</p>
+                  </div>
+                </li>
               ))}
             </ul>
           )}

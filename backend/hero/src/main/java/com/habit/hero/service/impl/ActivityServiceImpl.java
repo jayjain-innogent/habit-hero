@@ -101,7 +101,7 @@ public class ActivityServiceImpl implements ActivityService {
                 .commentsCount(activity.getCommentsCount())
                 .createdAt(activity.getCreatedAt())
                 .build();
-}
+    }
 
     @Transactional
     @Override

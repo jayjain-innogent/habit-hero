@@ -218,4 +218,3 @@ const ActivityCard = ({ activity, onLikeToggle, onCommentClick, onProfileClick, 
 };
 
 export default ActivityCard;
-

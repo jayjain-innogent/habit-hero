@@ -90,8 +90,8 @@ const UserSearch = ({ user }) => {
   return (
     <div className="user-search-item">
       <div className="user-info" onClick={() => navigate(`/profile/${user.id}`)}>
-        <img 
-          src={user.profilePic || '/default-avatar.png'} 
+        <img
+          src={user.profilePic || '/default-avatar.png'}
           alt={user.username}
           className="profile-pic"
         />

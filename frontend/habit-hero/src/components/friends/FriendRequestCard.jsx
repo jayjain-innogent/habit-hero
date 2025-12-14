@@ -17,8 +17,8 @@ import ImageWithFallback from "../ImageWithFallback";
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
-   navigate(`/profile/${request.senderId}`, {
-    state: { from: "friendRequests" }
+    navigate(`/profile/${request.senderId}`, {
+      state: { from: "friendRequests" }
     });
   }
 
@@ -37,16 +37,16 @@ import ImageWithFallback from "../ImageWithFallback";
         </div>
       </div>
       <div className="actions">
-        <button 
+        <button
           type="button"
-          className="btn-icon accept" 
+          className="btn-icon accept"
           onClick={(e) => { e.stopPropagation(); onAccept(request.requestId); }}
           disabled={buttonLoading[`accept_${request.requestId}`]}
-          >
-            <IoCheckmark size={20} />
-          </button>
+        >
+          <IoCheckmark size={20} />
+        </button>
 
-        <button 
+        <button
           type="button"
           className="btn-icon reject"
           onClick={(e) => { e.stopPropagation(); onReject(request.requestId); }}

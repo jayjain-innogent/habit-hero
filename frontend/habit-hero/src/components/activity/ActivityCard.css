@@ -72,11 +72,25 @@
   font-size: 20px;
 }
 
-.activity-icon.streak { background-color: #FFF7ED; }
-.activity-icon.summary { background-color: #FAF5FF; }
-.activity-icon.missed { background-color: #FEF2F2; }
-.activity-icon.completion { background-color: #EFF6FF; }
-.activity-icon.milestone { background-color: #FEFCE8; }
+.activity-icon.streak {
+  background-color: #FFF7ED;
+}
+
+.activity-icon.summary {
+  background-color: #FAF5FF;
+}
+
+.activity-icon.missed {
+  background-color: #FEF2F2;
+}
+
+.activity-icon.completion {
+  background-color: #EFF6FF;
+}
+
+.activity-icon.milestone {
+  background-color: #FEFCE8;
+}
 
 .rich-content {
   margin-top: 12px;

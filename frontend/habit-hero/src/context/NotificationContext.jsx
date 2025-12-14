@@ -24,7 +24,7 @@ export const NotificationProvider = ({ children }) => {
 
         fetchInitialData();
         connectWebSocket();
-        
+
         // Add polling every 10 seconds to fetch latest notifications
         pollIntervalRef.current = setInterval(() => {
             fetchInitialData();
@@ -44,7 +44,7 @@ export const NotificationProvider = ({ children }) => {
         try {
             const notifs = await notificationService.getNotifications();
             setNotifications(notifs);
-            
+
             // Calculate unread count from notifications array instead of relying on API
             const unreadCountCalculated = notifs.filter(n => !n.isRead).length;
             setUnreadCount(unreadCountCalculated);

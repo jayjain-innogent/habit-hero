@@ -5,12 +5,14 @@ import { getAllHabits } from "../../api/habits";
 import { Target, Flame, Medal, BarChart3 } from "lucide-react";
 import Avatar from "../common/Avatar";
 import SegmentedButton from "../common/SegmentedButton";
+import { getTodayStatus } from "../../api/habitLogs";
 import "./CreateActivityModal.css";
 
-const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
+const CreateActivityModal = ({ isOpen, onClose, onSubmit, summary: summaryData }) => {
   const [activityType, setActivityType] = useState("COMPLETION");
   const [selectedHabit, setSelectedHabit] = useState(null);
-  const [note, setNote] = useState("");
+  const [summary, setSummary] = useState("");
+  const [caption, setCaption] = useState("");
   const [visibility, setVisibility] = useState("FRIENDS");
   const [habits, setHabits] = useState([]);
   const { currentUserId } = useAppContext();
@@ -74,16 +76,18 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
         userId: currentUserId,
         habitId: selectedHabit.id,
         activityType,
-        title: `${getActivityTitle(activityType, selectedHabit.title)}${note ? `\n${note}` : ''}`,
+        title: getActivityTitle(activityType, selectedHabit.title),
+        description: summary,
+        caption,
         visibility,
       };
-
 
       await createActivityApi(payload);
       onSubmit();
       onClose();
       setSelectedHabit(null);
-      setNote("");
+      setCaption("");
+      setSummary("");
       setActivityType("COMPLETION");
       setVisibility("FRIENDS");
     } catch (error) {
@@ -163,8 +167,8 @@ const CreateActivityModal = ({ isOpen, onClose, onSubmit }) => {
           {activityType != "SUMMARY" && <div className="create-form-group">
             <label className="create-form-label">Add a caption</label>
             <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
               rows={3}
               className="create-form-textarea"
               placeholder="Caption."

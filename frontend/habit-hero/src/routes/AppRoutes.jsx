@@ -31,7 +31,7 @@ export default function AppRoutes() {
 
   // Derive currentUserId from auth context, fallback to safe default or null
   // Note: API calls should fail gracefully or check if user is loaded
-  const currentUserId = user?.userId || null;
+  const currentUserId = user?.userId || user?.id || null;
 
   const contextValue = {
     currentUserId,
