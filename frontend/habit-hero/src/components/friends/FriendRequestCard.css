@@ -125,14 +125,17 @@
 }
 
 .friend-request-card .btn-icon.reject {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: white;
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
 }
 
 .friend-request-card .btn-icon.reject:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  background: #f5f5f5;
+  color: #374151;
+  border-color: #9ca3af;
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .friend-request-card .btn-icon:disabled {
