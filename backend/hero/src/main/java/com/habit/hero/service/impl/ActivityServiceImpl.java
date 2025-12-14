@@ -35,6 +35,11 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public Activity createActivity(ActivityCreateRequest request) {
+        // SECURITY: Validate userId from token matches request userId
+        Long tokenUserId = currentUserUtil.getCurrentUserId();
+        if (!tokenUserId.equals(request.getUserId())) {
+            throw new RuntimeException("Unauthorized: User ID mismatch");
+        }
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -120,6 +125,11 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     @Override
     public LikeResponse toggleLike(Long userId, Long activityId) {
+        // SECURITY: Validate userId from token matches request userId
+        Long tokenUserId = currentUserUtil.getCurrentUserId();
+        if (!tokenUserId.equals(userId)) {
+            throw new RuntimeException("Unauthorized: User ID mismatch");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -150,13 +160,15 @@ public class ActivityServiceImpl implements ActivityService {
                 .build();
     }
 
-
-
-
-
     @Transactional
     @Override
     public CommentResponse addComment(CommentCreateRequest request) {
+
+        // SECURITY: Validate userId from token matches request userId
+        Long tokenUserId = currentUserUtil.getCurrentUserId();
+        if (!tokenUserId.equals(request.getAuthorUserId())) {
+            throw new RuntimeException("Unauthorized: User ID mismatch");
+        }
 
         Activity activity = activityRepository.findById(request.getActivityId())
                 .orElseThrow(() -> new RuntimeException("Activity not found"));
@@ -220,6 +232,12 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public void deleteActivity(Long activityId, Long userId) {
+        // SECURITY: Validate userId from token matches request userId
+        Long tokenUserId = currentUserUtil.getCurrentUserId();
+        if (!tokenUserId.equals(userId)) {
+            throw new RuntimeException("Unauthorized: User ID mismatch");
+        }
+
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new RuntimeException("Activity not found"));
 

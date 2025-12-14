@@ -13,6 +13,7 @@ import com.habit.hero.repository.FriendRequestRepository;
 import com.habit.hero.repository.UserRepository;
 import com.habit.hero.service.FriendService;
 import com.habit.hero.service.NotificationService;
+import com.habit.hero.util.CurrentUserUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendListRepository friendListRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final CurrentUserUtil currentUserUtil; // ADD THIS LINE
 
     // Send a friend request from one user to another
     @Override
@@ -70,8 +72,14 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public void acceptFriendRequest(RespondToRequestDto dto) {
+        // SECURITY: Validate user can accept this request
+        Long tokenUserId = currentUserUtil.getCurrentUserId();
 
         FriendRequest request = getFriendRequest(dto.getRequestId());
+
+        if (!tokenUserId.equals(request.getReceiver().getUserId())) {
+            throw new RuntimeException("Unauthorized: You can only accept requests sent to you");
+        }
 
         if (request.getStatus() != FriendRequestStatus.PENDING) {
             throw new IllegalStateException("Request already handled.");
@@ -85,7 +93,6 @@ public class FriendServiceImpl implements FriendService {
 
         addFriendship(sender, receiver);
 
-        // Notify sender that request is accepted
         notificationService.createNotification(
                 sender.getUserId(),
                 receiver.getUserId(),
@@ -95,10 +102,18 @@ public class FriendServiceImpl implements FriendService {
         );
     }
 
+
     // Reject a pending friend request
     @Override
     public void rejectFriendRequest(RespondToRequestDto dto) {
+        // SECURITY: Validate user can reject this request
+        Long tokenUserId = currentUserUtil.getCurrentUserId();
+
         FriendRequest request = getFriendRequest(dto.getRequestId());
+
+        if (!tokenUserId.equals(request.getReceiver().getUserId())) {
+            throw new RuntimeException("Unauthorized: You can only reject requests sent to you");
+        }
 
         if (request.getStatus() != FriendRequestStatus.PENDING) {
             throw new IllegalStateException("Request already handled.");
@@ -108,10 +123,18 @@ public class FriendServiceImpl implements FriendService {
         friendRequestRepository.save(request);
     }
 
+
     // Cancel a pending friend request and delete notification
     @Override
     public void cancelFriendRequest(RespondToRequestDto dto) {
+        // SECURITY: Validate user can cancel this request
+        Long tokenUserId = currentUserUtil.getCurrentUserId();
+
         FriendRequest request = getFriendRequest(dto.getRequestId());
+
+        if (!tokenUserId.equals(request.getSender().getUserId())) {
+            throw new RuntimeException("Unauthorized: You can only cancel requests you sent");
+        }
 
         if (request.getStatus() != FriendRequestStatus.PENDING) {
             throw new IllegalStateException("Request already handled.");
@@ -120,7 +143,6 @@ public class FriendServiceImpl implements FriendService {
         request.setStatus(FriendRequestStatus.CANCELLED);
         friendRequestRepository.save(request);
 
-        // Delete the notification sent to the receiver
         try {
             notificationService.deleteSocialNotification(
                     request.getReceiver().getUserId(),
@@ -132,6 +154,7 @@ public class FriendServiceImpl implements FriendService {
             // Ignore if notification deletion fails
         }
     }
+
 
     // Remove a friend from the user's friend list
     @Override
