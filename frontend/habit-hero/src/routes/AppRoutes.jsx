@@ -44,7 +44,6 @@ export default function AppRoutes() {
     { id: "/friends", label: "Friends" },
     { id: "/activity", label: "Activity" },
     { id: "/profile", label: "Profile" },
-    { id: "/settings", label: "Settings" },
   ];
 
   const handleClick = (path) => {
@@ -72,7 +71,6 @@ export default function AppRoutes() {
             <Route path="/habits/:habitId/report" element={<HabitStats />} />
             <Route path="/friends" element={<FriendsPage />} />
             <Route path="/activity" element={<ActivityFeed />} />
-            <Route path="/settings" element={<div style={{ padding: '20px' }}><h2>Settings</h2><p>Coming soon...</p></div>} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/:userId" element={<ProfilePage />} />
             <Route path="/profile/:userId/friends" element={<FriendListPage />} />
