@@ -414,8 +414,8 @@ const handleCommentClick = (activityId) => {
                         <ActivityCard
                           key={activity.id}
                           activity={activity}
-                          onLikeToggle={status === 'friends' ? handleLikeToggle : () => {}}
-                          onCommentClick={status === 'friends' ? () => handleCommentClick(activity.id) : () => {}}
+                          onLikeToggle={handleLikeToggle} 
+                          onCommentClick={() => handleCommentClick(activity.id)} 
                           onProfileClick={(userId) => navigate(`/profile/${userId}`)}
                         />
                       ))}
