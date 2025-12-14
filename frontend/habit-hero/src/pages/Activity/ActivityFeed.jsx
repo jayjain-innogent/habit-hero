@@ -10,7 +10,6 @@ import CreateActivityModal from "../../components/activity/CreateActivityModal";
 import CommentsModal from "../../components/activity/CommentsModal";
 import { Activity, Users } from "lucide-react";
 import "./ActivityFeed.css";
-import { generateReportApi } from "../../utils/use-gemini";
 
 export default function ActivityFeed() {
   const navigate = useNavigate();
