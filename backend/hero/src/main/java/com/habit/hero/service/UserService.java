@@ -15,4 +15,6 @@ public interface UserService {
 
     // Search for users by name or bio
     List<UserResponse> searchUsers(String query);
+
+    List<UserResponse> getAllUsers();
 }

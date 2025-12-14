@@ -9,6 +9,7 @@ import com.habit.hero.repository.*;
 import com.habit.hero.service.ActivityService;
 import com.habit.hero.service.NotificationService;
 
+import com.habit.hero.util.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class ActivityServiceImpl implements ActivityService {
     private final CommentRepository commentRepository;
     private final FriendListRepository friendListRepository;
     private final HabitRepository habitRepository;
+    private final CurrentUserUtil currentUserUtil;
     private final NotificationService notificationService;
 
     // Create a new activity post for a user
@@ -86,6 +88,16 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     private ActivityResponse mapToResponse(Activity activity) {
+        Long currentUserId = currentUserUtil.getCurrentUserId();
+        boolean isLikedByCurrentUser = false;
+
+        if (currentUserId != null) {
+            User currentUser = userRepository.findById(currentUserId).orElse(null);
+            if (currentUser != null) {
+                isLikedByCurrentUser = reactionRepository.existsByActivityAndReactor(activity, currentUser);
+            }
+        }
+
         return ActivityResponse.builder()
                 .id(activity.getActivityId())
                 .title(activity.getTitle())
@@ -99,9 +111,11 @@ public class ActivityServiceImpl implements ActivityService {
                 .habitId(activity.getHabit() != null ? activity.getHabit().getId() : null)
                 .likesCount(activity.getLikesCount())
                 .commentsCount(activity.getCommentsCount())
+                .likedByCurrentUser(isLikedByCurrentUser)  // Add this line
                 .createdAt(activity.getCreatedAt())
                 .build();
     }
+
 
     @Transactional
     @Override
@@ -136,6 +150,10 @@ public class ActivityServiceImpl implements ActivityService {
                 .build();
     }
 
+
+
+
+
     @Transactional
     @Override
     public CommentResponse addComment(CommentCreateRequest request) {
@@ -159,6 +177,7 @@ public class ActivityServiceImpl implements ActivityService {
 
         return mapToResponse(comment);
     }
+
 
     @Transactional(readOnly = true)
     @Override

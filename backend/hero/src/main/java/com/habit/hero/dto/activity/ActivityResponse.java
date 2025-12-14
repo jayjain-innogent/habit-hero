@@ -26,4 +26,5 @@ public class ActivityResponse {
     private LocalDateTime createdAt;
     private String description;
     private String caption;
+    private boolean likedByCurrentUser;
 }

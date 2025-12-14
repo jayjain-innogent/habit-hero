@@ -14,10 +14,11 @@ import { getUserApi, getMyProfileApi } from "../../api/userApi";
 import { useAuth } from "../../context/AuthContext";
 import ImageWithFallback from "../../components/ImageWithFallback";
 import EditProfileModal from "../../components/modals/EditProfileModals";
-import { getUserActivitiesApi, deleteActivityApi } from "../../api/activity";
+import { getUserActivitiesApi, deleteActivityApi, likeActivityApi } from "../../api/activity";
 import ActivityCard from "../../components/activity/ActivityCard";
 import { fetchDashboardData } from "../../services/api";
-import { Edit3, Calendar, Flame, Target, TrendingUp, Users, Activity } from "lucide-react";
+import { Edit3, Calendar, Flame, Target, TrendingUp, Users, Activity, ArrowLeft } from "lucide-react";
+import CommentsModal from "../../components/activity/CommentsModal";
 import FriendListPage from './FriendListPage';
 import "./ProfilePage.css";
 
@@ -46,6 +47,9 @@ export default function ProfilePage() {
   const [activities, setActivities] = useState([]);
   const [dashboardData, setDashboardData] = useState(null);
   const [activeTab, setActiveTab] = useState('activity');
+
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [selectedActivityId, setSelectedActivityId] = useState(null);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -130,6 +134,22 @@ export default function ProfilePage() {
       console.error("Delete activity error:", err);
     }
   };
+
+const handleLikeToggle = async (activity) => {
+  try {
+    await likeActivityApi({ activityId: activity.id, userId: currentUserId });
+    fetchActivities(); // Refresh to get updated data
+  } catch (error) {
+    console.error("Failed to toggle like:", error);
+  }
+};
+
+const handleCommentClick = (activityId) => {
+  setSelectedActivityId(activityId);
+  setShowCommentsModal(true);
+};
+
+
 
   const computeStatus = useCallback(() => {
     if (isOwn) {
@@ -254,6 +274,12 @@ export default function ProfilePage() {
   return (
     <div className="modern-profile-page">
       <div className="profile-container">
+        {!isOwn && (
+        <button onClick={() => navigate(-1)} className="back-btn">
+          <ArrowLeft size={16} />
+          Back
+        </button>
+      )}
         {/* Profile Header */}
         <div className="profile-header-card">
           <div className="profile-main-info">
@@ -359,8 +385,8 @@ export default function ProfilePage() {
                       <ActivityCard
                         key={activity.id}
                         activity={activity}
-                        onLikeToggle={() => { }}
-                        onCommentClick={() => { }}
+                        onLikeToggle={handleLikeToggle}
+                        onCommentClick={() => handleCommentClick(activity.id)}
                         onProfileClick={(userId) => navigate(`/profile/${userId}`)}
                         onDelete={handleDeleteActivity}
                       />
@@ -388,8 +414,8 @@ export default function ProfilePage() {
                         <ActivityCard
                           key={activity.id}
                           activity={activity}
-                          onLikeToggle={() => { }}
-                          onCommentClick={() => { }}
+                          onLikeToggle={status === 'friends' ? handleLikeToggle : () => {}}
+                          onCommentClick={status === 'friends' ? () => handleCommentClick(activity.id) : () => {}}
                           onProfileClick={(userId) => navigate(`/profile/${userId}`)}
                         />
                       ))}
@@ -418,6 +444,14 @@ export default function ProfilePage() {
           }}
         />
       )}
+
+      <CommentsModal
+        isOpen={showCommentsModal}
+        onClose={() => setShowCommentsModal(false)}
+        activityId={selectedActivityId}
+        onCommentAdded={fetchActivities}  // This will refresh activities when comment is added
+        onProfileClick={(userId) => navigate(`/profile/${userId}`)}
+      />
     </div>
   );
 }
