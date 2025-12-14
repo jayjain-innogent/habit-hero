@@ -142,6 +142,18 @@ public class ActivityServiceImpl implements ActivityService {
         if (alreadyLiked) {
             reactionRepository.deleteByActivityAndReactor(activity, user);
             activity.setLikesCount(activity.getLikesCount() - 1);
+
+            // Delete like notification when unliked
+            try {
+                notificationService.deleteSocialNotification(
+                        activity.getUser().getUserId(),
+                        userId,
+                        NotificationType.LIKE,
+                        activityId
+                );
+            } catch (Exception e) {
+                // Ignore if notification deletion fails
+            }
         } else {
             Reaction reaction = Reaction.builder()
                     .activity(activity)
@@ -149,6 +161,17 @@ public class ActivityServiceImpl implements ActivityService {
                     .build();
             reactionRepository.save(reaction);
             activity.setLikesCount(activity.getLikesCount() + 1);
+
+            // Send like notification (only if not liking own post)
+            if (!activity.getUser().getUserId().equals(userId)) {
+                notificationService.createNotification(
+                        activity.getUser().getUserId(),
+                        userId,
+                        NotificationType.LIKE,
+                        "liked your post",
+                        activityId
+                );
+            }
         }
 
         activityRepository.save(activity);
@@ -159,6 +182,7 @@ public class ActivityServiceImpl implements ActivityService {
                 .likesCount(activity.getLikesCount())
                 .build();
     }
+
 
     @Transactional
     @Override
@@ -187,8 +211,21 @@ public class ActivityServiceImpl implements ActivityService {
 
         comment = commentRepository.save(comment);
 
+        // Send comment notification (only if not commenting on own post)
+        if (!activity.getUser().getUserId().equals(request.getAuthorUserId())) {
+            notificationService.createNotification(
+                    activity.getUser().getUserId(),
+                    request.getAuthorUserId(),
+                    NotificationType.COMMENT,
+                    "commented on your post",
+                    request.getActivityId()
+            );
+        }
+
         return mapToResponse(comment);
     }
+
+
 
 
     @Transactional(readOnly = true)

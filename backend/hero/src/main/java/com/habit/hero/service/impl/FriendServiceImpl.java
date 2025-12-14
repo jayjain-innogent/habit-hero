@@ -30,7 +30,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendListRepository friendListRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
-    private final CurrentUserUtil currentUserUtil; // ADD THIS LINE
+    private final CurrentUserUtil currentUserUtil;
 
     // Send a friend request from one user to another
     @Override
@@ -48,7 +48,11 @@ public class FriendServiceImpl implements FriendService {
             return;
         }
 
-        friendRequestRepository.deleteExistingBetween(sender, receiver);
+        // Check if any existing request exists before deleting
+        boolean hasExistingRequest = friendRequestRepository.existsByUsers(sender, receiver);
+        if (hasExistingRequest) {
+            friendRequestRepository.deleteExistingBetween(sender, receiver);
+        }
 
         FriendRequest request = FriendRequest.builder()
                 .sender(sender)
@@ -60,7 +64,7 @@ public class FriendServiceImpl implements FriendService {
 
         // Notify receiver about new friend request
         notificationService.createNotification(
-                receiverId,
+                receiverId,  // target
                 senderId,
                 NotificationType.FRIEND_REQUEST,
                 "sent you a friend request",

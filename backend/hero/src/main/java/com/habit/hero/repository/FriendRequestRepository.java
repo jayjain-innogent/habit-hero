@@ -14,11 +14,11 @@ import java.util.Optional;
 
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Long> {
 
-    @Query("SELECT fr FROM FriendRequest fr WHERE fr.sender = :sender AND fr.receiver = :receiver")
-    Optional<FriendRequest> findAnyRequest(
-            @Param("sender") User sender,
-            @Param("receiver") User receiver
-    );
+    @Query("SELECT COUNT(fr) > 0 FROM FriendRequest fr WHERE " +
+            "(fr.sender = :user1 AND fr.receiver = :user2) OR " +
+            "(fr.sender = :user2 AND fr.receiver = :user1)")
+    boolean existsByUsers(@Param("user1") User user1, @Param("user2") User user2);
+
 
     @Modifying
     @Transactional
