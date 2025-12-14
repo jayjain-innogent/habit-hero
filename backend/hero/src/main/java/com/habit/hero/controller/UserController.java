@@ -78,4 +78,12 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    // get all users (for suggestions)
+    @GetMapping
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        List<UserResponse> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+
 }
