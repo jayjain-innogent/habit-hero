@@ -1,15 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { useNotification } from '../../context/NotificationContext';
+import { useNotification } from '../../context/NotificationContext'; // Path check kar lena
 import { FaBell, FaUserFriends, FaFire } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import './NotificationDropdown.css';
 
 const NotificationDropdown = () => {
+    // refreshNotifications function context se zaroor destructure karein
     const { notifications, unreadCount, markRead, markAllRead, removeNotification, refreshNotifications } = useNotification();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('Friends');
+
+    // ✅ FIX: Component mount hote hi notifications refresh karein
+    // Isse agar backend se naya data aaya hai to dot turant dikh jayega
+    useEffect(() => {
+        refreshNotifications();
+
+        // Optional: Agar aapke paas WebSocket nahi hai aur aap chahte hain ki 
+        // har 1 minute mein check kare, toh ye uncomment karein:
+        /*
+        const interval = setInterval(() => {
+            refreshNotifications();
+        }, 60000);
+        return () => clearInterval(interval);
+        */
+    }, []); // Empty array ka matlab hai ye sirf ek baar chalega jab component load hoga
 
     // Grouping Logic
     const groupedNotifications = {
@@ -53,9 +69,12 @@ const NotificationDropdown = () => {
     const toggleDropdown = async () => {
         const newIsOpen = !isOpen;
         setIsOpen(newIsOpen);
+
         if (newIsOpen) {
+            // Dropdown khulte hi latest data fetch karein
             refreshNotifications();
-            // Mark all as read when opening dropdown
+
+            // Bell click hote hi saare notifications read mark ho jayenge aur dot gayab ho jayega
             if (unreadCount > 0) {
                 markAllRead();
             }
@@ -101,6 +120,7 @@ const NotificationDropdown = () => {
         );
     };
 
+    // Close on click outside logic
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (isOpen && !event.target.closest('.dropdown')) {
@@ -126,6 +146,7 @@ const NotificationDropdown = () => {
                     onClick={toggleDropdown}
                 >
                     <FaBell size={24} />
+                    {/* Unread Count Logic for Red Dot */}
                     {unreadCount > 0 && (
                         <span className="position-absolute top-0 start-100 translate-middle rounded-circle d-block notification-unread-badge">
                             <span className="visually-hidden">unread messages</span>
@@ -133,6 +154,7 @@ const NotificationDropdown = () => {
                     )}
                 </button>
 
+                {/* ... Baaki ka dropdown menu code same rahega ... */}
                 <div
                     className={`dropdown-menu dropdown-menu-end p-0 notification-menu ${isOpen ? 'show' : ''}`}
                     aria-labelledby="notificationDropdown"
@@ -140,6 +162,7 @@ const NotificationDropdown = () => {
                     {/* Header */}
                     <div className="p-3 border-bottom d-flex justify-content-between align-items-center notification-header">
                         <h6 className="m-0 fw-bold notification-header-title">Notifications</h6>
+                        {/* Optional: Clear All button yahan add kar sakte hain */}
                     </div>
 
                     {/* Tabs */}

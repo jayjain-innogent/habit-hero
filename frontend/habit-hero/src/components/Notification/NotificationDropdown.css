@@ -20,14 +20,58 @@
 /* Bell button */
 .notification-bell-btn {
     color: #8CA9FF;
+    position: relative !important;
+    display: inline-block !important;
+    padding: 8px !important;
 }
 
-/* Unread badge dot */
+/* Unread badge dot - Override all Bootstrap positioning */
 .notification-unread-badge {
-    width: 10px;
-    height: 10px;
-    background: #FF4D4D;
-    border: 2px solid white;
+    width: 12px !important;
+    height: 12px !important;
+    min-width: 12px !important;
+    min-height: 12px !important;
+    background: #FF4D4D !important;
+    border: 2px solid white !important;
+    box-shadow: 0 0 8px rgba(255, 77, 77, 0.8) !important;
+    z-index: 999999 !important;
+    position: absolute !important;
+    top: 2px !important;
+    right: 2px !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+    display: block !important;
+}
+
+/* Override Bootstrap's translate-middle class */
+.notification-bell-btn .translate-middle {
+    transform: none !important;
+}
+
+/* Override Bootstrap's start-100 class */
+.notification-bell-btn .start-100 {
+    left: auto !important;
+}
+
+/* Override Bootstrap's top-0 class for our badge */
+.notification-bell-btn .top-0.notification-unread-badge {
+    top: 2px !important;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 6px rgba(255, 77, 77, 0.6);
+    }
+
+    50% {
+        transform: scale(1.15);
+        box-shadow: 0 0 10px rgba(255, 77, 77, 0.8);
+    }
 }
 
 /* Dropdown menu */
