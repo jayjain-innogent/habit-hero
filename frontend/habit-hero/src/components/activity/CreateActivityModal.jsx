@@ -117,7 +117,7 @@ useEffect(() => {
       Example tone: "I successfully maintained my meditation habit with an 85% completion rate this week, achieving a 5-day streak! This consistent practice has really helped me feel more centered and focused throughout my busy days."`;
 
 
-     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=AIzaSyDOSfWFFpJNsuj12zYXe5UjdCLzwbxUixk`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
        method: 'POST',
        headers: {
          'Content-Type': 'application/json',
