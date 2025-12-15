@@ -12,31 +12,14 @@ const generateHTMLReport = (dashboardData) => {
   const motivationMessage = dashboardData.motivationMessage || 'Keep building great habits!';
   
   // Extract actual data from API response and map to expected format
-  let cardData = [];
-  if (Array.isArray(dashboardData.cardData)) {
-    cardData = dashboardData.cardData.map(card => ({
-      title: card.title || 'Unknown',
-      value: card.value !== undefined ? card.value : 'N/A'
-    }));
-  } else if (dashboardData.cardData && typeof dashboardData.cardData === 'object') {
-    // Handle object structure from DashboardCards component
-    const data = dashboardData.cardData;
-    cardData = [
-      { title: 'Overall Score', value: `${data.scorePercentage || 0}%` },
-      { title: 'Current Streak', value: data.currentStreak || 0 },
-      { title: 'Perfect Days', value: data.perfectDays || 0 },
-      { title: 'Longest Streak', value: data.longestStreak || 0 },
-      { title: 'Active Days', value: data.activeDaysCount || 0 }
-    ];
-  } else {
-    // Create default cards from available data
-    cardData = [
-      { title: 'Overall Score', value: `${dashboardData.scorePercentage || 0}%` },
-      { title: 'Current Streak', value: dashboardData.currentStreak || 0 },
-      { title: 'Perfect Days', value: dashboardData.perfectDays || 0 },
-      { title: 'Active Days', value: dashboardData.activeDaysCount || 0 }
-    ];
-  }
+  const data = dashboardData.cardData || {};
+  const cardData = [
+    { title: 'Overall Score', value: `${data.scorePercentage || 0}%` },
+    { title: 'Current Streak', value: `${data.currentStreak || 0}` },
+    { title: 'Perfect Days', value: `${data.perfectDays !== undefined ? data.perfectDays : 0}` },
+    { title: 'Longest Streak', value: `${data.longestStreak || 0}` },
+    { title: 'Active Days', value: `${data.activeDaysCount || 0}` }
+  ];
   
   // Handle tableData - could be different field names
   let tableData = [];
@@ -46,15 +29,17 @@ const generateHTMLReport = (dashboardData) => {
   
   // Normalize table data fields
   tableData = tableData.map(habit => ({
-    habitName: habit.habitName || 'Unknown Habit',
-    completionRate: habit.efficiency || 0,
-    streak: cardData.currentStreak || 0,
-    category: habit.category || 'OTHER'
+    habitName: habit.habitName,
+    completionRate: habit.efficiency,
+    streak: habit.currentStreak,
+    category: habit.category,
+    taskCompletedCount: habit.taskCompletedCount,
+    totalTargetTask: habit.totalTargetTask
   }));
   
   const totalHabits = tableData.length || 0;
-  const completedHabits = tableData.filter(h => h.taskCompletedCount > 0).length || 0;
-  const overallScore = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0;
+  const completedHabits = tableData.filter(h => h.completionRate > 0).length || 0;
+  const overallScore = data.scorePercentage || (totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0);
   
   // Calculate category performance
   const categories = {};
@@ -81,11 +66,12 @@ const generateHTMLReport = (dashboardData) => {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; line-height: 1.6; }
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; }
-        .header { text-align: center; border-bottom: 3px solid #2c3e50; padding-bottom: 20px; margin-bottom: 30px; }
-        .header h1 { font-size: 32px; color: #2c3e50; margin-bottom: 10px; }
-        .header-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 15px; padding-top: 15px; font-size: 14px; color: #666; }
+        .header { text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; margin-bottom: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3); position: relative; overflow: hidden; }
+        .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat; pointer-events: none; }
+        .header h1 { font-size: 36px; color: white; margin-bottom: 8px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2); position: relative; z-index: 1; }
+        .header-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px; padding-top: 20px; font-size: 14px; color: rgba(255,255,255,0.9); border-top: 1px solid rgba(255,255,255,0.2); position: relative; z-index: 1; }
         .meta-item { text-align: center; }
-        .meta-label { font-weight: bold; color: #2c3e50; }
+        .meta-label { font-weight: bold; color: white; margin-bottom: 4px; display: block; }
         .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 40px; }
         .kpi-card { color: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .kpi-card.danger { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
@@ -96,20 +82,23 @@ const generateHTMLReport = (dashboardData) => {
         .kpi-value { font-size: 28px; font-weight: bold; margin-bottom: 5px; }
         .kpi-label { font-size: 12px; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
         .section { margin-bottom: 40px; }
-        .section-title { font-size: 20px; font-weight: bold; color: #2c3e50; border-left: 4px solid #667eea; padding-left: 15px; margin-bottom: 20px; }
+        .section-title { font-size: 20px; font-weight: bold; color: #2c3e50; border-left: 4px solid #667eea; padding-left: 15px; margin-bottom: 20px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 12px 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .progress-item { margin-bottom: 20px; }
         .progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
-        .progress-bar { height: 25px; background-color: #e0e0e0; border-radius: 12px; overflow: hidden; position: relative; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-size: 12px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        th { background-color: #2c3e50; color: white; padding: 12px; text-align: left; font-weight: 600; }
-        td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
+        .progress-bar { height: 30px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-radius: 15px; overflow: hidden; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .progress-fill { height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: flex-end; padding-right: 12px; color: white; font-size: 13px; font-weight: bold; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 12px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; }
+        td { padding: 14px 12px; border-bottom: 1px solid #e2e8f0; transition: background-color 0.2s; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        tr:hover { background-color: #f1f5f9; }
         .status-excellent { color: #27ae60; font-weight: bold; }
         .status-good { color: #3498db; font-weight: bold; }
         .status-warning { color: #e67e22; font-weight: bold; }
         .status-critical { color: #e74c3c; font-weight: bold; }
         .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .two-column .section { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+        .two-column .section-title { background: none; box-shadow: none; padding: 0 0 0 15px; margin-bottom: 15px; }
         .insight-box { background-color: #ecf0f1; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
         .insight-box.success { background-color: #d5f4e6; border-left-color: #27ae60; }
         .insight-box.warning { background-color: #fdebd0; border-left-color: #e67e22; }
@@ -127,7 +116,7 @@ const generateHTMLReport = (dashboardData) => {
     <div class="container">
         <div class="header">
             <h1>📊 HABIT TRACKING DASHBOARD</h1>
-            <h3 style="color: #666; margin-top: 10px;">Monthly Performance Report</h3>
+            <h3 style="color: rgba(255,255,255,0.9); margin-top: 10px; font-weight: 400; position: relative; z-index: 1;">Monthly Performance Report</h3>
             <div class="header-meta">
                 <div class="meta-item">
                     <div class="meta-label">Report Period</div>
@@ -156,7 +145,7 @@ const generateHTMLReport = (dashboardData) => {
             }).join('')}
             ${cardData.length < 5 ? `
             <div class="kpi-card success">
-                <div class="kpi-value">${Math.max(...(tableData.map(h => h.streak) || [0]))} 🔥</div>
+                <div class="kpi-value">${data.longestStreak || 0} 🔥</div>
                 <div class="kpi-label">Best Streak</div>
             </div>` : ''}
         </div>
@@ -200,13 +189,13 @@ const generateHTMLReport = (dashboardData) => {
             <div class="section">
                 <h2 class="section-title">🏆 Top Performers</h2>
                 <table>
-                    <thead><tr><th>Habit</th><th>Completion</th><th>Streak</th></tr></thead>
+                    <thead><tr><th>Habit</th><th>Completion</th><th>Task</th></tr></thead>
                     <tbody>
                         ${topPerformers.map(habit => `
                             <tr>
                                 <td>${habit.habitName}</td>
                                 <td style="color: #27ae60; font-weight: bold;">${habit.completionRate}%</td>
-                                <td>${habit.streak} days</td>
+                                <td>${habit.taskCompletedCount} /${habit.totalTargetTask} ✅</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -215,13 +204,13 @@ const generateHTMLReport = (dashboardData) => {
             <div class="section">
                 <h2 class="section-title">⚠️ Needs Improvement</h2>
                 <table>
-                    <thead><tr><th>Habit</th><th>Completion</th><th>Streak</th></tr></thead>
+                    <thead><tr><th>Habit</th><th>Completion</th><th>Task</th></tr></thead>
                     <tbody>
                         ${needsImprovement.map(habit => `
                             <tr>
                                 <td>${habit.habitName}</td>
                                 <td style="color: #e74c3c; font-weight: bold;">${habit.completionRate}%</td>
-                                <td>${habit.streak} days</td>
+                                <td>${habit.taskCompletedCount}/${habit.totalTargetTask} ✅</td>
                             </tr>
                         `).join('')}
                     </tbody>

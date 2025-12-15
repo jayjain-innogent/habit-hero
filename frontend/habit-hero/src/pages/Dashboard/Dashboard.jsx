@@ -20,8 +20,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('=== Dashboard Component Mount ===');
-    console.log('Token exists:', !!token);
     if (token) {
       console.log('Token expired:', isTokenExpired(token));
     }
@@ -29,11 +27,6 @@ const Dashboard = () => {
 
   const handleGenerateReport = () => {
     if (dashboardData) {
-      console.log('=== DASHBOARD DATA FOR PDF ===');
-      console.log('Full data:', dashboardData);
-      console.log('cardData:', dashboardData.cardData);
-      console.log('tableData:', dashboardData.tableData);
-      
       // Validate and structure data for PDF generation
       const validatedData = {
         ...dashboardData,
