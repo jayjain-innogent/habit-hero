@@ -12,15 +12,9 @@ import java.util.List;
 
 public interface FriendListRepository extends JpaRepository<FriendList, Long> {
 
+    //get all friends(in friendlist)
     @Query("SELECT fl FROM FriendList fl WHERE fl.user = :user OR fl.friend = :user")
     List<FriendList> findFriendsOfUser(@Param("user") User user);
-
-    @Query("""
-    SELECT CASE WHEN fl.user = :user THEN fl.friend ELSE fl.user END
-    FROM FriendList fl
-    WHERE fl.user = :user OR fl.friend = :user
-""")
-    List<User> findFriendsByUser(@Param("user") User user);
 
     @Modifying
     @Transactional
@@ -31,7 +25,7 @@ public interface FriendListRepository extends JpaRepository<FriendList, Long> {
     @Query("""
         SELECT COUNT(fl) > 0
         FROM FriendList fl
-        WHERE fl.user = :user AND fl.friend = :friend
+        WHERE (fl.user = :user AND fl.friend = :friend) OR (fl.user = :friend AND fl.friend = :user)
         """)
     boolean existsFriendship(@Param("user") User user, @Param("friend") User friend);
 
@@ -43,7 +37,7 @@ public interface FriendListRepository extends JpaRepository<FriendList, Long> {
     SELECT fl.user
     FROM FriendList fl
     WHERE fl.friend = :user
-""")
+    """)
     List<User> findUserFriends(@Param("user") User user);
 
 }
