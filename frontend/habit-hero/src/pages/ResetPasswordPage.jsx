@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaLeaf, FaLock, FaKey } from 'react-icons/fa';
 import AuthService from '../services/authService';
 
 const ResetPasswordPage = () => {
+    const navigate = useNavigate();
     const location = useLocation();
     const [formData, setFormData] = useState({ token: '', newPassword: '' });
     const [email, setEmail] = useState('');
@@ -17,7 +18,15 @@ const ResetPasswordPage = () => {
     }, [location]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name === 'token') {
+            // Allow only numbers
+            if (/^\d*$/.test(value)) {
+                setFormData({ ...formData, [name]: value });
+            }
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleSubmit = async (e) => {

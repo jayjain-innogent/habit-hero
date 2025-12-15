@@ -33,6 +33,12 @@ const AuthService = {
         // resetData should be { token: "...", newPassword: "..." }
         const response = await axiosInstance.post("/auth/reset-password", resetData);
         return response.data;
+    },
+
+    // F. Resend OTP
+    resendOtp: async (email) => {
+        const response = await axiosInstance.post("/auth/resend-otp", {}, { params: { email } });
+        return response.data;
     }
 };
 

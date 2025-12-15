@@ -13,6 +13,17 @@ const OtpVerificationPage = () => {
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [resendTimer, setResendTimer] = useState(60); // 60 seconds timer
+
+    useEffect(() => {
+        let timer;
+        if (resendTimer > 0) {
+            timer = setInterval(() => {
+                setResendTimer((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [resendTimer]);
 
     useEffect(() => {
         if (location.state && location.state.email) {
@@ -158,10 +169,37 @@ const OtpVerificationPage = () => {
                             </button>
 
                             <div className="text-center">
+                                <p className="text-muted small mb-2">OTP is valid for 15 minutes.</p>
                                 <span className="text-muted small">Didn't receive code? </span>
-                                <a href="#" className="fw-bold text-decoration-none small" style={{ color: '#8CA9FF' }}>
-                                    Resend
-                                </a>
+                                {resendTimer > 0 ? (
+                                    <span className="text-muted small fw-bold" style={{ color: '#8CA9FF' }}>
+                                        Resend in {resendTimer}s
+                                    </span>
+                                ) : (
+                                    <a
+                                        href="#"
+                                        className="fw-bold text-decoration-none small"
+                                        style={{ color: '#8CA9FF' }}
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            try {
+                                                if (!email) {
+                                                    setError('Email is missing. Please go back to signup.');
+                                                    return;
+                                                }
+                                                // Reset timer first to prevent double clicks
+                                                setResendTimer(60);
+                                                await AuthService.resendOtp(email);
+                                                alert('OTP resent successfully!');
+                                            } catch (err) {
+                                                console.error(err);
+                                                setError(err.response?.data?.message || 'Failed to resend OTP.');
+                                            }
+                                        }}
+                                    >
+                                        Resend
+                                    </a>
+                                )}
                             </div>
                         </form>
                     </div>

@@ -10,6 +10,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -60,5 +62,15 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
         tokenRepository.save(token);
 
         return token.getUser();
+    }
+
+    @Override
+    public Optional<VerificationToken> findFirstByUserAndTokenTypeOrderByCreatedAtDesc(User user, TokenType tokenType) {
+        return tokenRepository.findFirstByUserAndTokenTypeOrderByCreatedAtDesc(user, tokenType);
+    }
+
+    @Override
+    public List<VerificationToken> findAllByUserAndTokenTypeAndUsedFalse(User user, TokenType tokenType) {
+        return tokenRepository.findAllByUserAndTokenTypeAndUsedFalse(user, tokenType);
     }
 }

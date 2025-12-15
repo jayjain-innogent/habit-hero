@@ -29,6 +29,18 @@ public class AuthController {
         return ResponseEntity.ok(authService.verifyOtp(request));
     }
 
+    // New Endpoint for Resending OTP
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestParam String email) {
+        try {
+            authService.resendVerificationOtp(email);
+            return ResponseEntity.ok("New OTP sent successfully to your email.");
+        } catch (RuntimeException e) {
+            // Handle cases like user already verified or wait time active
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
