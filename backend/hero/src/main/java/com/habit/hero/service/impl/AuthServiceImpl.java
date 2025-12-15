@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -37,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
     private int otpExpirationMinutes;
 
     @Override
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
 
         // Check if email already registered
@@ -71,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void resendVerificationOtp(String email) {
 
         // Check if user exists
@@ -105,6 +108,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void forgotPassword(String email) {
 
         User user = userRepository.findByEmail(email)
@@ -168,6 +172,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public AuthResponse verifyOtp(VerifyOtpRequest request) {
 
         // Find User by email
@@ -209,6 +214,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void resetPassword(ResetPasswordRequest request) {
 
         // Find valid, unused token (OTP)

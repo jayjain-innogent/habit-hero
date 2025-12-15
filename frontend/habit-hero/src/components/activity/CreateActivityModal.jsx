@@ -134,13 +134,15 @@ useEffect(() => {
      const data = await response.json();
      
      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-       return data.candidates[0].content.parts[0].text;
+       const summary = data.candidates[0].content.parts[0].text;
+       return summary.length > 250 ? summary.substring(0, 250) + "..." : summary;
      } else {
        throw new Error('Invalid response format');
      }
    } catch (error) {
      console.error('Failed to generate summary:', error);
-     return `I've been working consistently on my ${habitTitle} habit this week and feeling great about the progress! This routine is really making a positive impact on my daily life.`;
+     const fallback = "I've been working consistently on my ${habitTitle} habit this week and feeling great about the progress! This routine is really making a positive impact on my daily life";
+     return fallback.length > 250 ? fallback.substring(0, 250) + "..." : fallback;
    }
  };
 
